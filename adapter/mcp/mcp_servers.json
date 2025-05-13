@@ -1,0 +1,15 @@
+{
+  "amap-maps": {
+    "server_name": "amap-maps",
+    "server_description": "高德地图mcp",
+    "server_tag": "aaa",
+    "command": "npx",
+    "args": [
+        "-y",
+        "@amap/amap-maps-mcp-server"
+    ],
+    "env": {
+        "AMAP_MAPS_API_KEY": ""
+    }
+  }
+}

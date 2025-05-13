@@ -1,23 +1,28 @@
+from typing import Optional, List
+
+from application.domain.generators.generator import LLMGenerator
 from common.core.container.annotate import component
 from application.port.outbound.generators_port import GeneratorsPort
-from common.utils.auth import Secret
-from application.port.inbound.generators_case import GeneratorsCase
+from application.port.inbound.model_case import ModelCase
 import injector
 
-from common.core.errors.business_exception import BusinessException
-from common.core.errors.business_error_code import GeneratorErrorCode
-from common.core.errors.common_exception import CommonException
-
 @component
-class GeneratorService(GeneratorsCase):
+class GeneratorService(ModelCase):
 
     @injector.inject
     def __init__(self, generators_port: GeneratorsPort):
         self.generators_port = generators_port
 
-    async def generate(self):
-        raise CommonException(GeneratorErrorCode.NO_APIKEY_FOUND)
-        self.generators_port.generate_stream(model="deepseek-r1",
-                                       api_secret=Secret.from_api_key("sk-e14209fb643f4d13bfb4f64701dec076"),
-                                       firm="tongyi")
+
+    async def model_list(self, firm: str) -> List[LLMGenerator]:
+        return self.generators_port.load_model_by_firm(firm)
+
+    async def enabled_model_list(self, firm: str) -> List[LLMGenerator]:
+        return self.generators_port.load_enabled_model_by_firm(firm)
+
+    async def enable_or_disable_model(self, firm: str, model: str, enabled: bool) -> Optional[bool]:
+        return self.generators_port.enable_or_disable_model(firm, model, enabled)
+
+
+
 

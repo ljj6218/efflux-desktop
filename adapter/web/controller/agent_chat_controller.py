@@ -10,20 +10,33 @@ logger = get_logger(__name__)
 def get_agent_generators_case() -> AgentGeneratorsCase:
     return get_container().get(AgentGeneratorsCase)
 
-router = APIRouter(prefix="/api/agent/chat", tags=["AgentChat"])
+router = APIRouter(prefix="/api/agent/chat", tags=["AGENT_CHAT"])
 
 
 
 @router.post("/default_chat")
 async def default_chat(agent_vo: DefaultAgentVo, background_tasks: BackgroundTasks, agent_generators_case: AgentGeneratorsCase = Depends(get_agent_generators_case)):
+
+    return await agent_generators_case.generate(
+        generator_id=agent_vo.generator_id,
+        system=agent_vo.system,
+        query=agent_vo.query,
+        conversation_id=agent_vo.conversation_id,
+        mcp_name_list=agent_vo.mcp_name_list,
+        user_confirm=agent_vo.user_confirm
+    )
+
+@router.post("/default_chat_stream")
+async def default_chat_stream(agent_vo: DefaultAgentVo, background_tasks: BackgroundTasks, agent_generators_case: AgentGeneratorsCase = Depends(get_agent_generators_case)) -> EventSourceResponse:
     # 定义一个异步生成器适配器，将异步生成器转化为可以迭代的流
     async def event_generator():
-        async for chunk in agent_generators_case.generate(
-                firm=agent_vo.firm,
-                model=agent_vo.model,
+        async for chunk in agent_generators_case.generate_stream(
+                generator_id=agent_vo.generator_id,
                 system=agent_vo.system,
                 query=agent_vo.query,
-                mcp_name_list=agent_vo.mcp_name_list
+                conversation_id=agent_vo.conversation_id,
+                mcp_name_list=agent_vo.mcp_name_list,
+                user_confirm=agent_vo.user_confirm,
         ):
             yield chunk  # 逐个yield异步生成器的内容
 

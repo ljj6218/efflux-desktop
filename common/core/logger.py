@@ -43,6 +43,16 @@ LOGGING_CONFIG = {
             "level": "DEBUG",
             "propagate": False,
         },
+        "common.utils.json_file_util": {
+            "handlers": ["console", "file"],
+            "level": "INFO",  # json读取工具 只显示 INFO 及以上级别的日志
+            "propagate": False,
+        },
+        "adapter.mcp.tools_adapter": {
+            "handlers": ["console", "file"],
+            "level": "INFO",  # mcp工具调用详情 只显示 INFO 及以上级别的日志
+            "propagate": False,
+        },
         "pdfminer": {
             "handlers": ["console", "file"],
             "level": "INFO",  # 只显示 INFO 及以上级别的日志
@@ -64,6 +74,11 @@ LOGGING_CONFIG = {
             "propagate": False,
         },
         "sse_starlette": {
+            "handlers": ["console", "file"],
+            "level": "INFO",  # 只显示 INFO 及以上级别的日志
+            "propagate": False,
+        },
+        "adapter.model_sdk.openai.client": {
             "handlers": ["console", "file"],
             "level": "INFO",  # 只显示 INFO 及以上级别的日志
             "propagate": False,

@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 from application.domain.mcp_server import MCPServer
-from typing import List, Optional
+from typing import Optional, List
 
-class MCPServerPort(ABC):
+class McpServerCase(ABC):
 
     @abstractmethod
-    def apply(self, mcp_server: MCPServer) -> str:
+    async def apply(self, mcp_server: MCPServer) -> str:
         """
         应用mcp
         :param mcp_server:
@@ -13,7 +13,7 @@ class MCPServerPort(ABC):
         """
 
     @abstractmethod
-    def load(self, server_name: str) -> MCPServer:
+    async def load(self, server_name: str) -> MCPServer:
         """
         获取mcp
         :param server_name:
@@ -21,7 +21,7 @@ class MCPServerPort(ABC):
         """
 
     @abstractmethod
-    def load_applied(self, server_name: str) -> MCPServer:
+    async def load_applied(self, server_name: str) -> MCPServer:
         """
         获取已应用的mcp
         :param server_name:
@@ -29,7 +29,7 @@ class MCPServerPort(ABC):
         """
 
     @abstractmethod
-    def load_applied_list(self, server_name: Optional[str] = None) -> List[MCPServer]:
+    async def load_applied_list(self, server_name: Optional[str] = None) -> List[MCPServer]:
         """
         获取所有已应用的mcp
         :param server_name:
@@ -37,7 +37,7 @@ class MCPServerPort(ABC):
         """
 
     @abstractmethod
-    def cancel_apply(self, server_name: str) -> str:
+    async def cancel_apply(self, server_name: str) -> str:
         """
         取消指定mcp应用
         :param server_name:
@@ -45,22 +45,16 @@ class MCPServerPort(ABC):
         """
 
     @abstractmethod
-    def load_list(self, server_name: Optional[str] = None, server_tag: Optional[str] = None) -> List[MCPServer]:
+    async def load_list(self, server_name: Optional[str] = None, server_tag: Optional[str] = None) -> List[MCPServer]:
         """
         获取所有的mcp
+        :param server_name: mcp 名
+        :param server_tag: mcp 类型tag
         :return:
         """
 
     @abstractmethod
-    async def is_authorized(self, server_name: str) -> str:
-        """
-        查询mcp server是否授权自动执行
-        :param server_name: mcp server name
-        :return: 是否授权
-        """
-
-    @abstractmethod
-    def execute_authorization(self, server_name: str, execute_authorization: bool) -> str:
+    async def execute_authorization(self, server_name: str, execute_authorization: bool) -> str:
         """
         授权mcp server 自动执行
         :param server_name: mcp server name

@@ -2,11 +2,13 @@ from mcp.types import CallToolResult
 
 from application.port.outbound.tools_port import ToolsPort
 from mcp import ClientSession, types
-from adapter.mcp.server_loader import load_config
 from mcp.client.stdio import StdioServerParameters, stdio_client
+import injector
 from common.core.container.annotate import component
 from application.domain.generators.tools import Tool, ToolInstance
 from common.core.errors.system_exception import ThirdPartyServiceException, ThirdPartyServiceApiCode
+from application.port.outbound.mcp_server_port import MCPServerPort
+from application.domain.mcp_server import MCPServer
 from typing import List
 from datetime import timedelta
 import json
@@ -23,8 +25,14 @@ class ToolsAdapter(ToolsPort):
     stdio 模式的 mcp server tools 调用
     """
 
+
+    @injector.inject
+    def __init__(self, mcp_server_port: MCPServerPort):
+        self.mcp_server_port = mcp_server_port
+
+
     async def load_tools(self, server_name) -> List[Tool]:
-        stdio_server_parameters: StdioServerParameters = load_config(server_name)
+        stdio_server_parameters: StdioServerParameters = self._load_config(server_name)
         tools = []
         async with stdio_client(stdio_server_parameters) as (read, write):
             async with ClientSession(read_stream=read, write_stream=write, read_timeout_seconds=delta) as session:
@@ -38,7 +46,7 @@ class ToolsAdapter(ToolsPort):
 
 
     async def call_tools(self, tool_instance: ToolInstance) -> dict[str, list[types.TextContent | types.ImageContent | types.EmbeddedResource] | str]:
-        stdio_server_parameters: StdioServerParameters = load_config(tool_instance.server_name)
+        stdio_server_parameters: StdioServerParameters = self._load_config(tool_instance.server_name)
         async with stdio_client(stdio_server_parameters) as (read, write):
             async with ClientSession(read_stream=read, write_stream=write, read_timeout_seconds=delta) as session:
                 await session.initialize()
@@ -57,3 +65,11 @@ class ToolsAdapter(ToolsPort):
                 for result_content in result.content:
                     data_list.append(result_content.model_dump_json())
                 return {"id": tool_instance.tool_call_id, "result": data_list}
+
+    def _load_config(self, server_name: str) -> StdioServerParameters:
+        mcp_server: MCPServer = self.mcp_server_port.load_applied(server_name)
+        return StdioServerParameters(
+            command= mcp_server.command,
+            args= mcp_server.args,
+            env= mcp_server.env,
+        )
