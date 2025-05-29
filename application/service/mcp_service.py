@@ -25,6 +25,9 @@ class McpServerService(McpServerCase):
     async def load_applied_list(self, server_name: Optional[str] = None) -> List[MCPServer]:
         return self.mcp_server_port.load_applied_list(server_name)
 
+    async def load_enabled_list(self, server_name: Optional[str] = None) -> List[MCPServer]:
+        return self.mcp_server_port.load_enabled_list(server_name)
+
     async def cancel_apply(self, server_name: str) -> str:
         return self.mcp_server_port.cancel_apply(server_name)
 
@@ -33,3 +36,6 @@ class McpServerService(McpServerCase):
 
     async def execute_authorization(self, server_name: str, execute_authorization: bool) -> str:
         return self.mcp_server_port.execute_authorization(server_name=server_name, execute_authorization=execute_authorization)
+
+    async def enabled(self, server_name: str, enabled: bool) -> str:
+        return self.mcp_server_port.enabled(server_name=server_name, enabled=enabled)

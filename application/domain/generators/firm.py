@@ -2,19 +2,20 @@ from pydantic import BaseModel, model_validator
 
 from common.utils.common_utils import create_uuid
 from common.utils.auth import ApiKeySecret, Secret
-from typing import Optional, Any, Self
+from typing import Optional, Any, Self, List
 
 
 class GeneratorFirm(BaseModel):
 
     id: str
     name: str
+    model_list: Optional[List[str]] = None
     base_url:Optional[str] = None
     api_key: Optional[ApiKeySecret] = None
 
     @classmethod
-    def from_init(cls, name: str, base_url: str) -> "GeneratorFirm":
-        return GeneratorFirm(id=create_uuid(), name=name, base_url=base_url)
+    def from_init(cls, name: str, base_url: str, model_list: Optional[List[str]] = None) -> "GeneratorFirm":
+        return GeneratorFirm(id=create_uuid(), name=name, base_url=base_url, model_list=model_list)
 
     @classmethod
     def from_set_firm(cls, name: str, base_url: str, api_key: str) -> "GeneratorFirm":

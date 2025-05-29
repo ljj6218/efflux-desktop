@@ -1,0 +1,43 @@
+{
+  "amap-maps": {
+    "server_name": "amap-maps",
+    "server_description": "高德地图mcp",
+    "server_tag": "aaa",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@amap/amap-maps-mcp-server"
+    ],
+    "env": {
+      "AMAP_MAPS_API_KEY": ""
+    }
+  },
+  "google-search": {
+    "server_name": "google-search",
+    "server_description": "谷歌搜索mcp",
+    "server_tag": "bbb",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@adenot/mcp-google-search"
+    ],
+    "env": {
+      "GOOGLE_API_KEY": "",
+      "GOOGLE_SEARCH_ENGINE_ID": ""
+    }
+  },
+  "playwright": {
+    "server_name": "playwright",
+    "server_description": "playwright 网络检索",
+    "server_tag": "bbb",
+    "command": "npx",
+    "args": [
+      "--directory",
+      "/your-playwright-mcp-server-clone-directory",
+      "run",
+      "@modelcontextprotocol/playwright-mcp-server"
+    ],
+    "env": {}
+  }
+
+}

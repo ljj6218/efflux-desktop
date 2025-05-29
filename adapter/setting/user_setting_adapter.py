@@ -36,19 +36,4 @@ class UserSettingAdapter(UserSettingPort):
             else:
                 firm_setting_list.append(GeneratorFirm.from_default(name=firm))
         return firm_setting_list
-# def set_firm_model_key(self, firm_name: str, api_key: str) -> bool:
-    #     user_setting_file_url = "user_setting.json"
-    #     user_setting = JSONFileUtil(user_setting_file_url)
-    #     llm_settings = user_setting.read_key("llm_key")
-    #     llm_settings.append({firm_name: api_key})
-    #     user_setting.update_key("llm_key", llm_settings)
-    #     return True
-    #
-    # def load_firm_model_key(self, firm_name) -> Optional[ApiKeySecret]:
-    #     user_setting_file_url = "user_setting.json"
-    #     user_setting = JSONFileUtil(user_setting_file_url)
-    #     llm_settings = user_setting.read_key("llm_key")
-    #     if firm_name in llm_settings:
-    #         return Secret.from_api_key(llm_settings[firm_name])
-    #     return None
 

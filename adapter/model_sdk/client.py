@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from common.utils.auth import Secret
 from typing import Any, Dict, Iterable, Optional, List, Generator
 from application.domain.generators.tools import Tool
-from application.domain.generators.chat_chunk.chunk import ChatChunk, ChatStreamingChunk
+from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 
 
 class ModelClient(ABC):

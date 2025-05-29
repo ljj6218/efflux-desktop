@@ -1,4 +1,28 @@
 import base64
+import os
+from typing import Optional
+
+def check_file_and_create(file_url: str, init_str:Optional[str] = None):
+    # 获取文件夹路径
+    folder_path = os.path.dirname(file_url)
+    # 如果文件夹不存在，则创建文件夹
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)  # 创建多级目录
+        print(f"Folder {folder_path} has been created.")
+    # 如果文件不存在，则创建该文件
+    if not os.path.exists(file_url):
+        with open(file_url, 'w') as file:  # 打开文件并自动创建
+            print(f"File {file_url} has been created.")
+            if init_str:
+                file.write(init_str)
+            pass  # 不需要写入任何内容，仅用于创建文件
+
+def del_file(file_url: str):
+    if os.path.exists(file_url):
+        os.remove(file_url)
+        print(f"File {file_url} has been removed.")
+    else:
+        print(f"File {file_url} does not exist.")
 
 def open_and_base64(file_path: str) -> str:
     with open(file_path, "rb") as f:

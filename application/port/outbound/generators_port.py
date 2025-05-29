@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
+from application.domain.generators.firm import GeneratorFirm
 from application.domain.generators.generator import LLMGenerator
 from application.domain.generators.tools import Tool
-from typing import Iterable, AsyncGenerator, List, Optional
+from typing import Iterable, Generator, AsyncGenerator, List, Optional
 
 class GeneratorsPort(ABC):
 
@@ -39,10 +40,32 @@ class GeneratorsPort(ABC):
         pass
 
     @abstractmethod
+    def generate_event(
+        self,
+        llm_generator: LLMGenerator,
+        messages: Iterable[ChatStreamingChunk] = None,
+        tools:Iterable[Tool] = None
+    ) -> Generator[ChatStreamingChunk, None, None]:
+        """
+        流式大模型消息接口
+        :param llm_generator: 生成模型对象
+        :param messages: 消息
+        :param tools: 工具数组
+        :return:
+        """
+        pass
+
+    @abstractmethod
     def load_generate(self, generate_id: str) -> LLMGenerator:
         """
         获取llm生成器
         :param generate_id: 模型生成器id
+        :return:
+        """
+    @abstractmethod
+    def load_firm(self) -> List[GeneratorFirm]:
+        """
+        返回所有厂商及模型
         :return:
         """
 
@@ -59,6 +82,13 @@ class GeneratorsPort(ABC):
         """
         获取用户设置启用的指定厂商模型列表
         :param firm_name:
+        :return:
+        """
+
+    @abstractmethod
+    def load_enabled_model(self) -> List[LLMGenerator]:
+        """
+        获取用户设置启用的模型列表
         :return:
         """
 

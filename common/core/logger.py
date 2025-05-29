@@ -6,14 +6,14 @@ LOGGING_CONFIG = {
     "disable_existing_loggers": False,  # 必须为 False
     "formatters": {
         "default": {
-            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            "format": "%(asctime)s - %(process)d - %(thread)d - %(name)s - %(levelname)s - %(message)s",
         },
         "detailed": {
-            "format": "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
+            "format": "%(asctime)s - %(process)d - %(thread)d - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
         },
         "color": {  # 带颜色的格式器
             "()": "colorlog.ColoredFormatter",
-            "format": "%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            "format": "%(log_color)s%(asctime)s %(process)s - %(thread)s - %(name)s - %(levelname)s - %(message)s",
             "datefmt": "%Y-%m-%d %H:%M:%S",
             "log_colors": {
                 "DEBUG": "white",
@@ -48,7 +48,7 @@ LOGGING_CONFIG = {
             "level": "INFO",  # json读取工具 只显示 INFO 及以上级别的日志
             "propagate": False,
         },
-        "adapter.mcp.tools_adapter": {
+        "adapter.tools.mcp.tools_adapter": {
             "handlers": ["console", "file"],
             "level": "INFO",  # mcp工具调用详情 只显示 INFO 及以上级别的日志
             "propagate": False,

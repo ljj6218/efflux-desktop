@@ -4,7 +4,7 @@ from application.port.outbound.tools_port import ToolsPort
 from application.port.outbound.mcp_server_port import MCPServerPort
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from application.domain.generators.generator import LLMGenerator
-from typing import List, AsyncGenerator, Optional, Set
+from typing import List, AsyncGenerator, Generator, Optional, Set
 import asyncio
 from common.core.logger import get_logger
 
@@ -82,7 +82,7 @@ class AgentGenerator:
                 if chunk and chunk.finish_reason == "tool_calls":
                     unauthorized_mcp_server_names: Set[str] = set()
                     for tool_call in chunk.tool_calls:
-                        if not await self.mcp_server_port.is_authorized(tool_call.mcp_server_name):
+                        if not self.mcp_server_port.is_authorized(tool_call.mcp_server_name):
                             unauthorized_mcp_server_names.add(tool_call.mcp_server_name)
                     # 判断是否有未授权的mcp server
                     if len(unauthorized_mcp_server_names) > 0:
@@ -122,7 +122,7 @@ class AgentGenerator:
         """
         for tool in self.tools:
             if tool.name == name:
-                tool_instance = ToolInstance(tool)
+                tool_instance = ToolInstance.from_init(name=tool.name, mcp_server_name=tool.server_name, description=tool.description, input_schema=tool.input_schema)
                 tool_instance.arguments = arg
                 tool_instance.tool_call_id = call_id
                 return tool_instance

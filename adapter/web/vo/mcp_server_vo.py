@@ -48,6 +48,8 @@ class MCPServerAppliedResultVo(BaseModel):
     server_name: str = None
     # 授权自动执行
     execute_authorization: bool = False
+    # mcp server 是否启用
+    enabled: bool = True
     # mcp server 配置 env list
     env: Dict[str, str] = None
     # mcp server 配置 arg list

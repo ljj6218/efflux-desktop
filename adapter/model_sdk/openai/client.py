@@ -4,7 +4,7 @@ from openai import OpenAI
 from adapter.model_sdk.client import ModelClient
 from common.utils.auth import Secret
 from common.core.errors.system_exception import ThirdPartyServiceException, ThirdPartyServiceApiCode
-from application.domain.generators.chat_chunk.chunk import ChatChunk, ChatStreamingChunk, CompletionUsage, ChatCompletionMessageToolCall
+from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, CompletionUsage, ChatCompletionMessageToolCall
 from openai.types.chat.chat_completion_tool_param import ChatCompletionToolParam
 from application.domain.generators.tools import Tool
 from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
@@ -99,11 +99,12 @@ class OpenAIClient(ModelClient):
             if hasattr(event, "type") and event.type == 'ping': # claude sse ping 兼容
                 logger.debug("LLM API SSE Pong")
             else:
-                # 补充每个chunk的role
-                if event.choices[0].delta.role:
-                    current_role = event.choices[0].delta.role
-                else:
-                    event.choices[0].delta.role = current_role
+                if len(event.choices) > 0:
+                    # 补充每个chunk的role
+                    if event.choices[0].delta.role:
+                        current_role = event.choices[0].delta.role
+                    else:
+                        event.choices[0].delta.role = current_role
 
                 chunk: ChatStreamingChunk = self._convert_stream_chunk(event, tool_calls, tools)
                 if chunk is not None:
@@ -152,6 +153,7 @@ class OpenAIClient(ModelClient):
             else:
                 message = {"role": chat_streaming_chunk.role, "content": chat_streaming_chunk.content}
                 message_list.append(message)
+        logger.debug(f"openai-api-message-list：{message_list}")
         return message_list
 
 
@@ -170,7 +172,7 @@ class OpenAIClient(ModelClient):
                                     completion_tokens=completion_chunk.usage.completion_tokens,
                                     total_tokens=completion_chunk.usage.total_tokens)
         # 拼接tools_call的请求参数
-        if completion_chunk.choices[0].delta.tool_calls:
+        if len(completion_chunk.choices) > 0 and completion_chunk.choices[0].delta.tool_calls:
             self._append_stream_tool_args(completion=completion_chunk, tool_calls=tool_calls, tools=tools)
             # 拼接完成
             if completion_chunk.choices[0].finish_reason == "function_calls":
@@ -181,14 +183,23 @@ class OpenAIClient(ModelClient):
 
     @staticmethod
     def _make_stream_chunk(completion: ChatCompletionChunk, tool_calls: List[ChatCompletionMessageToolCall], usage: CompletionUsage):
-        return ChatStreamingChunk(id=completion.id, model=completion.model, created=completion.created,
-                                  usage=usage,
-                                  finish_reason=completion.choices[0].finish_reason,
-                                  content=completion.choices[0].delta.content,
-                                  reasoning_content=None if not hasattr(completion.choices[0].delta,
-                                                                        "reasoning_content") else completion.choices[
-                                      0].delta.reasoning_content,
-                                  role=completion.choices[0].delta.role, tool_calls=tool_calls)
+
+        if len(completion.choices) > 0:
+            return ChatStreamingChunk(id=completion.id, model=completion.model, created=completion.created,
+                                      usage=usage,
+                                      finish_reason=completion.choices[0].finish_reason,
+                                      content=completion.choices[0].delta.content,
+                                      reasoning_content=None if not hasattr(completion.choices[0].delta,
+                                                                            "reasoning_content") else completion.choices[
+                                          0].delta.reasoning_content,
+                                      role=completion.choices[0].delta.role, tool_calls=tool_calls)
+        else:
+            return ChatStreamingChunk(id=completion.id, model=completion.model, created=completion.created,
+                                      usage=usage,
+                                      finish_reason="stop",
+                                      content="",
+                                      reasoning_content="",
+                                      role="assistant", tool_calls=tool_calls)
 
     def _append_stream_tool_args(self, completion: ChatCompletionChunk, tool_calls: List[ChatCompletionMessageToolCall], tools: List[Tool]):
         """
@@ -214,14 +225,15 @@ class OpenAIClient(ModelClient):
     @staticmethod
     def _match_mcp_server_name(chunk_tools_call: ChatCompletionMessageToolCall, tools: Iterable[Tool]) -> None:
         """
-        match mcp.server name
+        match mcp.server name and description
         :param chunk_tools_call: the call tools
         :param tools: mcp server tools
         :return:
         """
         for tool in tools:
             if chunk_tools_call.name == tool.name:
-                chunk_tools_call.mcp_server_name = tool.server_name
+                chunk_tools_call.mcp_server_name = tool.mcp_server_name
+                chunk_tools_call.description = tool.description
 
     @staticmethod
     def _convert_openai_tools(tools: Iterable[Tool]) -> List[ChatCompletionToolParam]:
@@ -235,7 +247,7 @@ class OpenAIClient(ModelClient):
             openai_tools.append(
                 {
                     "type": "function",
-                    "function": {"name": tool.name, "description": tool.description, "parameters": tool.inputSchema}
+                    "function": {"name": tool.name, "description": tool.description, "parameters": tool.input_schema}
                 }
             )
         return openai_tools

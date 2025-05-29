@@ -1,8 +1,16 @@
 from abc import ABC, abstractmethod
 from application.domain.generators.generator import LLMGenerator
+from application.domain.generators.firm import GeneratorFirm
 from typing import List, Optional
 
 class ModelCase(ABC):
+
+    @abstractmethod
+    async def firm_list(self) -> List[GeneratorFirm]:
+        """
+        获取所有模型厂商
+        :return:
+        """
 
     @abstractmethod
     async def model_list(self, firm: str) -> List[LLMGenerator]:

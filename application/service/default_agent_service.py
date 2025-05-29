@@ -6,7 +6,7 @@ from application.port.outbound.user_setting_port import UserSettingPort
 from application.port.outbound.mcp_server_port import MCPServerPort
 from application.domain.generators.agent import AgentGenerator
 from application.domain.generators.generator import LLMGenerator
-from application.domain.generators.tools import Tool
+from application.domain.generators.tools import Tool, ToolType
 from application.domain.generators.firm import GeneratorFirm
 from application.port.inbound.agent_generators_case import AgentGeneratorsCase
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
@@ -15,9 +15,15 @@ from common.core.errors.business_error_code import GeneratorErrorCode
 from common.core.errors.common_exception import CommonException, handle_async_exception
 from application.port.outbound.conversation_port import ConversationPort
 from application.domain.conversation import Conversation, DialogSegment
-from common.utils.auth import ApiKeySecret
+# from application.port.outbound.event_port import EventPort
+# from application.domain.event.event import Event, EventType
+from common.utils.markdown_util import read
 from typing import List, AsyncGenerator, Optional, Dict, Any
 import asyncio
+import ijson
+import threading
+import time
+import concurrent.futures
 from common.utils.file_util import open_and_base64, extract_pdf_text, extract_table_like_text
 import injector
 from common.core.logger import get_logger
@@ -35,7 +41,8 @@ class DefaultAgentService(AgentGeneratorsCase):
                  conversation_port: ConversationPort,
                  user_setting_port: UserSettingPort,
                  mcp_server_port: MCPServerPort,
-                 cache_port: CachePort
+                 cache_port: CachePort,
+                 # event_port: EventPort
                  ):
         self.generators_port = generators_port
         self.conversation_port = conversation_port
@@ -43,6 +50,7 @@ class DefaultAgentService(AgentGeneratorsCase):
         self.tools_port = tools_port
         self.user_setting_port = user_setting_port
         self.cache_port = cache_port
+        # self.event_port = event_port
 
     def _llm_generator(self, generator_id: str) -> LLMGenerator:
         # 获取厂商api key
@@ -73,7 +81,7 @@ class DefaultAgentService(AgentGeneratorsCase):
         # 工具装载
         tools: List[Tool] = []
         for mcp_name in mcp_name_list:
-            tools.extend(await self.tools_port.load_tools(mcp_name))
+            tools.extend(await self.tools_port.load_tools(group_name=mcp_name, tool_type=ToolType.MCP))
         # await asyncio.sleep(10)
         if tools:
             agent.add_tool(tools)
@@ -92,7 +100,7 @@ class DefaultAgentService(AgentGeneratorsCase):
         conversation.init()
         # 判断是否是历史会话
         if conversation_id:
-            history_conversation = await self.conversation_port.conversation_load(conversation_id=conversation_id)
+            history_conversation = self.conversation_port.conversation_load(conversation_id=conversation_id)
             if history_conversation:
                 conversation = history_conversation
                 # 加入短时记忆
@@ -100,7 +108,7 @@ class DefaultAgentService(AgentGeneratorsCase):
                 # 删除会话对话记录最后的工具调用对话片段
                 last_dialog_segment: DialogSegment = conversation.dialog_segment_list.pop()
                 if last_dialog_segment.finish_reason == "tool_calls":
-                    await self.conversation_port.dialog_segment_remove(last_dialog_segment)
+                    self.conversation_port.dialog_segment_remove(last_dialog_segment)
             else:
                 raise BusinessException(error_code=GeneratorErrorCode.NO_CONVERSATION_FOUND,
                                         dynamics_message=conversation_id)
@@ -142,11 +150,13 @@ class DefaultAgentService(AgentGeneratorsCase):
             # 保存用户输入
             user_dialog_segment = DialogSegment(conversation_id=conversation.id)
             user_dialog_segment.make_user_message(content=query)
-            await self.conversation_port.conversation_add(dialog_segment=user_dialog_segment)
+            self.conversation_port.conversation_add(dialog_segment=user_dialog_segment)
             query_chat_chunk = ChatStreamingChunk.from_user(query)
 
         if system:
             agent.set_system(system)
+        else:
+            agent.set_system(read("system_prompt.md"))
         # 记录AI返回结果拼接
         collected_reasoning_content, collected_content, is_finish, created = [], [], False, 0
         return await agent.run(query_chat_chunk)
@@ -178,7 +188,7 @@ class DefaultAgentService(AgentGeneratorsCase):
         # 工具装载
         tools: List[Tool] = []
         for mcp_name in mcp_name_list:
-            tools.extend(await self.tools_port.load_tools(mcp_name))
+            tools.extend(await self.tools_port.load_tools(group_name=mcp_name, tool_type=ToolType.MCP))
         # await asyncio.sleep(10)
         if tools:
             agent.add_tool(tools)
@@ -199,7 +209,7 @@ class DefaultAgentService(AgentGeneratorsCase):
         conversation.init()
         # 判断是否是历史会话
         if conversation_id:
-            history_conversation = await self.conversation_port.conversation_load(conversation_id=conversation_id)
+            history_conversation = self.conversation_port.conversation_load(conversation_id=conversation_id)
             if history_conversation:
                 conversation = history_conversation
                 # 加入短时记忆
@@ -207,7 +217,7 @@ class DefaultAgentService(AgentGeneratorsCase):
                 # 删除会话对话记录最后的工具调用对话片段
                 last_dialog_segment: DialogSegment = conversation.dialog_segment_list.pop()
                 if last_dialog_segment.finish_reason == "tool_calls":
-                    await self.conversation_port.dialog_segment_remove(last_dialog_segment)
+                    self.conversation_port.dialog_segment_remove(last_dialog_segment)
             else:
                 raise BusinessException(error_code=GeneratorErrorCode.NO_CONVERSATION_FOUND, dynamics_message=conversation_id)
         else:
@@ -244,14 +254,18 @@ class DefaultAgentService(AgentGeneratorsCase):
             # 保存用户输入
             user_dialog_segment = DialogSegment(conversation_id=conversation.id)
             user_dialog_segment.make_user_message(content=query)
-            await self.conversation_port.conversation_add(dialog_segment=user_dialog_segment)
+            self.conversation_port.conversation_add(dialog_segment=user_dialog_segment)
             query_chat_chunk = ChatStreamingChunk.from_user(query)
 
         if system:
             agent.set_system(system)
+        else:
+            agent.set_system(read("system_prompt.md"))
         # 记录AI返回结果拼接
         collected_reasoning_content, collected_content, is_finish, created= [], [], False, 0
+        self.cache_port.set_data(name=self.CACHE_NAME, key=f"{conversation.id}-buffer", value="")
         async for chunk in agent.run_stream(query_chat_chunk):
+            # self._i_json(chunk, conversation.id)
             # 返回统一设置会话id
             chunk.conversation_id = conversation.id
             if chunk.finish_reason == 'tool_calls':
@@ -259,6 +273,7 @@ class DefaultAgentService(AgentGeneratorsCase):
                 assistant_tool_calls_dialog_segment = DialogSegment(conversation_id=conversation.id)
                 assistant_tool_calls_dialog_segment.make_tool_calls(model=llm_generator.model, timestamp=chunk.created, tool_calls=chunk.tool_calls)
                 self.cache_port.set_data(name=self.CACHE_NAME, key=f"{conversation.id}-tool_call", value=assistant_tool_calls_dialog_segment)
+                # self.event_port(Event.from_init(event_type=EventType.TEXT, event_data=None))
             if chunk.role == 'assistant' and chunk.finish_reason == 'user_confirm':
                 logger.info(f"用户确认请求：{chunk}")
                 user_confirm_dialog_segment = DialogSegment(conversation_id=conversation.id)
@@ -269,20 +284,92 @@ class DefaultAgentService(AgentGeneratorsCase):
             if chunk.reasoning_content:
                 collected_reasoning_content.append(chunk.reasoning_content)
             if chunk.finish_reason == "stop":
-                created = chunk.created
-                is_finish = True
-            yield chunk.model_dump_json()
-            # AI返回结束记录AI返回
-            if is_finish:
-                assistant_dialog_segment = DialogSegment(conversation_id=conversation.id)
-                assistant_dialog_segment.make_assistant_message(content="".join(collected_content),
-                                                                reasoning_content= None if len(collected_reasoning_content)==0 else "".join(collected_reasoning_content),
-                                                                model=llm_generator.model, timestamp=created)
-                await self.conversation_port.conversation_add(dialog_segment=assistant_dialog_segment)
+                if not chunk.usage:
+                    created = chunk.created
+                    assistant_dialog_segment = DialogSegment(conversation_id=conversation.id)
+                    assistant_dialog_segment.make_assistant_message(content="".join(collected_content),
+                                                                    reasoning_content=None if len(
+                                                                        collected_reasoning_content) == 0 else "".join(
+                                                                        collected_reasoning_content),
+                                                                    model=llm_generator.model, timestamp=created)
+                    # AI返回结束记录AI返回,替换最后chunk的id
+                    chunk.id = assistant_dialog_segment.id
+                    yield chunk.model_dump_json()
+                    self.conversation_port.conversation_add(dialog_segment=assistant_dialog_segment)
+            else:
+                yield chunk.model_dump_json()
 
+    def _i_json(self, chunk: ChatStreamingChunk, conversation_id: str):
+        buffer: str = self.cache_port.get_from_cache(name=self.CACHE_NAME, key=f"{conversation_id}-buffer")
+        buffer += chunk.content
+        self.cache_port.set_data(name=self.CACHE_NAME, key=f"{conversation_id}-buffer", value=buffer)
+
+        # 逐步解析 JSON
+        start_pos = None
+        end_pos = None
+        object_start = False
+        current_position = 0
+        try:
+            # 使用 ijson 解析缓冲区中的 JSON 数据
+            # ijson.parse 会逐个事件返回
+            parser = ijson.parse(buffer)
+            print(f"chunk: ----> {chunk.content}")
+            print(buffer)
+            for prefix, event, value in parser:
+                # 跟踪当前解析的字符位置
+                if event == 'string' or event == 'map_key':
+                    current_position += len(value)
+
+                # 处理 msg 字段
+                if prefix == 'message' and event == 'string':
+                    msg_value = value
+                    logger.error(buffer)
+                    last_pos = buffer.rfind("\",")
+                    if last_pos != -1:
+                        first_pos = buffer.find("\"")
+                    # 从缓冲区中移除已解析的部分
+                        new_buffer = buffer[:first_pos] + buffer[last_pos+2:]
+                        self.cache_port.set_data(name=self.CACHE_NAME, key=f"{conversation_id}-buffer", value=new_buffer)
+                # # 处理 code.title 字段
+                if prefix == 'artifacts' and event == 'end_map':
+                    title_value = value
+                    logger.error(buffer)
+                    last_pos = buffer.rfind("}")
+                    if last_pos != -1:
+                        first_pos = buffer.find("\"")
+                    # 从缓冲区中移除已解析的部分
+                        new_buffer = buffer[:first_pos] + buffer[last_pos+2:]
+                        logger.warning(new_buffer)
+                        self.cache_port.set_data(name=self.CACHE_NAME, key=f"{conversation_id}-buffer", value=new_buffer)
+                # if event == 'start_map' and prefix == 'artifacts':
+                #     # 记录目标对象的开始位置
+                #     object_start = True
+                #     start_pos = current_position
+                #
+                # elif event == 'end_map' and object_start:
+                #     # 记录目标对象的结束位置
+                #     object_start = False
+                #     end_pos = current_position
+                #
+                # # 删除目标对象部分
+                # if start_pos is not None and end_pos is not None:
+                #     logger.error(buffer)
+                #     updated_json = buffer[:start_pos] + buffer[end_pos:]
+                #     self.cache_port.set_data(name=self.CACHE_NAME, key=f"{conversation_id}-buffer", value=updated_json)
+                #     logger.warning(updated_json)
+
+        except ijson.common.IncompleteJSONError:
+            # 如果解析失败，说明数据不完整，需要继续接收更多的 chunk
+            print("不完整")
+
+    def _update_conversation(self, conversation: Conversation):
+        # TODO 请求大模型总结会话主题并更新会话对象
+        self.conversation_port.conversation_update(conversation=conversation)
 
     async def _init_conversation(self, conversation: Conversation, query: str) -> Conversation:
         conversation.theme = query
-        return await self.conversation_port.conversation_save(conversation=conversation)
-        # TODO 异步总结会话主题
+        new_conversation: Conversation = self.conversation_port.conversation_save(conversation=conversation)
+        # 异步总结会话主题，但不等待它完成（即在后台执行）
+        # threading.Thread(target=self._update_conversation, args=(conversation,)).start()
+        return new_conversation
 

@@ -6,11 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from common.core.logger import get_logger, LOGGING_CONFIG
 from common.core.container.container import get_container
 from adapter.web.core.exception_registry import register_exception_handlers
+from application.port.outbound.task_port import TaskPort
+from application.port.outbound.event_port import EventPort
 import uvicorn
 import copy
 
 logger = get_logger(__name__)
-
 app = FastAPI()
 
 async def startup():
@@ -20,7 +21,10 @@ async def startup():
 
 async def shutdown():
     logger.info("app关闭")
-    # 关闭逻辑
+    # 关闭task线程池
+    get_container().get(TaskPort).shutdown()
+    # 关闭事件总线
+    get_container().get(EventPort).shutdown()
 
 app.add_event_handler("startup", startup)
 app.add_event_handler("shutdown", shutdown)
@@ -55,13 +59,12 @@ def include_routers_from_package(package: str):
 # 扫描指定包下的所有controller
 include_routers_from_package('adapter.web.controller')
 
-
 # 程序入口
 if __name__ == "__main__":
     # 配置 uvicorn 使用项目的日志配置
     # 从 uvicorn 获取默认日志配置
     uvicorn_log_config = copy.deepcopy(LOGGING_CONFIG)
-    
+
     # 确保 uvicorn 相关的日志器使用我们的配置
     for logger_name in ['uvicorn', 'uvicorn.error', 'uvicorn.access']:
         if logger_name not in uvicorn_log_config['loggers']:
@@ -71,11 +74,10 @@ if __name__ == "__main__":
                 'propagate': False,
             }
 
-
     uvicorn.run("main:app",
-                host="127.0.0.1",
+                host="0.0.0.0",
                 port=8000,
-                workers=2,
+                workers=1,
                 reload=True,
                 log_level="info",
                 log_config=uvicorn_log_config)

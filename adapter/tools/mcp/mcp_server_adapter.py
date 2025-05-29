@@ -8,7 +8,7 @@ from common.utils.json_file_util import JSONFileUtil
 @component
 class MCPServerAdapter(MCPServerPort):
 
-    mcp_servers_hub_file_url = "adapter/mcp/mcp_servers.json"
+    mcp_servers_hub_file_url = "adapter/tools/mcp/mcp_servers.json"
     user_mcp_servers_file_url = "mcp_servers.json"
 
     def apply(self, mcp_server: MCPServer) -> str:
@@ -60,6 +60,21 @@ class MCPServerAdapter(MCPServerPort):
             mcp_server_list.append(mcp_server)
         return mcp_server_list
 
+    def load_enabled_list(self, server_name: Optional[str] = None) -> List[MCPServer]:
+        user_mcp_servers = JSONFileUtil(self.user_mcp_servers_file_url)
+        mcp_server_list: List[MCPServer] = []
+        for mcp_name in user_mcp_servers.read().keys():
+            if server_name and not mcp_name.startswith(server_name):
+                continue
+            mcp_server_dict = user_mcp_servers.read_key(mcp_name)
+            if not mcp_server_dict['enabled']:
+                continue
+            mcp_server: MCPServer = MCPServer.model_validate(mcp_server_dict)
+            mcp_server.applied = True
+            mcp_server.server_name = mcp_name
+            mcp_server_list.append(mcp_server)
+        return mcp_server_list
+
     def cancel_apply(self, server_name: str) -> str:
         user_mcp_servers = JSONFileUtil(self.user_mcp_servers_file_url)
         user_mcp_servers.delete(server_name)
@@ -86,7 +101,7 @@ class MCPServerAdapter(MCPServerPort):
             mcp_server_list.append(mcp_server)
         return mcp_server_list
 
-    async def is_authorized(self, server_name: str) -> bool:
+    def is_authorized(self, server_name: str) -> bool:
         user_mcp_servers = JSONFileUtil(self.user_mcp_servers_file_url)
         mcp_server_dict = user_mcp_servers.read_key(server_name)
         if not mcp_server_dict:
@@ -98,5 +113,13 @@ class MCPServerAdapter(MCPServerPort):
         mcp_server_dict = user_mcp_servers.read_key(server_name)
         if mcp_server_dict:
             mcp_server_dict['execute_authorization'] = execute_authorization
+            user_mcp_servers.update_key(server_name, mcp_server_dict)
+        return server_name
+
+    def enabled(self, server_name: str, enabled: bool) -> str:
+        user_mcp_servers = JSONFileUtil(self.user_mcp_servers_file_url)
+        mcp_server_dict = user_mcp_servers.read_key(server_name)
+        if mcp_server_dict:
+            mcp_server_dict['enabled'] = enabled
             user_mcp_servers.update_key(server_name, mcp_server_dict)
         return server_name

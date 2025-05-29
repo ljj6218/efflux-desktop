@@ -37,6 +37,14 @@ class MCPServerPort(ABC):
         """
 
     @abstractmethod
+    def load_enabled_list(self, server_name: Optional[str] = None) -> List[MCPServer]:
+        """
+        获取所有已启用的mcp
+        :param server_name:
+        :return:
+        """
+
+    @abstractmethod
     def cancel_apply(self, server_name: str) -> str:
         """
         取消指定mcp应用
@@ -52,7 +60,7 @@ class MCPServerPort(ABC):
         """
 
     @abstractmethod
-    async def is_authorized(self, server_name: str) -> str:
+    def is_authorized(self, server_name: str) -> str:
         """
         查询mcp server是否授权自动执行
         :param server_name: mcp server name
@@ -65,5 +73,14 @@ class MCPServerPort(ABC):
         授权mcp server 自动执行
         :param server_name: mcp server name
         :param execute_authorization: 是否授权
+        :return:
+        """
+
+    @abstractmethod
+    def enabled(self, server_name: str, enabled: bool) -> str:
+        """
+        启用/禁用 mcp server
+        :param server_name: mcp server name
+        :param enabled: 是否启用
         :return:
         """

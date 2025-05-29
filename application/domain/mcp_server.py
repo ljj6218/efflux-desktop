@@ -9,8 +9,10 @@ class MCPServer(BaseModel):
     server_name: str = None
     # mcp server 描述
     server_description: Optional[str] = None
-    # mcp server 是否启用
+    # mcp server 是否应用
     applied: bool = False
+    # mcp server 是否启用
+    enabled: bool = True
     # tag
     server_tag: Optional[str] = None
     # 授权自动执行

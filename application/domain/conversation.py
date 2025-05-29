@@ -29,9 +29,12 @@ class DialogSegment(BaseModel):
     # 创建时间
     created: Optional[datetime] = None
 
-    def __init__(self, /, conversation_id: str, **data: Any):
+    def __init__(self, conversation_id: str, id: Optional[str] = None, **data: Any):
         super().__init__(**data)
-        self.id = create_uuid()
+        if id:
+            self.id = id
+        else:
+            self.id = create_uuid()
         self.conversation_id = conversation_id
 
     def make_user_message(self, content: str):
@@ -85,6 +88,8 @@ class Conversation(BaseModel):
     theme: Optional[str] = None
     # 创建时间
     created: Optional[datetime] = None
+    # 最后对话片段
+    last_dialog_segment: Optional[DialogSegment] = None
     # 当前会话最大长度
     max_length: int = 50
     # 对话片段集合
@@ -94,6 +99,10 @@ class Conversation(BaseModel):
         self.id = create_uuid()
         self.created = create_from_second_now()
         self.dialog_segment_list = []
+
+    @classmethod
+    def from_update_theme(cls, id: str, theme: str):
+        return cls(id=id, theme=theme)
 
     def convert_sort_memory(self) -> List[ChatStreamingChunk]:
         rs_list: List[ChatStreamingChunk] = []

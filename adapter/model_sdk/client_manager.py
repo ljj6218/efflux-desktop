@@ -1,10 +1,9 @@
-from openai import base_url
-
 from application.port.outbound.generators_port import GeneratorsPort
 from application.domain.generators.tools import Tool
 from application.domain.generators.generator import LLMGenerator
+from application.domain.generators.firm import GeneratorFirm
 from common.core.container.annotate import component
-from typing import Iterable, Dict, AsyncGenerator, Any, List, Optional
+from typing import Iterable, Dict, AsyncGenerator, Any, List, Optional, Generator
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from common.utils.yaml_util import load_yaml
 from adapter.model_sdk.client import ModelClient
@@ -15,8 +14,11 @@ import asyncio
 @component
 class ClientManager(GeneratorsPort):
 
-    def __init__(self, ):
+    user_setting_file_url = "user_setting.json"
+
+    def __init__(self):
         self.config: Dict[str, Any] = load_yaml('adapter/model_sdk/setting/openai/model.yaml')
+        self.user_setting = JSONFileUtil(self.user_setting_file_url)
 
     def load_generate(self, generate_id: str) -> Optional[LLMGenerator]:
         # 遍历项目内置支持的所有厂商
@@ -29,6 +31,12 @@ class ClientManager(GeneratorsPort):
                 if firm_model_dict['id'] == generate_id:
                     return LLMGenerator.model_validate(firm_model_dict)
         return None
+
+    def load_firm(self) -> List[GeneratorFirm]:
+        firm_list: List[GeneratorFirm] = []
+        for firm in self.config.keys():
+            firm_list.append(GeneratorFirm.from_init(name=firm, base_url=self.config[firm]['base_url'], model_list=self.config[firm]['model_list']))
+        return firm_list
 
     def load_model_by_firm(self, firm_name: str) -> List[LLMGenerator]:
         model_list: List[str] = self.config[firm_name]['model_list']
@@ -53,6 +61,12 @@ class ClientManager(GeneratorsPort):
                 generator_list.append(LLMGenerator.model_validate(firm_model_dict))
         return generator_list
 
+    def load_enabled_model(self) -> List[LLMGenerator]:
+        firm_list: List[GeneratorFirm] = []
+        for firm in self.config.keys():
+            firm_list.extend(self.load_enabled_model_by_firm(firm))
+        return firm_list
+
     def enable_or_disable_model(self, firm: str, model: str, enabled: bool) -> Optional[bool]:
         firm_model_config_url = f"adapter/model_sdk/setting/openai/{firm}_model.json"
         firm_model_config = JSONFileUtil(firm_model_config_url)
@@ -63,12 +77,6 @@ class ClientManager(GeneratorsPort):
             firm_model_config.delete(model)
         return True
 
-    # def __init__(self, ):
-    #     config: Dict[str, Any] = load_yaml('adapter/model_sdk/setting/openai/model.yaml')
-    #
-    #     self.model_map: Dict = load_yaml("adapter/model_sdk/setting/openai/model_position.yaml")
-    #     self.base_url_map: Dict = load_yaml("adapter/model_sdk/setting/openai/model_base_url.yaml")
-
     def generate(self,
          llm_generator: LLMGenerator,
          tools: Iterable[Tool] = None,
@@ -78,7 +86,8 @@ class ClientManager(GeneratorsPort):
          # tools: Optional[List[Tool]] = None,
          ) -> ChatStreamingChunk:
         client: ModelClient = OpenAIClient()
-        url = self.config[llm_generator.firm]["base_url"]
+        firm_setting = self.user_setting.read_key(llm_generator.firm)
+        url = firm_setting["base_url"]
         rs = client.generate(
             model=llm_generator.model,
             api_secret=llm_generator.api_key_secret,
@@ -86,7 +95,6 @@ class ClientManager(GeneratorsPort):
             message_list=messages,
             tools=tools
         )
-        print(rs)
         return rs
 
     async def generate_stream(self,
@@ -96,7 +104,8 @@ class ClientManager(GeneratorsPort):
         ) -> AsyncGenerator[ChatStreamingChunk, None]:
 
         client: ModelClient = OpenAIClient()
-        url = self.config[llm_generator.firm]["base_url"]
+        firm_setting = self.user_setting.read_key(llm_generator.firm)
+        url = firm_setting["base_url"]
         for chunk in client.generate_stream(
             model=llm_generator.model,
             api_secret=llm_generator.api_key_secret,
@@ -106,3 +115,19 @@ class ClientManager(GeneratorsPort):
         ):
             await asyncio.sleep(0.05) # 主动让出事件循环，避免流式响应时候其他接口的pending TODO 真特么丑陋，待优化吧
             yield chunk
+
+    def generate_event(self,
+        llm_generator: LLMGenerator,
+        messages: Iterable[ChatStreamingChunk] = None,
+        tools: Iterable[Tool] = None
+    ) -> Generator[ChatStreamingChunk, None, None]:
+        client: ModelClient = OpenAIClient()
+        firm_setting = self.user_setting.read_key(llm_generator.firm)
+        url = firm_setting["base_url"]
+        return client.generate_stream(
+                model=llm_generator.model,
+                api_secret=llm_generator.api_key_secret,
+                base_url=url,
+                message_list=messages,
+                tools=tools
+        )
