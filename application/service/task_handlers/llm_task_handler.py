@@ -68,6 +68,7 @@ class LLMTaskHandler(TaskHandler):
         generator_id = task_data['generator_id']
         mcp_name_list = task_data['mcp_name_list']
         tools_group_name_list = task_data['tools_group_name_list']
+        system = task_data['system'] if 'system' in task_data.keys() else None
 
 
         # 获取LLMGenerator
@@ -86,7 +87,8 @@ class LLMTaskHandler(TaskHandler):
         # message 封装
         messages: List[ChatStreamingChunk] = []
         # 拼装系统提示词
-        # messages.append(ChatStreamingChunk.from_system(read("system_prompt.md")))
+        if system:
+            messages.append(ChatStreamingChunk.from_system(system))
         # 拼装对话上下文
         history_message_list = history_conversation.convert_sort_memory()
         messages.extend(history_message_list)

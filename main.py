@@ -78,6 +78,6 @@ if __name__ == "__main__":
                 host="0.0.0.0",
                 port=8000,
                 workers=1,
-                reload=True,
+                reload=False,
                 log_level="info",
                 log_config=uvicorn_log_config)

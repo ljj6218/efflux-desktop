@@ -124,6 +124,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
         self,
         generator_id: str,
         query: str,
+        system: str,
         conversation_id: str,
         mcp_name_list: Optional[List[str]] = None,
         tools_group_name_list: Optional[List[str]] = None,
@@ -146,6 +147,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
                     "conversation_id": conversation_id,
                     "generator_id": generator_id,
                     "content": query,
+                    "system": system,
                     "mcp_name_list": mcp_name_list,
                     "tools_group_name_list": tools_group_name_list,
                 }

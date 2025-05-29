@@ -64,8 +64,8 @@ class ToolInstance(Tool):
         # 使用 super() 获取字典格式
         data = super().model_dump()
         # 类型转换为字符串，用于持久化
-        if 'type' in data:
-            data['type'] = data['type'].value
+        # if 'type' in data:
+        #     data['type'] = data['type']
         # 忽略字段
         if 'input_schema' in data:
             del data['input_schema']

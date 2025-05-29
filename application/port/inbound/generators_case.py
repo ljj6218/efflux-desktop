@@ -7,6 +7,7 @@ class GeneratorsCase(ABC):
     async def generate_stream(self,
         generator_id: str,
         query: str,
+        system: str,
         conversation_id: str,
         mcp_name_list: Optional[List[str]] = None,
         tools_group_name_list: Optional[List[str]] = None,
@@ -16,9 +17,11 @@ class GeneratorsCase(ABC):
         ppt生成交互
         :param generator_id: 生成模型id
         :param query: 用户消息
+        :param system: 系统提示词
         :param conversation_id: 会话id
         :param mcp_name_list: mcp名列表
         :param task_confirm: 任务确认
+        :param tools_group_name_list
         :return:
         """
 
