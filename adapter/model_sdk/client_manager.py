@@ -97,24 +97,24 @@ class ClientManager(GeneratorsPort):
         )
         return rs
 
-    async def generate_stream(self,
-        llm_generator: LLMGenerator,
-        tools: Iterable[Tool] = None,
-        messages: Iterable[ChatStreamingChunk] = None
-        ) -> AsyncGenerator[ChatStreamingChunk, None]:
-
-        client: ModelClient = OpenAIClient()
-        firm_setting = self.user_setting.read_key(llm_generator.firm)
-        url = firm_setting["base_url"]
-        for chunk in client.generate_stream(
-            model=llm_generator.model,
-            api_secret=llm_generator.api_key_secret,
-            base_url=url,
-            message_list=messages,
-            tools=tools
-        ):
-            await asyncio.sleep(0.05) # 主动让出事件循环，避免流式响应时候其他接口的pending TODO 真特么丑陋，待优化吧
-            yield chunk
+    # async def generate_stream(self,
+    #     llm_generator: LLMGenerator,
+    #     tools: Iterable[Tool] = None,
+    #     messages: Iterable[ChatStreamingChunk] = None
+    #     ) -> AsyncGenerator[ChatStreamingChunk, None]:
+    #
+    #     client: ModelClient = OpenAIClient()
+    #     firm_setting = self.user_setting.read_key(llm_generator.firm)
+    #     url = firm_setting["base_url"]
+    #     for chunk in client.generate_stream(
+    #         model=llm_generator.model,
+    #         api_secret=llm_generator.api_key_secret,
+    #         base_url=url,
+    #         message_list=messages,
+    #         tools=tools
+    #     ):
+    #         await asyncio.sleep(0.05) # 主动让出事件循环，避免流式响应时候其他接口的pending TODO 真特么丑陋，待优化吧
+    #         yield chunk
 
     def generate_event(self,
         llm_generator: LLMGenerator,

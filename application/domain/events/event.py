@@ -22,11 +22,14 @@ class EventSubType(Enum):
     # system
     ERROR = "ERROR" # 错误
     HEARTBEAT = "HEARTBEAT" # 心跳事件
+    STOP = "STOP"
     # user_confirm
     TOOL_CALL_CONFiRM = "TOOL_CALL_CONFiRM" # 工具调用确认
     TASK_RESULT_CONFiRM = "TASK_RESULT_CONFiRM" # 任务执行结果确认
     # agent
     AGENT_CALL = "AGENT_CALL"
+    LLM_CALL = "LLM_CALL"
+
     AGENT_CALL_RESULT = "AGENT_CALL_RESULT"
     AGENT_TOOL_CALL = "AGENT_TOOL_CALL"
     AGENT_TOOL_CALL_RESULT = "AGENT_TOOL_CALL_RESULT"
@@ -35,6 +38,7 @@ class EventGroupStatus(Enum):
     STARTED = "STARTED"
     SENDING = "SENDING"
     ENDED = "ENDED"
+    STOPPED = "STOPPED"
 
 class EventGroup(BaseModel):
     id: str # 组ID，标识属于同一组的事件
@@ -52,3 +56,8 @@ class Event(BaseModel):
     @classmethod
     def from_init(cls, data:Dict[str, Any], event_type: EventType, event_sub_type: EventSubType, group: Optional[EventGroup] = None, silent: Optional[bool] = False) -> "Event":
         return Event(id=create_uuid(), type=event_type, sub_type=event_sub_type, data=data, group=group, silent=silent, created=create_from_second_now_to_int())
+
+    @classmethod
+    def from_stop(cls, data:Dict[str, Any], group: Optional[EventGroup] = None, silent: Optional[bool] = False):
+        return Event(id=create_uuid(), type=EventType.SYSTEM, sub_type=EventSubType.STOP, data=data, group=group, silent=silent,
+                     created=create_from_second_now_to_int())

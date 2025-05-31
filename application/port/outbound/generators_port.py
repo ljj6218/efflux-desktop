@@ -23,21 +23,21 @@ class GeneratorsPort(ABC):
         """
         pass
 
-    @abstractmethod
-    async def generate_stream(
-        self,
-        llm_generator: LLMGenerator,
-        messages: Iterable[ChatStreamingChunk] = None,
-        tools:Iterable[Tool] = None
-    ) -> AsyncGenerator[ChatStreamingChunk, None]:
-        """
-        流式大模型消息接口
-        :param llm_generator: 生成模型对象
-        :param messages: 消息集合
-        :param tools: 工具数组
-        :return:
-        """
-        pass
+    # @abstractmethod
+    # async def generate_stream(
+    #     self,
+    #     llm_generator: LLMGenerator,
+    #     messages: Iterable[ChatStreamingChunk] = None,
+    #     tools:Iterable[Tool] = None
+    # ) -> AsyncGenerator[ChatStreamingChunk, None]:
+    #     """
+    #     流式大模型消息接口
+    #     :param llm_generator: 生成模型对象
+    #     :param messages: 消息集合
+    #     :param tools: 工具数组
+    #     :return:
+    #     """
+    #     pass
 
     @abstractmethod
     def generate_event(

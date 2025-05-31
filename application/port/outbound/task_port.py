@@ -8,6 +8,9 @@ class TaskPort(ABC):
     def execute_task(self, task: Task):
         pass
 
+    def cancel_task(self, task_id: str) -> bool:
+        pass
+
     @abstractmethod
     def shutdown(self):
         pass

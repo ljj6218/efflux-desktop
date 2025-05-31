@@ -73,6 +73,11 @@ LOGGING_CONFIG = {
             "level": "INFO",  # 只显示 INFO 及以上级别的日志
             "propagate": False,
         },
+        "websockets.server": {
+            "handlers": ["console", "file"],
+            "level": "DEBUG",  # 只显示 INFO 及以上级别的日志
+            "propagate": False,
+        },
         "sse_starlette": {
             "handlers": ["console", "file"],
             "level": "INFO",  # 只显示 INFO 及以上级别的日志
@@ -80,7 +85,7 @@ LOGGING_CONFIG = {
         },
         "adapter.model_sdk.openai.client": {
             "handlers": ["console", "file"],
-            "level": "INFO",  # 只显示 INFO 及以上级别的日志
+            "level": "DEBUG",  # 只显示 INFO 及以上级别的日志
             "propagate": False,
         },
         # "sqlalchemy": {  # 配置 SQLAlchemy 日志

@@ -133,7 +133,7 @@ class EventCollector:
             cls._group_events[group_id].append(event)
 
             # 如果是结束事件，标记组为已完成
-            if event.group.status == EventGroupStatus.ENDED:
+            if event.group.status == EventGroupStatus.ENDED or event.group.status == EventGroupStatus.STOPPED:
                 cls._group_completed[group_id] = True
                 completed = True
                 events = cls._group_events[group_id].copy()  # 复制事件列表，保持原始顺序

@@ -17,6 +17,12 @@ def check_file_and_create(file_url: str, init_str:Optional[str] = None):
                 file.write(init_str)
             pass  # 不需要写入任何内容，仅用于创建文件
 
+def check_file(file_url: str):
+    # 判断文件是否存在
+    if os.path.exists(file_url):
+        return True
+    return False
+
 def del_file(file_url: str):
     if os.path.exists(file_url):
         os.remove(file_url)

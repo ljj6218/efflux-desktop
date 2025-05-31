@@ -7,6 +7,8 @@ from application.port.inbound.test_case import TestCase
 from adapter.web.vo.test_vo import CachaVo
 from application.port.outbound.event_port import EventPort
 from application.domain.events.event import Event, EventType, EventSubType
+from common.core.connection_manager import manager
+from common.utils.common_utils import SINGLETON_WEBSOCKET_CLIENT_ID
 import threading
 from autogen_agentchat.teams._group_chat._base_group_chat_manager import (
     BaseGroupChatManager,
@@ -25,6 +27,10 @@ def background_task(message: str):
     import time
     time.sleep(5)  # 模拟耗时任务
     print(f"任务完成: {message}")
+
+@router.get("/test")
+async def test():
+    await manager.send_to(client_id=SINGLETON_WEBSOCKET_CLIENT_ID, message="test")
 
 @router.get("/read_md")
 async def load_mcp_server(back: BackgroundTasks) -> BaseResponse:
@@ -46,13 +52,18 @@ async def set_cacha(cacha_data: CachaVo, cacha: CachePort = Depends(cache_port))
 async def test_task(task_service: TestCase = Depends(test_case)) -> BaseResponse:
     return BaseResponse.from_success(data=await task_service.test_task())
 
+@router.get("/task_stop")
+async def test_task_stop(task_id:str, task_service: TestCase = Depends(test_case)) -> BaseResponse:
+    return BaseResponse.from_success(data=await task_service.test_task_stop(task_id=task_id))
+
 @router.get("/test123")
 async def test_123() -> BaseResponse:
     event = Event.from_init(
         event_type=EventType.AGENT,
         event_sub_type=EventSubType.AGENT_CALL,
         data={
-            "agent_id":"4877f996-2fb5-400d-9b26-245a824e325f"
+            "agent_id":"4877f996-2fb5-400d-9b26-245a824e325f",
+            "conversation_id":"1"
         }
     )
     EventPort.get_event_port().emit_event(event=event)

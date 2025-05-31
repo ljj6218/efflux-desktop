@@ -37,10 +37,6 @@ class Agent(BaseModel):
             instance_id=create_uuid(),
         )
 
-    @abstractmethod
-    def state(self) -> AgentState:
-        pass
-
     # def model_dump(self, **kwargs):
         #     # 使用 super() 获取字典格式
         #     data = super().model_dump()

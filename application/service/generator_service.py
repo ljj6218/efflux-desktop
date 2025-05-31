@@ -5,16 +5,21 @@ from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.generators_port import GeneratorsPort
 from application.port.inbound.model_case import ModelCase
 from application.domain.events.event import Event, EventType, EventSubType
+from application.domain.conversation import Conversation, DialogSegmentContent
 from common.core.container.annotate import component
-from common.utils.common_utils import create_uuid
+from common.utils.common_utils import create_uuid, CONVERSATION_STOP_FLAG_KEY
 from application.port.outbound.event_port import EventPort
 from application.port.inbound.generators_case import GeneratorsCase
 from application.port.outbound.user_setting_port import UserSettingPort
+from application.port.outbound.conversation_port import ConversationPort
+from application.port.outbound.cache_port import CachePort
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from application.port.outbound.tools_port import ToolsPort
 from application.domain.generators.tools import Tool, ToolInstance, ToolType
 from adapter.tools.local.browser.web_surfer import WebSurfer
+import base64
 from common.utils.markdown_util import read
+from common.utils.file_util import open_and_base64
 import injector
 import asyncio
 import json
@@ -33,11 +38,15 @@ class GeneratorService(ModelCase, GeneratorsCase):
                  event_port: EventPort,
                  tools_port: ToolsPort,
                  user_setting_port: UserSettingPort,
+                 conversation_port: ConversationPort,
+                 cache_port: CachePort,
         ):
         self.generators_port = generators_port
         self.event_port = event_port
         self.tools_port = tools_port
         self.user_setting_port = user_setting_port
+        self.conversation_port = conversation_port
+        self.cache_port = cache_port
 
     async def firm_list(self) -> List[GeneratorFirm]:
         return self.generators_port.load_firm()
@@ -66,11 +75,31 @@ class GeneratorService(ModelCase, GeneratorsCase):
         llm_generator: LLMGenerator = self._llm_generator(generator_id)
 
         message_list = []
-        message_list.append(ChatStreamingChunk.from_user(message=query))
-        ws = WebSurfer(generators_port=self.generators_port, name="test")
+        # Path to your image
+        image_path = "uploads/123.jpeg"
 
-        await ws.on_messages_stream(chunk_list=message_list, generator=llm_generator)
+        # Getting the base64 string
+        base64_image = open_and_base64(image_path)
 
+        user_msg = [
+            {
+                "text": query,
+                "type": "text"
+            },
+            {
+                "type": "image_url",
+                "image_url":{
+                    "url": f"data:image/jpeg;base64,{base64_image}"
+                }
+            }
+        ]
+        message_list.append(ChatStreamingChunk.from_user(message=user_msg))
+        # ws = WebSurfer(generators_port=self.generators_port, name="test")
+        #
+        # await ws.on_messages_stream(chunk_list=message_list, generator=llm_generator)
+
+        for a in self.generators_port.generate_event(llm_generator=llm_generator, messages=message_list, tools=[]):
+            print(a)
 
         return "ok"
 
@@ -123,13 +152,13 @@ class GeneratorService(ModelCase, GeneratorsCase):
     async def generate_stream(
         self,
         generator_id: str,
-        query: str,
+        query: Optional[str | List[DialogSegmentContent]],
         system: str,
         conversation_id: str,
         mcp_name_list: Optional[List[str]] = None,
         tools_group_name_list: Optional[List[str]] = None,
         task_confirm: Optional[Dict[str, Any]] = None,
-    ) -> str:
+    ) -> tuple[str | None, str]:
 
         if task_confirm:
             event_data: Dict[str, Any] = {
@@ -139,11 +168,30 @@ class GeneratorService(ModelCase, GeneratorsCase):
             }
             return self.event_port.emit_event(Event.from_init(event_type=EventType.TOOL_CALL_CONFiRM, event_data=event_data))
         else:
+            query_str=None
+            if isinstance(query, List):
+                for item in query:
+                    if item.type == 'text':
+                        query_str = item.content
+            # 创建会话
+            if not conversation_id:
+                conversation = Conversation()
+                conversation.init()
+                conversation.theme = query_str
+                conversation.dialog_segment_list = []
+                self.conversation_port.conversation_save(conversation=conversation)
+                conversation_id = conversation.id
+                logger.info(f"首次发送消息创建会话：[ID：{conversation.id} - 主题：{conversation.theme}]")
+            else:
+                logger.info(f"历史会话消息：[ID：{conversation_id}]")
+            uuid = create_uuid()
+            # 清楚会话的停止状态
+            self.cache_port.set_data(name=CONVERSATION_STOP_FLAG_KEY, key=conversation_id, value=False)
             event = Event.from_init(
                 event_type=EventType.USER_MESSAGE,
                 event_sub_type=EventSubType.MESSAGE,
                 data={
-                    "id": create_uuid(),
+                    "id": uuid,
                     "conversation_id": conversation_id,
                     "generator_id": generator_id,
                     "content": query,
@@ -153,19 +201,12 @@ class GeneratorService(ModelCase, GeneratorsCase):
                 }
             )
             logger.info(f"[GeneratorService]发起[{EventType.USER_MESSAGE} - {EventSubType.MESSAGE}]事件：[ID：{event.id}]")
-            return self.event_port.emit_event(event)
+            self.event_port.emit_event(event)
+            return conversation_id, uuid
 
-
-            # return self.event_port.emit_event(
-            #     Event.from_init(
-            #         event_type=EventType.USER_MESSAGE,
-            #         event_data=MessageEventData.from_user_message(
-            #             content=query, generator_id=generator_id,
-            #             conversation_id=conversation_id, mcp_name_list=mcp_name_list
-            #         )
-            #     )
-            # )
-
+    async def stop_generate(self, conversation_id: str) -> str:
+        self.cache_port.set_data(name=CONVERSATION_STOP_FLAG_KEY, key=conversation_id, value=True)
+        return conversation_id
 
     def _llm_generator(self, generator_id: str) -> LLMGenerator:
         # 获取厂商api key

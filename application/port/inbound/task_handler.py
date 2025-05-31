@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from application.domain.tasks.task import Task
+from application.domain.tasks.task import Task, TaskState
 
 class TaskHandler(ABC):
     """
@@ -20,3 +20,31 @@ class TaskHandler(ABC):
         执行任务类型
         :return:
         """
+
+    @abstractmethod
+    def state(self) -> TaskState:
+        """
+        获取当前状态
+        :return:
+        """
+
+    @abstractmethod
+    def set_state(self, state: TaskState):
+        """
+        设置当前状态
+        :param state:
+        :return:
+        """
+
+    @abstractmethod
+    def check_stop_flag(self) -> bool:
+        """
+        检查停止点
+        :return:
+        """
+    # @abstractmethod
+    # def is_stopped(self) -> bool:
+    #
+    #
+    # @abstractmethod
+    # def is_running(self) -> bool:

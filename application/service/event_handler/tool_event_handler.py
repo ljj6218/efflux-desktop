@@ -40,11 +40,9 @@ class ToolEventHandler(EventHandler):
                     conversation_id=tool_instance.conversation_id, dialog_segment_id=tool_instance.dialog_segment_id)
                 # 如果是单独的方法调用需要增加一个空的对话片段用于关联工具调用记录
                 if not dialog_segment:
-                    assistant_dialog_segment = DialogSegment(conversation_id=tool_instance.conversation_id,
-                                                             id=tool_instance.dialog_segment_id)
-                    assistant_dialog_segment.make_assistant_message(content="", reasoning_content=None,
-                                                                    model=event.data['model'],
-                                                                    timestamp=event.data['created'])
+                    assistant_dialog_segment = DialogSegment.make_assistant_message(
+                        conversation_id=tool_instance.conversation_id, id=tool_instance.dialog_segment_id,
+                        content="", reasoning_content=None, model=event.data['model'], timestamp=event.data['created'])
                     self.conversation_port.conversation_add(dialog_segment=assistant_dialog_segment)
                 self.tools_port.save_instance(tool_instance)
                 logger.info(f"保存工具调用实例记录--->{tool_instance.name} - {tool_instance.tool_call_id}")
@@ -54,7 +52,7 @@ class ToolEventHandler(EventHandler):
             logger.info(f"事件处理器[{self.type()}]发起[{TaskType.TOOL_CALL}]任务：[ID：{task.id}]")
             # 发送ws消息
             logger.info(f"事件处理器[{self.type()}]异步推送ws消息：[ID：{event.id}]")
-            asyncio.run(self.ws_message_port.send(event.model_dump_json()))
+            self.ws_message_port.send(event.model_dump_json())
 
         if event.sub_type == EventSubType.TOOL_CALL_RESULT:
             event.data['tools_call_result'] = True
@@ -62,7 +60,7 @@ class ToolEventHandler(EventHandler):
             task = Task.from_singleton(task_type=TaskType.LLM_CALL, data=event.data)
             TaskPort.get_task_port().execute_task(task)
             # ws返回
-            asyncio.run(self.ws_message_port.send(event.model_dump_json()))
+            self.ws_message_port.send(event.model_dump_json())
 
     def type(self) -> str:
         return EventType.TOOL.value

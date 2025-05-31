@@ -1,18 +1,19 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Any
+from application.domain.conversation import DialogSegmentContent
 
 class GeneratorsCase(ABC):
 
     @abstractmethod
     async def generate_stream(self,
         generator_id: str,
-        query: str,
+        query: Optional[str | List[DialogSegmentContent]],
         system: str,
         conversation_id: str,
         mcp_name_list: Optional[List[str]] = None,
         tools_group_name_list: Optional[List[str]] = None,
         task_confirm: Optional[Dict[str, Any]] = None,
-    ) -> str:
+    ) -> tuple[str | None, str]:
         """
         ppt生成交互
         :param generator_id: 生成模型id
@@ -22,6 +23,17 @@ class GeneratorsCase(ABC):
         :param mcp_name_list: mcp名列表
         :param task_confirm: 任务确认
         :param tools_group_name_list
+        :return:
+        """
+
+    @abstractmethod
+    async def stop_generate(
+        self,
+        conversation_id: str,
+    ) -> str:
+        """
+        停止生成
+        :param conversation_id:
         :return:
         """
 
