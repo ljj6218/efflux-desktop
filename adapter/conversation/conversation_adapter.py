@@ -1,6 +1,6 @@
 from typing import List, Dict, Optional
 import jsonlines
-from common.utils.file_util import check_file_and_create, del_file
+from common.utils.file_util import check_file_and_create, del_file, check_file
 from common.core.container.annotate import component
 from application.domain.conversation import Conversation, DialogSegment
 from application.port.outbound.conversation_port import ConversationPort
@@ -40,8 +40,8 @@ class ConversationAdapter(ConversationPort):
             writer.write(dialog_segment.model_dump())
         return dialog_segment
 
-    def dialog_segment_remove(self, dialog_segment: DialogSegment) -> str:
-        dialog_segment_file = f'conversations/{dialog_segment.conversation_id}.jsonl'
+    def dialog_segment_remove(self, conversation_id: str, dialog_segment_id: str) -> str:
+        dialog_segment_file = f'conversations/{conversation_id}.jsonl'
         segments = []
 
         # 读取现有对话段
@@ -50,15 +50,18 @@ class ConversationAdapter(ConversationPort):
                 # 将对象转换为 DialogSegment
                 history_dialog_segment = DialogSegment.model_validate(obj)
                 # 检查 ID，跳过待删除的段
-                if history_dialog_segment.id != dialog_segment.id:
+                if history_dialog_segment.id != dialog_segment_id:
                     segments.append(history_dialog_segment)
 
         # 重写文件，排除待删除的段
         with jsonlines.open(dialog_segment_file, mode='w') as writer:
-            for segment in segments:
-                writer.write(segment.model_dump())  # 写入更新后的数据
+            if len(segments) == 1: # 对话片段仅为一条的时候删除会话
+                self.conversation_remove(conversation_id=conversation_id)
+            else:
+                for segment in segments:
+                    writer.write(segment.model_dump())  # 写入更新后的数据
 
-        return dialog_segment.id
+        return dialog_segment_id
 
     def dialog_segment_find(self, conversation_id: str, dialog_segment_id) -> Optional[DialogSegment]:
         dialog_segment_file = f'conversations/{conversation_id}.jsonl'
@@ -101,18 +104,21 @@ class ConversationAdapter(ConversationPort):
     def conversation_load_list(self) -> List[Conversation]:
         conversation_file = f'conversations/conversations_list.jsonl'
         conversation_list: List[Conversation] = []
+        check_file_and_create(conversation_file)
         with jsonlines.open(conversation_file, mode='r') as reader:
             for obj in reader:
                 conversation = Conversation.model_validate(obj)
                 if conversation:
                     # 获取最后一条片段
                     dialog_segment_file = f'conversations/{conversation.id}.jsonl'
-                    with jsonlines.open(dialog_segment_file, mode='r') as sub_reader:
-                        dialog_segment_obj = None
-                        for sub_obj in sub_reader:
-                            dialog_segment_obj = sub_obj
-                        conversation.last_dialog_segment = DialogSegment.model_validate(dialog_segment_obj)
-                    conversation_list.append(conversation)
+                    if check_file(dialog_segment_file):
+                        with jsonlines.open(dialog_segment_file, mode='r') as sub_reader:
+                            dialog_segment_obj = None
+                            for sub_obj in sub_reader:
+                                dialog_segment_obj = sub_obj
+                            if dialog_segment_obj:
+                                conversation.last_dialog_segment = DialogSegment.model_validate(dialog_segment_obj)
+                        conversation_list.append(conversation)
         return conversation_list
 
     def conversation_remove(self, conversation_id: str) -> str:

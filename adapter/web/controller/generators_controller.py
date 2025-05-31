@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/generators", tags=["GENERATORS_CASE"])
 @router.post("/chat")
 async def chat(generators_vo: GeneratorsVo, generators_service: GeneratorsCase = Depends(generators_case)):
 
-    event_id = await generators_service.generate_stream(
+    conversation_id, uuid = await generators_service.generate_stream(
         generator_id=generators_vo.generator_id,
         query=generators_vo.query,
         system=generators_vo.system,
@@ -24,7 +24,11 @@ async def chat(generators_vo: GeneratorsVo, generators_service: GeneratorsCase =
         task_confirm=generators_vo.task_confirm
     )
 
-    return BaseResponse.from_success(data=event_id)
+    return BaseResponse.from_success(data={"conversation_id": conversation_id, "dialog_segment_id": uuid})
+
+@router.put("/stop")
+async def stop(conversation_id: str, generators_service: GeneratorsCase = Depends(generators_case)):
+    return BaseResponse.from_success(data={"conversation_id": await generators_service.stop_generate(conversation_id)})
 
 
 @router.post("/chat_test")

@@ -32,4 +32,4 @@ async def del_conversation_list(conversation_vo: ConversationDelVo, conversation
 
 @router.delete("/dialog_segment")
 async def del_dialog_segment(dialog_segment_vo :DialogSegmentDelVo, conversation_service: ConversationCase = Depends(conversation_case)):
-    return BaseResponse.from_success(data=await conversation_service.conversation_remove_dialog_segment(DialogSegment(id=dialog_segment_vo.id, conversation_id=dialog_segment_vo.conversation_id)))
+    return BaseResponse.from_success(data=await conversation_service.conversation_remove_dialog_segment(dialog_segment_id=dialog_segment_vo.id, conversation_id=dialog_segment_vo.conversation_id))

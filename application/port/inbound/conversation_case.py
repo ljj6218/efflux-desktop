@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from application.domain.conversation import Conversation, DialogSegment
-from typing import List
+from typing import List, Optional
 
 class ConversationCase(ABC):
 
@@ -9,7 +9,7 @@ class ConversationCase(ABC):
         """获取会话列表"""
 
     @abstractmethod
-    async def conversation_load(self, conversation_id: str) -> Conversation:
+    async def conversation_load(self, conversation_id: str) -> Optional[Conversation]:
         """获取会话"""
 
     @abstractmethod
@@ -22,10 +22,11 @@ class ConversationCase(ABC):
         """
 
     @abstractmethod
-    async def conversation_remove_dialog_segment(self, dialog_segment: DialogSegment):
+    async def conversation_remove_dialog_segment(self, conversation_id: str, dialog_segment_id: str) -> str:
         """
         删除对话片段
-        :param dialog_segment: 片段对象
+        :param conversation_id: 会话id
+        :param dialog_segment_id: 对话片段id
         :return:
         """
 

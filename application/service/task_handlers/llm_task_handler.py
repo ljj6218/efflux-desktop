@@ -1,14 +1,15 @@
-from application.domain.tasks.task import TaskType, Task
+from application.domain.tasks.task import TaskType, Task, TaskState
 from application.domain.events.event import Event, EventType, EventGroupStatus, EventSubType, EventGroup
 from application.port.inbound.task_handler import TaskHandler
 from common.core.container.annotate import component
-from common.utils.common_utils import create_uuid
+from common.utils.common_utils import create_uuid, CONVERSATION_STOP_FLAG_KEY, STREAM_STOP_FLAG_KEY
 from application.port.outbound.event_port import EventPort
 from application.domain.generators.firm import GeneratorFirm
 from application.port.outbound.user_setting_port import UserSettingPort
 from application.port.outbound.generators_port import GeneratorsPort
 from application.port.outbound.tools_port import ToolsPort
 from application.port.outbound.mcp_server_port import MCPServerPort
+from application.port.outbound.cache_port import CachePort
 from application.domain.generators.generator import LLMGenerator
 from application.domain.generators.tools import Tool, ToolInstance, ToolType
 from application.port.outbound.conversation_port import ConversationPort
@@ -18,6 +19,7 @@ from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, C
 from common.core.errors.common_exception import CommonException, handle_exception
 from common.utils.markdown_util import read
 from typing import List, Dict, Any, Optional
+import tiktoken
 import asyncio
 import injector
 import json
@@ -28,9 +30,11 @@ logger = get_logger(__name__)
 
 @component
 class LLMTaskHandler(TaskHandler):
+
     """
     默认chat模型调用
     """
+
     @injector.inject
     def __init__(
         self,
@@ -38,13 +42,15 @@ class LLMTaskHandler(TaskHandler):
         generators_port: GeneratorsPort,
         tools_port: ToolsPort,
         mcp_server_port: MCPServerPort,
-        conversation_port: ConversationPort
+        conversation_port: ConversationPort,
+        cache_port: CachePort,
     ):
         self.user_setting_port = user_setting_port
         self.generators_port = generators_port
         self.tools_port = tools_port
         self.mcp_server_port = mcp_server_port
         self.conversation_port = conversation_port
+        self.cache_port = cache_port
 
     # 动态计算 default 值的函数，接收异常对象
     @staticmethod
@@ -61,23 +67,23 @@ class LLMTaskHandler(TaskHandler):
 
     @handle_exception(default_func=_calculate_default_value)
     def execute(self, task: Task):
+        logger.info(f"LLM调用任务：[任务：{task.id}]")
         tools_call_result = True if 'tools_call_result' in task.data.keys() else False
         task_data: Dict[str, Any]  = task.data
         conversation_id = task_data['conversation_id']
-        uuid = create_uuid()
         generator_id = task_data['generator_id']
         mcp_name_list = task_data['mcp_name_list']
         tools_group_name_list = task_data['tools_group_name_list']
         system = task_data['system'] if 'system' in task_data.keys() else None
-
-
+        agent_id = task_data['agent_id'] if 'agent_id' in task_data.keys() else None
         # 获取LLMGenerator
         llm_generator: LLMGenerator = self._llm_generator(generator_id)
         # 工具装载
         tools: List[Tool] = []
         for mcp_name in mcp_name_list:
             tools.extend(asyncio.run(self.tools_port.load_tools(group_name=mcp_name, tool_type=ToolType.MCP)))
-
+        for tools_group_name in tools_group_name_list:
+            tools.extend(asyncio.run(self.tools_port.load_tools(group_name=tools_group_name, tool_type=ToolType.LOCAL)))
 
         # 查询会话历史
         history_conversation = self.conversation_port.conversation_load(conversation_id=conversation_id)
@@ -101,13 +107,16 @@ class LLMTaskHandler(TaskHandler):
                     # print(f"工具调用历史message：{tool_instance_list}")
                     messages.extend(self._tool_calls_history(tool_instance_list))
 
-        # 生成组事件id
-        group_event_id = create_uuid()
-
+        # 流式返回组id
+        uuid = create_uuid()
         # 记录是否已经发送了STARTED状态的事件
         started_event_sent = False
+        # 停止标记
+        stop_flag = False
 
         for chunk in self.generators_port.generate_event(llm_generator=llm_generator, messages=messages, tools=tools):
+            if chunk.usage: # 跳过用量chunk消息
+                continue
             # 确定当前事件的组状态
             group_status = EventGroupStatus.SENDING
             if not started_event_sent:
@@ -115,34 +124,72 @@ class LLMTaskHandler(TaskHandler):
                 started_event_sent = True
             elif chunk.finish_reason == 'stop':
                 group_status = EventGroupStatus.ENDED
-
+            # 停止检查
+            if self.cache_port.get_from_cache(name=CONVERSATION_STOP_FLAG_KEY, key=conversation_id):
+                group_status = EventGroupStatus.STOPPED
+                stop_flag = True
             # 工具调用
             if chunk.finish_reason == 'tool_calls':
+                if stop_flag:
+                    break
                 event = chunk.to_tool_calls_message_event(
                     id=uuid,
                     conversation_id=conversation_id,
+                    agent_id=agent_id,
                     generator_id=generator_id,
                     mcp_name_list=mcp_name_list,
                     tools_group_name_list=tools_group_name_list,
-                    event_group=EventGroup(id=group_event_id, status=EventGroupStatus.ENDED),
                 )
                 logger.info(f"任务处理器[{self.type()}]发起[{event.type} - {event.sub_type}]事件：[ID：{event.id}]")
                 EventPort.get_event_port().emit_event(event)
                 continue
-
+            # 消息返回
             event = chunk.to_assistant_message_event(
                 id=uuid,
                 conversation_id=conversation_id,
+                agent_id=agent_id,
                 generator_id=generator_id,
                 mcp_name_list=mcp_name_list,
                 tools_group_name_list=tools_group_name_list,
-                event_group=EventGroup(id=group_event_id, status=group_status),
+                event_group=EventGroup(id=uuid, status=group_status),
             )
             # logger.info(f"任务处理器[{self.type()}]发起[{event.type} - {event.sub_type}]事件：[ID：{event.id}]")
             EventPort.get_event_port().emit_event(event)
+            if stop_flag:
+                self._send_system_stop_event(agent_id, conversation_id, uuid)
+                break
+
+    def _send_system_stop_event(self, uuid: str, conversation_id: str, agent_id: str):
+        """
+        发起系统停止事件
+        :param uuid:
+        :param conversation_id:
+        :param agent_id:
+        :return:
+        """
+        event = Event.from_stop(
+            data={
+                "id": uuid,
+                "conversation_id": conversation_id,
+                "agent_id": agent_id,
+            },
+            # group=EventGroup(id=group_event_id, status=group_status),
+        )
+        logger.info(f"任务处理器[{self.type()}]发起[{event.type} - {event.sub_type}]事件：[ID：{event.id}]")
+        EventPort.get_event_port().emit_event(event)
 
     def type(self) -> str:
         return TaskType.LLM_CALL.value
+
+    def state(self) -> TaskState:
+        pass
+
+    def set_state(self, state: TaskState):
+        pass
+
+    def check_stop_flag(self) -> bool:
+        return self.cache_port.get_from_cache(name=CONVERSATION_STOP_FLAG_KEY, key=conversation_id)
+
 
     def _llm_generator(self, generator_id: str) -> LLMGenerator:
         # 获取厂商api key

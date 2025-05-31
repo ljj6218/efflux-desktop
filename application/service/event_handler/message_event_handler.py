@@ -3,7 +3,7 @@ from application.domain.tasks.task import Task, TaskType
 from application.port.inbound.event_handler import EventHandler
 from common.core.container.annotate import component
 from application.port.outbound.task_port import TaskPort
-from application.domain.conversation import Conversation, DialogSegment
+from application.domain.conversation import DialogSegment
 from application.port.outbound.conversation_port import ConversationPort
 from common.core.logger import get_logger
 import injector
@@ -20,19 +20,9 @@ class MessageEventHandler(EventHandler):
         self.conversation_port = conversation_port
 
     def handle(self, event: Event) -> None:
-        # 创建会话
-        if not event.data['conversation_id']:
-            conversation = Conversation()
-            conversation.init()
-            conversation.theme = event.data['content']
-            event.data['conversation_id'] = conversation.id
-            self.conversation_port.conversation_save(conversation=conversation)
-            logger.info(f"首次发送消息创建会话：[ID：{conversation.id} - 主题：{conversation.theme}]")
-        else:
-            logger.info(f"历史会话消息：[ID：{event.data['conversation_id']}]")
         # 保存用户输入
-        user_dialog_segment = DialogSegment(conversation_id=event.data['conversation_id'], id=event.data["id"])
-        user_dialog_segment.make_user_message(content=event.data['content'])
+        user_dialog_segment = DialogSegment.make_user_message(
+            content=event.data['content'], conversation_id=event.data['conversation_id'], id=event.data["id"])
         self.conversation_port.conversation_add(dialog_segment=user_dialog_segment)
         logger.info(f"保存用户对话片段：[ID：{user_dialog_segment.id} - 内容：{user_dialog_segment.content}]")
         # 构建LLM_CALL任务

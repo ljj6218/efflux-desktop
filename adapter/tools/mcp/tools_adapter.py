@@ -3,7 +3,7 @@ from mcp import ClientSession, types
 from mcp.client.stdio import StdioServerParameters, stdio_client
 import injector
 import jsonlines
-from common.utils.file_util import check_file_and_create
+from common.utils.file_util import check_file_and_create, check_file
 from common.core.container.annotate import component
 from application.domain.generators.tools import Tool, ToolInstance, ToolType
 from common.core.errors.system_exception import ThirdPartyServiceException, ThirdPartyServiceApiCode
@@ -44,14 +44,15 @@ class McpToolsAdapter:
     ) -> List[ToolInstance]:
         tool_calls_file = f"{self.tool_calls_file_pre_url}{conversation_id}.jsonl"
         tool_calls_list : List[ToolInstance] = []
-        with jsonlines.open(tool_calls_file, mode='r') as reader:
-            for obj in reader:
-                if dialog_segment_id is None and tool_call_id is None:
-                    tool_calls_list.append(ToolInstance.model_validate(obj))
-                if obj['dialog_segment_id'] == dialog_segment_id:
-                    tool_calls_list.append(ToolInstance.model_validate(obj))
-                if obj['tool_call_id'] == tool_call_id:
-                    tool_calls_list.append(ToolInstance.model_validate(obj))
+        if check_file(tool_calls_file):
+            with jsonlines.open(tool_calls_file, mode='r') as reader:
+                for obj in reader:
+                    if dialog_segment_id is None and tool_call_id is None:
+                        tool_calls_list.append(ToolInstance.model_validate(obj))
+                    if obj['dialog_segment_id'] == dialog_segment_id:
+                        tool_calls_list.append(ToolInstance.model_validate(obj))
+                    if obj['tool_call_id'] == tool_call_id:
+                        tool_calls_list.append(ToolInstance.model_validate(obj))
         return tool_calls_list
 
     def update_instance(self, tool_instance: ToolInstance) -> Optional[ToolInstance]:

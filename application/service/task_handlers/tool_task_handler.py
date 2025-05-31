@@ -1,4 +1,4 @@
-from application.domain.tasks.task import TaskType, Task
+from application.domain.tasks.task import TaskType, Task, TaskState
 from application.domain.events.event import EventType, Event, EventSubType, EventGroupStatus
 from application.port.outbound.event_port import EventPort
 from application.port.inbound.task_handler import TaskHandler
@@ -78,6 +78,16 @@ class ToolTaskHandler(TaskHandler):
 
     def type(self) -> str:
         return TaskType.TOOL_CALL.value
+
+    def state(self) -> TaskState:
+        pass
+
+    def set_state(self, state: TaskState):
+        pass
+
+    def check_stop_flag(self) -> bool:
+        pass
+
 
     async def _tools_call(self, tool_call_list: List[ToolInstance]):
         tool_call_task_list = []

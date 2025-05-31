@@ -9,7 +9,6 @@ import injector
 import threading
 import queue
 import time
-import uuid
 
 from common.core.logger import get_logger
 logger = get_logger(__name__)
@@ -114,8 +113,8 @@ class EventAdapter(EventPort):
                     group_queue.task_done()
                     
                     # 如果是组结束事件，则退出线程
-                    if event.group and event.group.status == EventGroupStatus.ENDED:
-                        logger.info(f"事件组[{group_id}]处理完成，线程退出")
+                    if event.group and (event.group.status == EventGroupStatus.ENDED or event.group.status == EventGroupStatus.STOPPED):
+                        logger.info(f"事件组[{group_id}]处理完成{event.group.status}，线程退出")
                         with self._group_lock:
                             if group_id in self._group_threads:
                                 del self._group_threads[group_id]
@@ -173,7 +172,7 @@ class EventAdapter(EventPort):
     def emit_event(self, event: Event) -> str:
         """发布事件"""
         # 只有非组内事件或组的开始/结束事件才打印日志
-        if not event.group or event.group.status in [EventGroupStatus.STARTED, EventGroupStatus.ENDED]:
+        if not event.group or event.group.status in [EventGroupStatus.STARTED, EventGroupStatus.ENDED, EventGroupStatus.STOPPED]:
             logger.info(f"事件发布 ---> [{event.id} - {event.type.value}]")
         
         # 如果是组事件，放入对应的组队列

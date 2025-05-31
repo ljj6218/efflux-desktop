@@ -9,7 +9,6 @@ from application.domain.conversation import DialogSegment
 from copy import deepcopy
 from common.core.logger import get_logger
 import injector
-import asyncio
 from typing import List
 
 logger = get_logger(__name__)
@@ -30,6 +29,8 @@ class AssistantMessageEventHandler(EventHandler):
         # 确保事件收集器已初始化
         EventCollector.initialize(timeout_seconds=10)
 
+        # self.aaa = ''
+
     def handle(self, event: Event) -> None:
         """
         处理接受LLM返回消息事件
@@ -45,17 +46,20 @@ class AssistantMessageEventHandler(EventHandler):
                         event.group.id,
                         self._handle_message_group
                     )
-                # 组事件结尾是工具调用，手动处理为组事件结束
-                if event.sub_type == EventSubType.TOOL_CALL:
-                # if hasattr(event.data, 'type') and event.data.type == MessageEventDataType.TOOL_CALL:
-                    event.group.status = EventGroupStatus.ENDED
+                # # 组事件结尾是工具调用，手动处理为组事件结束
+                # if event.sub_type == EventSubType.TOOL_CALL:
+                # # if hasattr(event.data, 'type') and event.data.type == MessageEventDataType.TOOL_CALL:
+                #     event.group.status = EventGroupStatus.ENDED
                 # 收集事件
                 EventCollector.collect_event(event)
 
             # 如果是消息事件，发送到WebSocket
             if event.sub_type == EventSubType.MESSAGE:
-                asyncio.run(self.ws_message_port.send(event.model_dump_json()))
+                # self.aaa += event.data['content']
+                # logger.warning(f"发送消息测试：{event}")
+                self.ws_message_port.send(event.model_dump_json())
         except Exception as e:
+            logger.exception(f"[{EventType.ASSISTANT_MESSAGE.value}] 事件[{event.id}]处理异常")
             logger.error(f"[{EventType.ASSISTANT_MESSAGE.value}]事件[{event.id}]处理异常[{e}]")
         # 注意同步方法中的执行的异步方法，后续的逻辑无法保证事件的顺序性
     
@@ -90,11 +94,13 @@ class AssistantMessageEventHandler(EventHandler):
                 copy_last_event.data['reasoning_content'] = full_reasoning_content
                 # 保存完整消息到会话历史
                 logger.info(f"组事件[{group_id}]结束，结果：{copy_last_event.group} - {copy_last_event.data['content']}")
-                # if copy_last_event.data['content']: # 连续调用工具，可能消息内容为空
-                assistant_dialog_segment = DialogSegment(conversation_id=copy_last_event.data['conversation_id'], id=copy_last_event.data['id'])
-                assistant_dialog_segment.make_assistant_message(content=copy_last_event.data['content'], reasoning_content=copy_last_event.data['reasoning_content'],
-                                                                model=copy_last_event.data['model'], timestamp=copy_last_event.data['created'])
-                self.conversation_port.conversation_add(dialog_segment=assistant_dialog_segment)
+                if copy_last_event.group.status == EventGroupStatus.ENDED: # 只保存正常结束的组消息
+                    # if copy_last_event.data['content']: # 连续调用工具，可能消息内容为空
+                    assistant_dialog_segment = DialogSegment.make_assistant_message(
+                        conversation_id=copy_last_event.data['conversation_id'], id=copy_last_event.data['id'],
+                        content=copy_last_event.data['content'], reasoning_content=copy_last_event.data['reasoning_content'],
+                        model=copy_last_event.data['model'], timestamp=copy_last_event.data['created'])
+                    self.conversation_port.conversation_add(dialog_segment=assistant_dialog_segment)
 
     def type(self) -> str:
         return EventType.ASSISTANT_MESSAGE.value

@@ -15,5 +15,8 @@ class TestService(TestCase):
         task = Task.from_singleton(task_type=TaskType.LLM_CALL, data={})
         self.task_manager.execute_task(task=task)
 
+    async def test_task_stop(self, task_id: str) -> bool:
+        return self.task_manager.cancel_task(task_id=task_id)
+
     def test(self):
         print("1111")

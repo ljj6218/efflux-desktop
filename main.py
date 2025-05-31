@@ -5,11 +5,15 @@ from importlib import import_module
 from fastapi.middleware.cors import CORSMiddleware
 from common.core.logger import get_logger, LOGGING_CONFIG
 from common.core.container.container import get_container
+from common.core.connection_manager import manager, dispatcher
 from adapter.web.core.exception_registry import register_exception_handlers
 from application.port.outbound.task_port import TaskPort
 from application.port.outbound.event_port import EventPort
+from application.port.outbound.cache_port import CachePort
+from common.utils.common_utils import CONVERSATION_STOP_FLAG_KEY, SINGLETON_WEBSOCKET_CLIENT_ID
 import uvicorn
 import copy
+import asyncio
 
 logger = get_logger(__name__)
 app = FastAPI()
@@ -18,6 +22,8 @@ async def startup():
     logger.info("app启动")
     # 启动容器
     get_container()
+    # 设置会话停止缓存
+    get_container().get(CachePort).set_data(name=CONVERSATION_STOP_FLAG_KEY, key="test", value=False)
 
 async def shutdown():
     logger.info("app关闭")
@@ -59,25 +65,86 @@ def include_routers_from_package(package: str):
 # 扫描指定包下的所有controller
 include_routers_from_package('adapter.web.controller')
 
-# 程序入口
-if __name__ == "__main__":
-    # 配置 uvicorn 使用项目的日志配置
-    # 从 uvicorn 获取默认日志配置
-    uvicorn_log_config = copy.deepcopy(LOGGING_CONFIG)
+# # 程序入口
+# if __name__ == "__main__":
+#     # 配置 uvicorn 使用项目的日志配置
+#     # 从 uvicorn 获取默认日志配置
+#     uvicorn_log_config = copy.deepcopy(LOGGING_CONFIG)
+#
+#     # 确保 uvicorn 相关的日志器使用我们的配置
+#     for logger_name in ['uvicorn', 'uvicorn.error', 'uvicorn.access']:
+#         if logger_name not in uvicorn_log_config['loggers']:
+#             uvicorn_log_config['loggers'][logger_name] = {
+#                 'handlers': ['console', 'file'],
+#                 'level': 'INFO',
+#                 'propagate': False,
+#             }
+#
+#     uvicorn.run("main:app",
+#                 host="0.0.0.0",
+#                 port=8000,
+#                 workers=1,
+#                 reload=False,
+#                 log_level="info",
+#                 log_config=uvicorn_log_config)
 
-    # 确保 uvicorn 相关的日志器使用我们的配置
+from websockets import serve
+
+async def ws_handler(websocket):
+    # 假设你在路径参数中指定了 client_id，例如 ws://localhost:8765/ws?client_id=abc
+    # query = dict((kv.split("=") for kv in websocket.request.path.split("?")[1].split("&")))
+    # client_id = query.get("client_id", SINGLETON_WEBSOCKET_CLIENT_ID)
+    client_id = SINGLETON_WEBSOCKET_CLIENT_ID
+    manager.register(client_id, websocket)
+
+    try:
+        async for message in websocket:
+            print(f"Received from {client_id}: {message}")
+            await websocket.send(f"Echo: {message}")
+    except Exception as e:
+        print(f"Connection error: {e}")
+    finally:
+        manager.unregister(client_id)
+
+# 同时启动 FastAPI 和 WebSocket
+async def main():
+    # 1. 自定义 WebSocket server（关闭压缩）
+    # ws_server = await serve(ws_handler, "0.0.0.0", 8765, compression=None, ping_interval=None)
+
+    ws_server = await serve(ws_handler, "0.0.0.0", 8765, ping_interval=None)
+
+    # 获取当前事件循环
+    loop = asyncio.get_running_loop()
+
+    # 启动消息派发器
+    dispatcher.start(loop)
+
+    # 2. 启动 FastAPI 应用（通过 uvicorn）
+    uvicorn_log_config = copy.deepcopy(LOGGING_CONFIG)
     for logger_name in ['uvicorn', 'uvicorn.error', 'uvicorn.access']:
         if logger_name not in uvicorn_log_config['loggers']:
             uvicorn_log_config['loggers'][logger_name] = {
-                'handlers': ['console', 'file'],
+                'handlers': ['console'],
                 'level': 'INFO',
                 'propagate': False,
             }
 
-    uvicorn.run("main:app",
-                host="0.0.0.0",
-                port=8000,
-                workers=1,
-                reload=False,
-                log_level="info",
-                log_config=uvicorn_log_config)
+    config = uvicorn.Config(
+        app=app,
+        host="0.0.0.0",
+        port=8000,
+        workers=1,
+        reload=True,
+        log_level="info",
+        log_config=uvicorn_log_config
+    )
+    server = uvicorn.Server(config)
+
+    # 并发运行两个服务
+    await asyncio.gather(
+        server.serve(),
+        ws_server.wait_closed(),  # 保持 WebSocket 运行
+    )
+
+if __name__ == "__main__":
+    asyncio.run(main())

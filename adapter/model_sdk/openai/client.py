@@ -1,5 +1,7 @@
 from typing import Optional, Dict, Any, Iterable, List, Generator
 import os
+
+import time
 from openai import OpenAI
 from adapter.model_sdk.client import ModelClient
 from common.utils.auth import Secret
@@ -54,15 +56,12 @@ class OpenAIClient(ModelClient):
                 tool_calls.append(
                     ChatCompletionMessageToolCall(id=openai_tool_call.id, name=openai_tool_call.function.name,
                                                   arguments=openai_tool_call.function.arguments))
-        return ChatStreamingChunk(id=completion.id, model=completion.model, created=completion.created,
-                         usage=CompletionUsage(prompt_tokens=completion.usage.prompt_tokens,
-                                               completion_tokens=completion.usage.completion_tokens,
-                                               total_tokens=completion.usage.total_tokens),
-                         finish_reason=completion.choices[0].finish_reason,
-                         content=completion.choices[0].message.content,
-                         reasoning_content=None if not hasattr(completion.choices[0].message, "reasoning_content") else completion.choices[0].message.reasoning_content,
-                         # reasoning_content=completion.choices[0].message.reasoning_content,
-                         role=completion.choices[0].message.role, tool_calls=tool_calls)
+        return ChatStreamingChunk.from_assistant(id=completion.id, model=completion.model, created=completion.created,
+                                                 content=completion.choices[0].message.content,
+                                                 finish_reason=completion.choices[0].finish_reason,
+                                                 reasoning_content=None if not hasattr(completion.choices[0].message, "reasoning_content") else completion.choices[0].message.reasoning_content,
+                                                 role=completion.choices[0].message.role,
+                                                 tool_calls=tool_calls)
 
     def generate_stream(
             self,
@@ -92,10 +91,15 @@ class OpenAIClient(ModelClient):
 
         tool_calls: List[ChatCompletionMessageToolCall] = []
         current_role = ""
+        # 记录是否已经开始返回流式事件
+        started_event = False
+        last_chunk = None
         for event in stream:
-            logger.debug("=======")
+            if not started_event:
+                started_event = True
+            logger.debug("============================================================================================")
             logger.debug(f"原始chunk返回：{event}")
-            logger.debug("=======")
+            logger.debug("============================================================================================")
             if hasattr(event, "type") and event.type == 'ping': # claude sse ping 兼容
                 logger.debug("LLM API SSE Pong")
             else:
@@ -106,9 +110,41 @@ class OpenAIClient(ModelClient):
                     else:
                         event.choices[0].delta.role = current_role
 
-                chunk: ChatStreamingChunk = self._convert_stream_chunk(event, tool_calls, tools)
-                if chunk is not None:
-                    yield chunk
+                chunk: ChatCompletionChunk = self._convert_stream_chunk_pretreatment(event, tool_calls, tools)
+                if chunk is not None and self._is_none_chunk(chunk):
+                    chat_streaming_chunk: ChatStreamingChunk = self._convert_stream_chunk(chunk)
+                    if chat_streaming_chunk is not None:
+                        # 发送stop事件
+                        group_stop_chunk = self._set_group_stop(last_chunk=last_chunk, current_chunk=chat_streaming_chunk, started_event=started_event)
+                        if group_stop_chunk:
+                            yield group_stop_chunk
+                        last_chunk = chat_streaming_chunk
+                        yield chat_streaming_chunk
+
+    def _is_none_chunk(self, chunk: ChatCompletionChunk) -> bool:
+        """
+        判断空的chunk
+        :param chunk:
+        :return:
+        """
+        return True if chunk.object else False
+
+    def _set_group_stop(self, last_chunk: ChatStreamingChunk, current_chunk: ChatStreamingChunk, started_event: bool) -> Optional[ChatStreamingChunk]:
+        """
+        手动发送stop事件
+        :param last_chunk:
+        :param current_chunk:
+        :param started_event:
+        :return:
+        """
+        if started_event:
+            #流事件已经开始，且上一个事件是普通消息未结束，当前消息是tools调用消息
+            if (current_chunk.finish_reason == "tool_calls" and
+                    last_chunk and last_chunk.finish_reason != "tool_calls" and last_chunk.finish_reason != "stop"):
+                last_chunk.content = ""
+                last_chunk.finish_reason = "stop"
+                return last_chunk
+
 
     @staticmethod
     def _convert_openai_stream_chunk(chat_streaming_chunk_list: Iterable[ChatStreamingChunk]) -> List[ChatCompletionMessageParam]:
@@ -157,49 +193,52 @@ class OpenAIClient(ModelClient):
         return message_list
 
 
-    def _convert_stream_chunk(self, completion_chunk: ChatCompletionChunk, tool_calls: List[ChatCompletionMessageToolCall], tools: List[Tool]) -> Optional[ChatStreamingChunk]:
+    def _convert_stream_chunk_pretreatment(
+        self,
+        completion_chunk: ChatCompletionChunk,
+        tool_calls: List[ChatCompletionMessageToolCall],
+        tools: List[Tool]
+    ) -> Optional[ChatCompletionChunk]:
         """
-        convert stream chunk to ChatStreamingChunk
+        pretreatment of convert stream chunk to ChatStreamingChunk
         :param completion_chunk: openai api completion
         :param tool_calls: tools call list
         :param tools: efflux tools list
         :return:
         """
-        usage: Optional[CompletionUsage] = None
-        # usage append
-        if completion_chunk.usage:
-            usage = CompletionUsage(prompt_tokens=completion_chunk.usage.prompt_tokens,
-                                    completion_tokens=completion_chunk.usage.completion_tokens,
-                                    total_tokens=completion_chunk.usage.total_tokens)
-        # 拼接tools_call的请求参数
+        # usage: Optional[CompletionUsage] = None
+        # # 用量 部分聚合平台的chunk.choices[]为空数组的时候返回用量
+        # if completion_chunk.usage:
+        #     usage = CompletionUsage(prompt_tokens=completion_chunk.usage.prompt_tokens,
+        #                             completion_tokens=completion_chunk.usage.completion_tokens,
+        #                             total_tokens=completion_chunk.usage.total_tokens)
+        # 工具，持续拼接tools_call的请求参数直到参数完整
         if len(completion_chunk.choices) > 0 and completion_chunk.choices[0].delta.tool_calls:
+
+
+            # tool call 调用最后chunk中tool_calls=None且finish_reason='tool_calls'，所以不会进入此循环，而else的消息处理
             self._append_stream_tool_args(completion=completion_chunk, tool_calls=tool_calls, tools=tools)
-            # 拼接完成
-            if completion_chunk.choices[0].finish_reason == "function_calls":
-                completion_chunk.role = "assistant"
-                return self._make_stream_chunk(completion=completion_chunk, tool_calls=tool_calls, usage=usage)
         else:
-            return self._make_stream_chunk(completion=completion_chunk, tool_calls=tool_calls, usage=usage)
+            # 消息处理（此次如果有tool调用，则为拼接后的完整参数列表）
+            if len(completion_chunk.choices) > 0 and tool_calls:
+                completion_chunk.choices[0].delta.tool_calls = tool_calls
+            return completion_chunk
 
     @staticmethod
-    def _make_stream_chunk(completion: ChatCompletionChunk, tool_calls: List[ChatCompletionMessageToolCall], usage: CompletionUsage):
-
+    def _convert_stream_chunk(completion: ChatCompletionChunk) -> Optional[ChatStreamingChunk]:
+        """
+        convert openai stream chunk to ChatStreamingChunk
+        :param completion:
+        :return:
+        """
         if len(completion.choices) > 0:
-            return ChatStreamingChunk(id=completion.id, model=completion.model, created=completion.created,
-                                      usage=usage,
-                                      finish_reason=completion.choices[0].finish_reason,
-                                      content=completion.choices[0].delta.content,
-                                      reasoning_content=None if not hasattr(completion.choices[0].delta,
-                                                                            "reasoning_content") else completion.choices[
-                                          0].delta.reasoning_content,
-                                      role=completion.choices[0].delta.role, tool_calls=tool_calls)
+            return ChatStreamingChunk.from_assistant(id=completion.id, model=completion.model, created=completion.created,
+                        content=completion.choices[0].delta.content, finish_reason=completion.choices[0].finish_reason,
+                        reasoning_content=None if not hasattr(completion.choices[0].delta, "reasoning_content")
+                            else completion.choices[0].delta.reasoning_content,
+                        role=completion.choices[0].delta.role, tool_calls=completion.choices[0].delta.tool_calls)
         else:
-            return ChatStreamingChunk(id=completion.id, model=completion.model, created=completion.created,
-                                      usage=usage,
-                                      finish_reason="stop",
-                                      content="",
-                                      reasoning_content="",
-                                      role="assistant", tool_calls=tool_calls)
+            return None
 
     def _append_stream_tool_args(self, completion: ChatCompletionChunk, tool_calls: List[ChatCompletionMessageToolCall], tools: List[Tool]):
         """
