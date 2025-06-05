@@ -16,6 +16,7 @@ class TaskType(Enum):
     LLM_CALL = "LLM_CALL"
     TOOL_CALL = "TOOL_CALL"
     AGENT_CALL = "AGENT_CALL"
+    AGENT_LLM_CALL = "AGENT_LLM_CALL"
 
 
 class Task(BaseModel):

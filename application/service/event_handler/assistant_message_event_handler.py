@@ -97,7 +97,7 @@ class AssistantMessageEventHandler(EventHandler):
                 if copy_last_event.group.status == EventGroupStatus.ENDED: # 只保存正常结束的组消息
                     # if copy_last_event.data['content']: # 连续调用工具，可能消息内容为空
                     assistant_dialog_segment = DialogSegment.make_assistant_message(
-                        conversation_id=copy_last_event.data['conversation_id'], id=copy_last_event.data['id'],
+                        conversation_id=copy_last_event.data['conversation_id'], id=copy_last_event.data['dialog_segment_id'],
                         content=copy_last_event.data['content'], reasoning_content=copy_last_event.data['reasoning_content'],
                         model=copy_last_event.data['model'], timestamp=copy_last_event.data['created'])
                     self.conversation_port.conversation_add(dialog_segment=assistant_dialog_segment)

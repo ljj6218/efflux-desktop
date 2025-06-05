@@ -81,7 +81,7 @@ class ChatStreamingChunk(BaseModel):
         return cls(id=create_uuid(), model=None, created=create_from_second_now_to_int(), usage=None,
                                   finish_reason="tool_calls", content="", tool_call_id=None, reasoning_content=None, role='assistant', tool_calls=tool_calls)
 
-    def to_assistant_message_event(self, id: str, conversation_id: str, agent_id: str, generator_id: str, mcp_name_list: List[str], tools_group_name_list: List[str], event_group: EventGroup) -> Event:
+    def to_assistant_message_event(self, id: str, conversation_id: str, dialog_segment_id: str,agent_id: str, generator_id: str, mcp_name_list: List[str], tools_group_name_list: List[str], event_group: EventGroup) -> Event:
         return Event.from_init(
             event_type=EventType.ASSISTANT_MESSAGE,
             event_sub_type=EventSubType.MESSAGE,
@@ -89,6 +89,7 @@ class ChatStreamingChunk(BaseModel):
             data={
                 "id": id,
                 "conversation_id": conversation_id,
+                "dialog_segment_id": dialog_segment_id,
                 "agent_id": agent_id,
                 "generator_id": generator_id,
                 "mcp_name_list": mcp_name_list,
@@ -101,7 +102,7 @@ class ChatStreamingChunk(BaseModel):
             }
         )
 
-    def to_tool_calls_message_event(self, id: str, conversation_id: str, agent_id: str, generator_id: str, mcp_name_list: List[str], tools_group_name_list: List[str], event_group: Optional[EventGroup] = None) -> Event:
+    def to_tool_calls_message_event(self, id: str, conversation_id: str, dialog_segment_id: str, agent_id: str, generator_id: str, mcp_name_list: List[str], tools_group_name_list: List[str], event_group: Optional[EventGroup] = None) -> Event:
         tool_call_list = []
         for tool_call in self.tool_calls:
             tool_call_list.append(
@@ -121,6 +122,7 @@ class ChatStreamingChunk(BaseModel):
             data={
                 "id": id,
                 "conversation_id": conversation_id,
+                "dialog_segment_id": dialog_segment_id,
                 "agent_id": agent_id,
                 "generator_id": generator_id,
                 "mcp_name_list": mcp_name_list,

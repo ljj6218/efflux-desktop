@@ -3,13 +3,15 @@ from application.domain.generators.tools import Tool
 from application.domain.generators.generator import LLMGenerator
 from application.domain.generators.firm import GeneratorFirm
 from common.core.container.annotate import component
-from typing import Iterable, Dict, AsyncGenerator, Any, List, Optional, Generator
+from typing import Iterable, Dict, AsyncGenerator, Any, List, Optional, Generator, Callable
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from common.utils.yaml_util import load_yaml
 from adapter.model_sdk.client import ModelClient
 from adapter.model_sdk.openai.client import OpenAIClient
 from common.utils.json_file_util import JSONFileUtil
 import asyncio
+import json
+import re
 
 @component
 class ClientManager(GeneratorsPort):
@@ -78,13 +80,11 @@ class ClientManager(GeneratorsPort):
         return True
 
     def generate(self,
-         llm_generator: LLMGenerator,
-         tools: Iterable[Tool] = None,
-         messages: Iterable[ChatStreamingChunk] = None
-         # generation_kwargs: Optional[Dict[str, Any]] = None,
-         # *,
-         # tools: Optional[List[Tool]] = None,
-         ) -> ChatStreamingChunk:
+        llm_generator: LLMGenerator,
+        tools: Iterable[Tool] = None,
+        messages: Iterable[ChatStreamingChunk] = None,
+        **generation_kwargs,
+    ) -> ChatStreamingChunk:
         client: ModelClient = OpenAIClient()
         firm_setting = self.user_setting.read_key(llm_generator.firm)
         url = firm_setting["base_url"]
@@ -93,41 +93,72 @@ class ClientManager(GeneratorsPort):
             api_secret=llm_generator.api_key_secret,
             base_url=url,
             message_list=messages,
-            tools=tools
+            tools=tools,
+            generation_kwargs=generation_kwargs
         )
         return rs
 
-    # async def generate_stream(self,
-    #     llm_generator: LLMGenerator,
-    #     tools: Iterable[Tool] = None,
-    #     messages: Iterable[ChatStreamingChunk] = None
-    #     ) -> AsyncGenerator[ChatStreamingChunk, None]:
-    #
-    #     client: ModelClient = OpenAIClient()
-    #     firm_setting = self.user_setting.read_key(llm_generator.firm)
-    #     url = firm_setting["base_url"]
-    #     for chunk in client.generate_stream(
-    #         model=llm_generator.model,
-    #         api_secret=llm_generator.api_key_secret,
-    #         base_url=url,
-    #         message_list=messages,
-    #         tools=tools
-    #     ):
-    #         await asyncio.sleep(0.05) # 主动让出事件循环，避免流式响应时候其他接口的pending TODO 真特么丑陋，待优化吧
-    #         yield chunk
+    def generate_json(
+        self,
+        llm_generator: LLMGenerator,
+        validate_json: Optional[Callable[[Dict[str, Any]], bool]] = None,
+        messages: Iterable[ChatStreamingChunk] = None,
+        **generation_kwargs,
+    ) -> Dict[str, Any] | None:
+        retries = 0
+        while retries < 3:
+            contents = ""
+            for chunk in self.generate_event(llm_generator=llm_generator, messages=messages, tools=[], **generation_kwargs):
+                print(chunk)
+                contents += chunk.content
+            try:
+                json_response = json.loads(contents)
+                # Use the validate_json function to check the response
+                if validate_json and validate_json(json_response):
+                    return json_response
+                else:
+                    exception_message = "Validation failed for JSON response, retrying. You must return a valid JSON object parsed from the response."
+            except json.JSONDecodeError as e:
+                json_response = self._extract_json_from_string(contents)
+                if json_response is not None:
+                    if validate_json and validate_json(json_response):
+                        return json_response
+                    else:
+                        exception_message = "Validation failed for JSON response, retrying. You must return a valid JSON object parsed from the response."
+                else:
+                    exception_message = f"Failed to parse JSON response, retrying. You must return a valid JSON object parsed from the response. Error: {e}"
+            retries += 1
+        raise ValueError("Failed to get a valid JSON response after multiple retries")
 
     def generate_event(self,
         llm_generator: LLMGenerator,
         messages: Iterable[ChatStreamingChunk] = None,
-        tools: Iterable[Tool] = None
+        tools: Iterable[Tool] = None,
+        **generation_kwargs,
     ) -> Generator[ChatStreamingChunk, None, None]:
         client: ModelClient = OpenAIClient()
         firm_setting = self.user_setting.read_key(llm_generator.firm)
         url = firm_setting["base_url"]
         return client.generate_stream(
-                model=llm_generator.model,
-                api_secret=llm_generator.api_key_secret,
-                base_url=url,
-                message_list=messages,
-                tools=tools
+            model=llm_generator.model,
+            api_secret=llm_generator.api_key_secret,
+            base_url=url,
+            message_list=messages,
+            tools=tools,
+            generation_kwargs=generation_kwargs
         )
+
+    @staticmethod
+    def _extract_json_from_string(s: str) -> Optional[Any]:
+        """
+        Searches for a JSON object within the string and returns the loaded JSON if found, otherwise returns None.
+        """
+        # Regex to find JSON objects (greedy, matches first { to last })
+        match = re.search(r"\{.*\}", s, re.DOTALL)
+        if match:
+            json_str = match.group(0)
+            try:
+                return json.loads(json_str)
+            except json.JSONDecodeError:
+                return None
+        return None

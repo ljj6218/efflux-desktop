@@ -19,7 +19,7 @@ class AgentCallEventHandler(EventHandler):
             task = Task.from_singleton(task_type=TaskType.AGENT_CALL, data=event.data)
             TaskPort.get_task_port().execute_task(task=task)
         if event.sub_type == EventSubType.LLM_CALL:
-            task = Task.from_singleton(task_type=TaskType.LLM_CALL, data=event.data)
+            task = Task.from_singleton(task_type=TaskType.AGENT_LLM_CALL, data=event.data)
             TaskPort.get_task_port().execute_task(task=task)
 
     def type(self) -> str:

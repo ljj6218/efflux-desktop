@@ -17,9 +17,8 @@ from common.core.errors.business_exception import BusinessException
 from common.core.errors.business_error_code import GeneratorErrorCode
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, ChatCompletionMessageToolCall
 from common.core.errors.common_exception import CommonException, handle_exception
-from common.utils.markdown_util import read
+from application.port.outbound.agent_port import AgentPort
 from typing import List, Dict, Any, Optional
-import tiktoken
 import asyncio
 import injector
 import json
@@ -44,6 +43,7 @@ class LLMTaskHandler(TaskHandler):
         mcp_server_port: MCPServerPort,
         conversation_port: ConversationPort,
         cache_port: CachePort,
+        agent_port: AgentPort,
     ):
         self.user_setting_port = user_setting_port
         self.generators_port = generators_port
@@ -51,6 +51,7 @@ class LLMTaskHandler(TaskHandler):
         self.mcp_server_port = mcp_server_port
         self.conversation_port = conversation_port
         self.cache_port = cache_port
+        self.agent_port = agent_port
 
     # 动态计算 default 值的函数，接收异常对象
     @staticmethod
@@ -67,11 +68,10 @@ class LLMTaskHandler(TaskHandler):
 
     @handle_exception(default_func=_calculate_default_value)
     def execute(self, task: Task):
-        logger.info(f"LLM调用任务：[任务：{task.id}]")
+        logger.info(f"AGENT_LLM调用任务：[任务：{task.id}]")
         tools_call_result = True if 'tools_call_result' in task.data.keys() else False
         task_data: Dict[str, Any]  = task.data
         conversation_id = task_data['conversation_id']
-        dialog_segment_id = task_data['dialog_segment_id']
         generator_id = task_data['generator_id']
         mcp_name_list = task_data['mcp_name_list']
         tools_group_name_list = task_data['tools_group_name_list']
@@ -87,9 +87,9 @@ class LLMTaskHandler(TaskHandler):
             tools.extend(asyncio.run(self.tools_port.load_tools(group_name=tools_group_name, tool_type=ToolType.LOCAL)))
 
         # 查询会话历史
-        history_conversation = self.conversation_port.conversation_load(conversation_id=conversation_id)
-        if not history_conversation:
-            raise BusinessException(error_code=GeneratorErrorCode.NO_CONVERSATION_FOUND, dynamics_message=conversation_id)
+        # history_conversation = self.conversation_port.conversation_load(conversation_id=conversation_id)
+        # if not history_conversation:
+        #     raise BusinessException(error_code=GeneratorErrorCode.NO_CONVERSATION_FOUND, dynamics_message=conversation_id)
 
         # message 封装
         messages: List[ChatStreamingChunk] = []
@@ -97,8 +97,11 @@ class LLMTaskHandler(TaskHandler):
         if system:
             messages.append(ChatStreamingChunk.from_system(system))
         # 拼装对话上下文
-        history_message_list = history_conversation.convert_sort_memory()
-        messages.extend(history_message_list)
+        # history_message_list = history_conversation.convert_sort_memory()
+        history_message_list = self.agent_port.load_record(agent_instance_id=agent_id)
+        for history_message in history_message_list:
+            messages.append(history_message.convert_chat_streaming_chunk())
+
         # 拼装工具调用历史
         if tools_call_result:
             for history_message in history_message_list:
@@ -136,7 +139,6 @@ class LLMTaskHandler(TaskHandler):
                 event = chunk.to_tool_calls_message_event(
                     id=uuid,
                     conversation_id=conversation_id,
-                    dialog_segment_id=dialog_segment_id,
                     agent_id=agent_id,
                     generator_id=generator_id,
                     mcp_name_list=mcp_name_list,
@@ -149,7 +151,6 @@ class LLMTaskHandler(TaskHandler):
             event = chunk.to_assistant_message_event(
                 id=uuid,
                 conversation_id=conversation_id,
-                dialog_segment_id=dialog_segment_id,
                 agent_id=agent_id,
                 generator_id=generator_id,
                 mcp_name_list=mcp_name_list,
@@ -182,7 +183,7 @@ class LLMTaskHandler(TaskHandler):
         EventPort.get_event_port().emit_event(event)
 
     def type(self) -> str:
-        return TaskType.LLM_CALL.value
+        return TaskType.AGENT_LLM_CALL.value
 
     def state(self) -> TaskState:
         pass

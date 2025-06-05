@@ -3,7 +3,7 @@ from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from application.domain.generators.firm import GeneratorFirm
 from application.domain.generators.generator import LLMGenerator
 from application.domain.generators.tools import Tool
-from typing import Iterable, Generator, AsyncGenerator, List, Optional
+from typing import Iterable, Generator, Callable, List, Optional, Dict, Any
 
 class GeneratorsPort(ABC):
 
@@ -12,7 +12,8 @@ class GeneratorsPort(ABC):
         self,
         llm_generator: LLMGenerator,
         messages: Iterable[ChatStreamingChunk] = None,
-        tools: Iterable[Tool] = None
+        tools: Iterable[Tool] = None,
+        **generation_kwargs,
     ) -> ChatStreamingChunk:
         """
         同步大模型消息接口
@@ -23,28 +24,30 @@ class GeneratorsPort(ABC):
         """
         pass
 
-    # @abstractmethod
-    # async def generate_stream(
-    #     self,
-    #     llm_generator: LLMGenerator,
-    #     messages: Iterable[ChatStreamingChunk] = None,
-    #     tools:Iterable[Tool] = None
-    # ) -> AsyncGenerator[ChatStreamingChunk, None]:
-    #     """
-    #     流式大模型消息接口
-    #     :param llm_generator: 生成模型对象
-    #     :param messages: 消息集合
-    #     :param tools: 工具数组
-    #     :return:
-    #     """
-    #     pass
+    @abstractmethod
+    def generate_json(
+        self,
+        llm_generator: LLMGenerator,
+        validate_json: Optional[Callable[[Dict[str, Any]], bool]] = None,
+        messages: Iterable[ChatStreamingChunk] = None,
+        **generation_kwargs,
+    )-> Dict[str, Any] | None:
+        """
+        流式大模型消息返回json方法
+        :param llm_generator: 生成模型对象
+        :param validate_json: 验证json格式的回调方法
+        :param messages: 消息集合
+        :return:
+        """
+        pass
 
     @abstractmethod
     def generate_event(
         self,
         llm_generator: LLMGenerator,
         messages: Iterable[ChatStreamingChunk] = None,
-        tools:Iterable[Tool] = None
+        tools:Iterable[Tool] = None,
+        **generation_kwargs,
     ) -> Generator[ChatStreamingChunk, None, None]:
         """
         流式大模型消息接口
