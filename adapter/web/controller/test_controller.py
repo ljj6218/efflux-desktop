@@ -1,10 +1,11 @@
+from application.port.inbound.teams_case import TeamsCase
 from common.utils.markdown_util import read
 from adapter.web.vo.base_response import BaseResponse
 from fastapi import APIRouter, BackgroundTasks, Depends
 from application.port.outbound.cache_port import CachePort
 from common.core.container.container import get_container
 from application.port.inbound.test_case import TestCase
-from adapter.web.vo.test_vo import CachaVo
+from adapter.web.vo.test_vo import CachaVo, AgentVo
 from application.port.outbound.event_port import EventPort
 from application.domain.events.event import Event, EventType, EventSubType
 from common.core.connection_manager import manager
@@ -21,6 +22,9 @@ def cache_port() -> CachePort:
 
 def test_case() -> TestCase:
     return get_container().get(TestCase)
+
+def team_case() -> TeamsCase:
+    return get_container().get(TeamsCase)
 
 # 定义后台任务
 def background_task(message: str):
@@ -56,15 +60,12 @@ async def test_task(task_service: TestCase = Depends(test_case)) -> BaseResponse
 async def test_task_stop(task_id:str, task_service: TestCase = Depends(test_case)) -> BaseResponse:
     return BaseResponse.from_success(data=await task_service.test_task_stop(task_id=task_id))
 
-@router.get("/test123")
-async def test_123() -> BaseResponse:
-    event = Event.from_init(
-        event_type=EventType.AGENT,
-        event_sub_type=EventSubType.AGENT_CALL,
-        data={
-            "agent_id":"4877f996-2fb5-400d-9b26-245a824e325f",
-            "conversation_id":"1"
-        }
-    )
-    EventPort.get_event_port().emit_event(event=event)
+@router.post("/test_agent")
+async def test_agent(agent_ve: AgentVo, task_service: TestCase = Depends(test_case)) -> BaseResponse:
+    uuid, conversation_id  = await task_service.test_call_agent(query=agent_ve.query, generator_id=agent_ve.generator_id,  conversation_id=agent_ve.conversation_id)
+    return BaseResponse.from_success(data={"uuid": uuid, "conversation_id": conversation_id})
+
+@router.post("/team_test")
+async def team_test(agent_ve: AgentVo, team_service: TeamsCase = Depends(team_case)) -> BaseResponse:
+    await team_service.do_work(content=agent_ve.query, generator_id=agent_ve.generator_id, conversation_id=agent_ve.conversation_id)
     return BaseResponse.from_success(data=None)

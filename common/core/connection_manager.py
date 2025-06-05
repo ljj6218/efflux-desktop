@@ -47,7 +47,10 @@ class MessageDispatcher:
     async def _dispatch_loop(self):
         while True:
             client_id, message = await self.queue.get()
-            await manager.send_to(client_id, message)
+            # 单点
+            # await manager.send_to(client_id, message)
+            # 广播
+            await manager.broadcast(message)
 
     def enqueue_message(self, client_id, message):
         """线程安全地把消息加入主 loop 的 queue"""

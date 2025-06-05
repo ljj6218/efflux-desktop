@@ -65,6 +65,7 @@ class ToolTaskHandler(TaskHandler):
                 data={
                     'id': task.data['id'],
                     'model': task.data['model'],
+                    'dialog_segment_id':task.data['dialog_segment_id'],
                     'conversation_id': task.data['conversation_id'],
                     'generator_id': task.data['generator_id'],
                     'mcp_name_list': task.data['mcp_name_list'],

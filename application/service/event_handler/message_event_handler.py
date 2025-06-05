@@ -22,7 +22,7 @@ class MessageEventHandler(EventHandler):
     def handle(self, event: Event) -> None:
         # 保存用户输入
         user_dialog_segment = DialogSegment.make_user_message(
-            content=event.data['content'], conversation_id=event.data['conversation_id'], id=event.data["id"])
+            content=event.data['content'], conversation_id=event.data['conversation_id'], id=event.data["dialog_segment_id"])
         self.conversation_port.conversation_add(dialog_segment=user_dialog_segment)
         logger.info(f"保存用户对话片段：[ID：{user_dialog_segment.id} - 内容：{user_dialog_segment.content}]")
         # 构建LLM_CALL任务

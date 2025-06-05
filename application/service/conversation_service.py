@@ -39,7 +39,7 @@ class ConversationService(ConversationCase):
 
     async def conversation_remove_dialog_segment(self, conversation_id: str, dialog_segment_id: str) -> str:
         logger.info(f"删除会话片段 ---> [dialog_segment_id={dialog_segment_id}, conversation_id={conversation_id}]")
-        return self.conversation_port.dialog_segment_remove(dialog_segment_id=dialog_segment_vo.id, conversation_id=dialog_segment_vo.conversation_id)
+        return self.conversation_port.dialog_segment_remove(dialog_segment_id=dialog_segment_id, conversation_id=conversation_id)
 
     async def conversation_remove(self, conversation_id_list: List[str]) -> int:
         logger.info(f"删除会话集合 ---> {conversation_id_list}")

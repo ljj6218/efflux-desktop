@@ -4,6 +4,10 @@ from common.utils.common_utils import create_uuid
 from common.utils.time_utils import create_from_second_now_to_int
 from typing import Dict, Any, Optional, List, Literal
 
+class EventSource(Enum):
+    TEAMS = "TEAMS"
+
+
 class EventType(Enum):
     USER_MESSAGE = "USER_MESSAGE" # 用户发送消息事件
     ASSISTANT_MESSAGE = "ASSISTANT_MESSAGE" # AI返回事件
@@ -52,6 +56,7 @@ class Event(BaseModel):
     created: int
     silent: Optional[bool] = False # 静默事件
     group: Optional[EventGroup] = None # 组事件
+    source: Optional[EventSource] = None # 事件来源
 
     @classmethod
     def from_init(cls, data:Dict[str, Any], event_type: EventType, event_sub_type: EventSubType, group: Optional[EventGroup] = None, silent: Optional[bool] = False) -> "Event":

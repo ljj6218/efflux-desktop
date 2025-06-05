@@ -109,7 +109,7 @@ class ConversationAdapter(ConversationPort):
             for obj in reader:
                 conversation = Conversation.model_validate(obj)
                 if conversation:
-                    # 获取最后一条片段
+                    # 获取最后一条片段,用于列表展示
                     dialog_segment_file = f'conversations/{conversation.id}.jsonl'
                     if check_file(dialog_segment_file):
                         with jsonlines.open(dialog_segment_file, mode='r') as sub_reader:

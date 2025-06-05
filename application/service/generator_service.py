@@ -16,8 +16,6 @@ from application.port.outbound.cache_port import CachePort
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from application.port.outbound.tools_port import ToolsPort
 from application.domain.generators.tools import Tool, ToolInstance, ToolType
-from adapter.tools.local.browser.web_surfer import WebSurfer
-import base64
 from common.utils.markdown_util import read
 from common.utils.file_util import open_and_base64
 import injector
@@ -98,8 +96,11 @@ class GeneratorService(ModelCase, GeneratorsCase):
         #
         # await ws.on_messages_stream(chunk_list=message_list, generator=llm_generator)
 
-        for a in self.generators_port.generate_event(llm_generator=llm_generator, messages=message_list, tools=[]):
-            print(a)
+        # for a in self.generators_port.generate_event(llm_generator=llm_generator, messages=message_list, tools=[]):
+        #     print(a)
+
+        di = self.generators_port.generate_json(llm_generator=llm_generator, messages=message_list, json_object=True)
+        print(di)
 
         return "ok"
 
@@ -173,6 +174,8 @@ class GeneratorService(ModelCase, GeneratorsCase):
                 for item in query:
                     if item.type == 'text':
                         query_str = item.content
+            else:
+                query_str = query
             # 创建会话
             if not conversation_id:
                 conversation = Conversation()
@@ -192,6 +195,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
                 event_sub_type=EventSubType.MESSAGE,
                 data={
                     "id": uuid,
+                    "dialog_segment_id": uuid,
                     "conversation_id": conversation_id,
                     "generator_id": generator_id,
                     "content": query,

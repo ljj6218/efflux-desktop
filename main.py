@@ -10,7 +10,7 @@ from adapter.web.core.exception_registry import register_exception_handlers
 from application.port.outbound.task_port import TaskPort
 from application.port.outbound.event_port import EventPort
 from application.port.outbound.cache_port import CachePort
-from common.utils.common_utils import CONVERSATION_STOP_FLAG_KEY, SINGLETON_WEBSOCKET_CLIENT_ID
+from common.utils.common_utils import CONVERSATION_STOP_FLAG_KEY, SINGLETON_WEBSOCKET_CLIENT_ID, create_uuid
 import uvicorn
 import copy
 import asyncio
@@ -94,16 +94,18 @@ async def ws_handler(websocket):
     # 假设你在路径参数中指定了 client_id，例如 ws://localhost:8765/ws?client_id=abc
     # query = dict((kv.split("=") for kv in websocket.request.path.split("?")[1].split("&")))
     # client_id = query.get("client_id", SINGLETON_WEBSOCKET_CLIENT_ID)
-    client_id = SINGLETON_WEBSOCKET_CLIENT_ID
+    # client_id = SINGLETON_WEBSOCKET_CLIENT_ID
+    client_id = create_uuid()
     manager.register(client_id, websocket)
-
+    logger.info(f"connection open -> client_id[{client_id}]")
     try:
         async for message in websocket:
             print(f"Received from {client_id}: {message}")
             await websocket.send(f"Echo: {message}")
     except Exception as e:
-        print(f"Connection error: {e}")
+        logger.error(f"Connection error: {e}")
     finally:
+        logger.info(f"connection close -> client_id[{client_id}]")
         manager.unregister(client_id)
 
 # 同时启动 FastAPI 和 WebSocket

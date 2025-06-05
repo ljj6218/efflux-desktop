@@ -1,7 +1,6 @@
 from typing import Optional, Dict, Any, Iterable, List, Generator
 import os
 
-import time
 from openai import OpenAI
 from adapter.model_sdk.client import ModelClient
 from common.utils.auth import Secret
@@ -12,6 +11,8 @@ from application.domain.generators.tools import Tool
 from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
 from openai.types.chat.chat_completion_message_param import ChatCompletionMessageParam
 from openai.types.chat.chat_completion import ChatCompletion
+from openai.types.shared_params.response_format_text import ResponseFormatText
+from openai.types.shared_params.response_format_json_object import ResponseFormatJSONObject
 from common.core.logger import get_logger
 logger = get_logger(__name__)
 
@@ -21,6 +22,8 @@ class OpenAIClient(ModelClient):
         self.timeout = float(os.environ.get("OPENAI_TIMEOUT", 120.0)) # 接口超时时间
         self.max_retries = int(os.environ.get("OPENAI_MAX_RETRIES", 3)) # 接口最啊重试次数
 
+        self.default_tool_choice: str = "auto" # 默认工具调用模式
+
     def generate(
             self,
             model: str = None,
@@ -28,19 +31,22 @@ class OpenAIClient(ModelClient):
             api_secret: Secret = None,
             base_url: str = None,
             tools: Optional[Iterable[Tool]] = None,
-            generation_kwargs: Optional[Dict[str, Any]] = None
+            **generation_kwargs,
     ) -> ChatStreamingChunk:
         # openAI client 构建
         client: OpenAI = self._get_client(api_key=api_secret.resolve_value(),
                                           api_base_url=base_url)
         # 转换为 openAI 接口风格的工具
         openai_tools: List[ChatCompletionToolParam] = self._convert_openai_tools(tools)
+
+        tool_choice: str = self._tool_choice(openai_tools=openai_tools, generation_kwargs=generation_kwargs)
+
         try:
             stream = client.chat.completions.create(
                 model=model,
                 messages=self._convert_openai_stream_chunk(message_list),
                 tools=None if len(openai_tools) == 0 else openai_tools,
-                tool_choice=None if len(openai_tools) == 0 else "auto",
+                tool_choice=tool_choice,
             )
             return self._convert_chunk(stream)
         except Exception as exc:
@@ -70,20 +76,27 @@ class OpenAIClient(ModelClient):
             api_secret: Secret = None,
             base_url: str = None,
             tools: Optional[List[Tool]] = None,
-            generation_kwargs: Optional[Dict[str, Any]] = None
+            **generation_kwargs,
     ) -> Generator[ChatStreamingChunk, None, None]:
         # openAI client 构建
         client: OpenAI = self._get_client(api_key=api_secret.resolve_value(),
                                           api_base_url=base_url)
         # 转换为 openAI 接口风格的工具
         openai_tools: List[ChatCompletionToolParam] = self._convert_openai_tools(tools)
+
+        tool_choice: str = self._tool_choice(openai_tools=openai_tools, generation_kwargs=generation_kwargs)
+
+        response_format = ResponseFormatText(type="text")
+        if "json_object" in generation_kwargs.keys():
+            response_format = ResponseFormatJSONObject(type="json_object")
         try:
             stream = client.chat.completions.create(
                 model=model,
                 messages=self._convert_openai_stream_chunk(message_list),
-                stream=True,
                 tools=None if len(openai_tools) == 0 else openai_tools,
-                tool_choice=None if len(openai_tools) == 0 else "auto",
+                response_format=response_format,
+                tool_choice=tool_choice,
+                stream=True,
             )
         except Exception as exc:
             # 抛出三方调用异常
@@ -290,6 +303,15 @@ class OpenAIClient(ModelClient):
                 }
             )
         return openai_tools
+
+    @staticmethod
+    def _tool_choice(openai_tools: List[ChatCompletionToolParam], **generation_kwargs) -> str:
+        tool_choice: str = None
+        if len(openai_tools) > 0:
+            tool_choice = "auto"
+        if "tool_choice" in generation_kwargs.keys():
+            tool_choice = generation_kwargs["tool_choice"]
+        return tool_choice
 
     def _get_client(
             self,

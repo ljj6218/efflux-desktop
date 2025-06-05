@@ -13,9 +13,8 @@ class ModelClient(ABC):
                 message_list: Iterable[ChatStreamingChunk] = None,
                 api_secret: Secret = None,
                 base_url: str = None,
-                generation_kwargs: Optional[Dict[str, Any]] = None,
-                # *,
                 tools: Optional[List[Tool]] = None,
+                **generation_kwargs,
                 ) -> ChatStreamingChunk:
         pass
 
@@ -26,7 +25,6 @@ class ModelClient(ABC):
                 api_secret: Secret = None,
                 base_url: str = None,
                 tools: Optional[List[Tool]] = None,
-                generation_kwargs: Optional[Dict[str, Any]] = None,
-
+                **generation_kwargs,
                 ) -> Generator[ChatStreamingChunk, None, None]:
         pass

@@ -61,6 +61,32 @@ class DialogSegment(BaseModel):
             created = create_from_timestamp(timestamp)
         )
 
+    def convert_chat_streaming_chunk(self) -> ChatStreamingChunk:
+        dialog_segment_content_copy = self.content
+        if self.role == 'user' and self.content and isinstance(self.content, List):
+            content_list = []
+            for dialog_segment_content_item in self.content:
+                if dialog_segment_content_item.type == 'text':
+                    content_list.append({'type': "text", 'text': dialog_segment_content_item.content})
+                if dialog_segment_content_item.type == 'image':
+                    base64_image = open_and_base64(dialog_segment_content_item.content)
+                    content_list.append({
+                    "type": "image_url",
+                    "image_url":{
+                        "url": f"data:image/jpeg;base64,{base64_image}"
+                    }
+                })
+            dialog_segment_content_copy = content_list
+        return ChatStreamingChunk(
+            id=self.id,
+            model=self.model,
+            content=dialog_segment_content_copy,
+            reasoning_content=self.reasoning_content,
+            role=self.role,
+            finish_reason=self.finish_reason,
+            created=create_from_timestamp_to_int(self.created)
+        )
+
     # 自定义处理模型转化为字典的方法
     def model_dump(self, **kwargs):
         # 使用 super() 获取字典格式
@@ -102,46 +128,31 @@ class Conversation(BaseModel):
         return cls(id=id, theme=theme)
 
     def convert_sort_memory(self) -> List[ChatStreamingChunk]:
+        """用于普通会话的消息集合拼装，由于LLM任务开始的时候用户的输入已经保存，所以这里处理最后条消息，可能base64个图片"""
         rs_list: List[ChatStreamingChunk] = []
         for i, dialog_segment in enumerate(self.dialog_segment_list):
             if i == len(self.dialog_segment_list) - 1:
-                print(f"{dialog_segment} 是最后一个元素")
-                chat_streaming_chunk = self._convert_chat_streaming_chunk(dialog_segment)
+                # 最后一个元素解析图片，非最后的对话则删除图片记录
+                chat_streaming_chunk = dialog_segment.convert_chat_streaming_chunk()
                 rs_list.append(chat_streaming_chunk)
             else:
                 if dialog_segment.role == 'user' and dialog_segment.content and isinstance(dialog_segment.content, List):
                     continue
                 else:
-                    chat_streaming_chunk = self._convert_chat_streaming_chunk(dialog_segment)
+                    chat_streaming_chunk = dialog_segment.convert_chat_streaming_chunk()
                     rs_list.append(chat_streaming_chunk)
         return rs_list
 
-    @staticmethod
-    def _convert_chat_streaming_chunk(dialog_segment: DialogSegment) -> ChatStreamingChunk:
-        dialog_segment_content_copy = dialog_segment.content
-        if dialog_segment.role == 'user' and dialog_segment.content and isinstance(dialog_segment.content, List):
-            content_list = []
-            for dialog_segment_content_item in dialog_segment.content:
-                if dialog_segment_content_item.type == 'text':
-                    content_list.append({'type': "text", 'text': dialog_segment_content_item.content})
-                if dialog_segment_content_item.type == 'image':
-                    base64_image = open_and_base64(dialog_segment_content_item.content)
-                    content_list.append({
-                    "type": "image_url",
-                    "image_url":{
-                        "url": f"data:image/jpeg;base64,{base64_image}"
-                    }
-                })
-            dialog_segment_content_copy = content_list
-        return ChatStreamingChunk(
-            id=dialog_segment.id,
-            model=dialog_segment.model,
-            content=dialog_segment_content_copy,
-            reasoning_content=dialog_segment.reasoning_content,
-            role=dialog_segment.role,
-            finish_reason=dialog_segment.finish_reason,
-            created=create_from_timestamp_to_int(dialog_segment.created)
-        )
+    def convert_sort_memory_history(self) -> List[ChatStreamingChunk]:
+        """用于多agent，即对话历史拼装相对灵活，只拼装历史（在应用逻辑中确保没有拼接当前用户的输入信息，不然会忽略掉用户输入的包含图片的整条消息）"""
+        rs_list: List[ChatStreamingChunk] = []
+        for i, dialog_segment in enumerate(self.dialog_segment_list):
+            if dialog_segment.role == 'user' and dialog_segment.content and isinstance(dialog_segment.content, List):
+                continue
+            else:
+                chat_streaming_chunk = dialog_segment.convert_chat_streaming_chunk()
+                rs_list.append(chat_streaming_chunk)
+        return rs_list
 
     # 自定义处理模型转化为字典的方法
     def model_dump(self, **kwargs):
