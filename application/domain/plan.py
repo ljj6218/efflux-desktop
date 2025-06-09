@@ -25,6 +25,15 @@ class Plan(BaseModel):
     state: PlanState
     steps: List[PlanStep]
 
+    def __str__(self) -> str:
+        """Return the string representation of the plan."""
+        plan_str = ""
+        if self.task is not None:
+            plan_str += f"Task: {self.task}\n"
+        for i, step in enumerate(self.steps):
+            plan_str += f"{i}. {step.agent_name}: {step.title}\n   {step.details}\n"
+        return plan_str
+
     def model_dump(self, **kwargs):
         # 使用 super() 获取字典格式
         data = super().model_dump()

@@ -38,7 +38,7 @@ class AgentCallEventHandler(EventHandler):
         self.ws_message_port = ws_message_port
 
     def handle(self, event: Event) -> None:
-        agent_instance_id = event.data['agent_instance_id']
+        agent_instance_id = event.payload['agent_instance_id']
         dialog_segment_id = event.data['dialog_segment_id']
         conversation_id = event.data['conversation_id']
         generator_id = event.data['generator_id']

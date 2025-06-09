@@ -99,7 +99,8 @@ class TeamsService(TeamsCase):
             if plan.state == PlanState.INITIALIZING:
                 agent_id = "1"
                 payload = {
-                    "replan": True,
+                    "update": True,
+                    "replan": False,
                     "plan": payload['plan'] if 'plan' in payload else None,
                 }
                 # 调用任务规划agent
@@ -107,7 +108,7 @@ class TeamsService(TeamsCase):
         else:
             agent_id = "1"
             payload = {
-                "replan": False,
+                "update": False,
             }
             # 调用任务规划agent
             await self._call_agent(agent_id, client_id, conversation_id, dialog_segment_id, generator_id, payload)
@@ -152,7 +153,6 @@ class TeamsService(TeamsCase):
             payload=payload,
             data={
                 "id": create_uuid(),
-                "agent_instance_id": agent_info.instance_id,
                 "dialog_segment_id": dialog_segment_id,
                 "conversation_id": conversation_id,
                 "generator_id": generator_id,

@@ -64,54 +64,20 @@ class PlanAgent(AgentInstance):
                 payload['user_confirm'] = True
                 payload['confirm_data'] = new_plan
                 payload['type'] = 'plan_create'
-
-                event = Event.from_init(
-                    client_id=client_id,
-                    event_type=EventType.AGENT,
-                    event_sub_type=EventSubType.AGENT_CALL_RESULT,
-                    source=EventSource.AGENT,
-                    data={
-                        "id": create_uuid(),
-                        "agent_instance_id": self.info.instance_id,
-                        "dialog_segment_id": self.info.dialog_segment_id,
-                        "conversation_id": self.info.conversation_id,
-                        "generator_id": self.info.generator_id,
-                    },
-                    payload=payload
-                )
-                EventPort.get_event_port().emit_event(event)
-                self.info.state = AgentState.RUNNING
+                self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.RUNNING)
         else:
-            if payload['replan']:
-                print("重新规划")
-            else:
-                print("新建规划")
+            if payload['update']: # 修改任务规划
+                if payload['replan']: # 重新规划任务
+                    logger.info("重新规划任务")
+
+                else:
+                    logger.info("新任务规划")
+                    print(str(payload['plan']))
+                    self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
+
+            else: # 新建任务规划
                 # 请求大模型生成计划
                 self._send_llm_event(client_id=client_id, context_message_list=context_message_list)
-
-        #     if rs['needs_plan']:
-        #         steps = []
-        #         for index, step in enumerate(rs['steps']):
-        #             plan_step = PlanStep(index=index, title=step['title'], details=step['details'], agent_name=step['agent_name'])
-        #             steps.append(plan_step)
-        #         new_plan = Plan.from_init(conversation_id=self.info.conversation_id, task=rs['task'], plan_summary=rs['plan_summary'], steps=steps)
-        #         payload['user_confirm'] = True
-        #         payload['confirm_data'] = new_plan
-        # event = Event.from_init(
-        #     client_id=client_id,
-        #     event_type=EventType.AGENT,
-        #     event_sub_type=EventSubType.AGENT_CALL_RESULT,
-        #     source=EventSource.AGENT,
-        #     data={
-        #         "id": create_uuid(),
-        #         "agent_instance_id": self.info.instance_id,
-        #         "dialog_segment_id": self.info.dialog_segment_id,
-        #         "conversation_id": self.info.conversation_id,
-        #         "generator_id": self.info.generator_id,
-        #     },
-        #     payload=payload
-        # )
-        # EventPort.get_event_port().emit_event(event)
 
     def _thread_to_context(self, history_message_list: List[ChatStreamingChunk]) -> List[ChatStreamingChunk]:
         """拼装基础system提示词和会话历史信息"""
@@ -130,6 +96,24 @@ class PlanAgent(AgentInstance):
             team=self._team_description, additional_instructions=""))
         messages.append(make_plan_message)
         return messages
+
+    def _send_agent_result_event(self, client_id: str, payload: Dict[str, Any], agent_state: AgentState) -> None:
+        event = Event.from_init(
+            client_id=client_id,
+            event_type=EventType.AGENT,
+            event_sub_type=EventSubType.AGENT_CALL_RESULT,
+            source=EventSource.AGENT,
+            data={
+                "id": create_uuid(),
+                "agent_instance_id": self.info.instance_id,
+                "dialog_segment_id": self.info.dialog_segment_id,
+                "conversation_id": self.info.conversation_id,
+                "generator_id": self.info.generator_id,
+            },
+            payload=payload
+        )
+        EventPort.get_event_port().emit_event(event)
+        self.info.state = agent_state
 
     def _send_llm_event(self, client_id: str, context_message_list: List[ChatStreamingChunk]):
         """发送大模型请求事件"""
