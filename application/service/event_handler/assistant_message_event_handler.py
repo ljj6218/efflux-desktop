@@ -1,5 +1,8 @@
-from application.domain.events.event import EventType, Event, EventSubType, EventGroupStatus
+from application.domain.events.event import EventType, Event, EventSubType, EventGroupStatus, EventSource
+from application.domain.tasks.task import Task, TaskType
 from application.port.inbound.event_handler import EventHandler
+from application.port.outbound.agent_port import AgentPort
+from application.port.outbound.task_port import TaskPort
 from common.core.container.annotate import component
 from application.port.outbound.ws_message_port import WsMessagePort
 from application.port.outbound.tools_port import ToolsPort
@@ -9,7 +12,9 @@ from application.domain.conversation import DialogSegment
 from copy import deepcopy
 from common.core.logger import get_logger
 import injector
-from typing import List
+from typing import List, Dict, Any
+
+from common.utils.common_utils import create_uuid
 
 logger = get_logger(__name__)
 
@@ -20,10 +25,12 @@ class AssistantMessageEventHandler(EventHandler):
     def __init__(self,
         ws_message_port: WsMessagePort,
         conversation_port: ConversationPort,
+        agent_port: AgentPort,
         tool_port: ToolsPort
         ):
         self.ws_message_port = ws_message_port
         self.conversation_port = conversation_port
+        self.agent_port = agent_port
         self.tool_port = tool_port
 
         # 确保事件收集器已初始化
@@ -57,7 +64,7 @@ class AssistantMessageEventHandler(EventHandler):
             if event.sub_type == EventSubType.MESSAGE:
                 # self.aaa += event.data['content']
                 # logger.warning(f"发送消息测试：{event}")
-                self.ws_message_port.send(event.model_dump_json())
+                self.ws_message_port.send(event)
         except Exception as e:
             logger.exception(f"[{EventType.ASSISTANT_MESSAGE.value}] 事件[{event.id}]处理异常")
             logger.error(f"[{EventType.ASSISTANT_MESSAGE.value}]事件[{event.id}]处理异常[{e}]")
@@ -100,7 +107,20 @@ class AssistantMessageEventHandler(EventHandler):
                         conversation_id=copy_last_event.data['conversation_id'], id=copy_last_event.data['dialog_segment_id'],
                         content=copy_last_event.data['content'], reasoning_content=copy_last_event.data['reasoning_content'],
                         model=copy_last_event.data['model'], timestamp=copy_last_event.data['created'])
-                    self.conversation_port.conversation_add(dialog_segment=assistant_dialog_segment)
+                    agent_instance_id = copy_last_event.payload['agent_instance_id'] if 'agent_instance_id' in copy_last_event.payload else None
+                    if agent_instance_id:
+                        assistant_dialog_segment.payload = {"agent_instance_id": agent_instance_id}
+                        self.agent_port.add_record(dialog_segment=assistant_dialog_segment)
+                        if copy_last_event.payload['json_result']:
+                            # 创建agent call任务
+                            task = Task.from_singleton(task_type=TaskType.AGENT_CALL, data=copy_last_event.data,
+                                                       payload=copy_last_event.payload,
+                                                       client_id=copy_last_event.client_id)
+                            TaskPort.get_task_port().execute_task(task)
+                            logger.info(
+                                f"组事件[{group_id}]JSON结果发送->Agent[{agent_instance_id}]")
+                    else:
+                        self.conversation_port.conversation_add(dialog_segment=assistant_dialog_segment)
 
     def type(self) -> str:
         return EventType.ASSISTANT_MESSAGE.value

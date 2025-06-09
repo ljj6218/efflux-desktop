@@ -5,16 +5,22 @@ from common.utils.time_utils import create_from_second_now_to_int
 from typing import Dict, Any, Optional, List, Literal
 
 class EventSource(Enum):
-    TEAMS = "TEAMS"
-
+    TEAMS_SVC = "TEAMS_SVC"
+    TASK_MANAGER = "TASK_MANAGER"
+    LLM_HANDLER = "LLM_HANDLER"
+    TOOL_EVENT_HANDLER = "TOOL_EVENT_HANDLER"
+    TOOL_HANDLER = "TOOL_HANDLER"
+    GENERATOR_SVC = "GENERATOR_SVC"
+    AGENT = "AGENT"
 
 class EventType(Enum):
     USER_MESSAGE = "USER_MESSAGE" # 用户发送消息事件
     ASSISTANT_MESSAGE = "ASSISTANT_MESSAGE" # AI返回事件
     TOOL = "TOOL" # 工具调用事件
     AGENT = "AGENT" # agent事件
-    LLM_USAGE = "LLM_USAGE" # Token用量事件
+    # LLM_USAGE = "LLM_USAGE" # Token用量事件
     SYSTEM = "SYSTEM"  # 系统事件
+    INTERACTIVE = "INTERACTIVE" # 人机交互事件
 
 class EventSubType(Enum):
     # message
@@ -28,15 +34,22 @@ class EventSubType(Enum):
     HEARTBEAT = "HEARTBEAT" # 心跳事件
     STOP = "STOP"
     # user_confirm
-    TOOL_CALL_CONFiRM = "TOOL_CALL_CONFiRM" # 工具调用确认
-    TASK_RESULT_CONFiRM = "TASK_RESULT_CONFiRM" # 任务执行结果确认
+    CALL_USER = "CALL_USER" # 交互用户
+    USER_CONFIRM = "USER_CONFIRM" # 用户确认
+    SHOW_TO_USER = "SHOW_TO_USER" # 向用户展示
     # agent
     AGENT_CALL = "AGENT_CALL"
     LLM_CALL = "LLM_CALL"
+    LLM_CALL_RESULT = "LLM_CALL_RESULT"
 
     AGENT_CALL_RESULT = "AGENT_CALL_RESULT"
-    AGENT_TOOL_CALL = "AGENT_TOOL_CALL"
-    AGENT_TOOL_CALL_RESULT = "AGENT_TOOL_CALL_RESULT"
+    # AGENT_TOOL_CALL = "AGENT_TOOL_CALL"
+    # AGENT_TOOL_CALL_RESULT = "AGENT_TOOL_CALL_RESULT"
+
+    # # plan
+    # PLAN_CALL = "PLAN_CALL"
+    # PLAN_RESULT = "PLAN_RESULT"
+    # PLAN_CREATE = "PLAN_CREATE"
 
 class EventGroupStatus(Enum):
     STARTED = "STARTED"
@@ -50,19 +63,39 @@ class EventGroup(BaseModel):
 
 class Event(BaseModel):
     id: str
+    client_id: str
     type: EventType
     sub_type: EventSubType
     data: Dict[str, Any]
+    payload: Optional[Dict[str, Any]] = None,
     created: int
     silent: Optional[bool] = False # 静默事件
     group: Optional[EventGroup] = None # 组事件
     source: Optional[EventSource] = None # 事件来源
 
     @classmethod
-    def from_init(cls, data:Dict[str, Any], event_type: EventType, event_sub_type: EventSubType, group: Optional[EventGroup] = None, silent: Optional[bool] = False) -> "Event":
-        return Event(id=create_uuid(), type=event_type, sub_type=event_sub_type, data=data, group=group, silent=silent, created=create_from_second_now_to_int())
+    def from_init(
+        cls,
+        client_id: str,
+        data:Dict[str, Any],
+        event_type: EventType,
+        event_sub_type: EventSubType,
+        source: EventSource,
+        payload: Optional[Dict[str, Any]] = None,
+        group: Optional[EventGroup] = None,
+        silent: Optional[bool] = False
+    ) -> "Event":
+        return Event(id=create_uuid(), client_id=client_id, type=event_type, sub_type=event_sub_type,
+                     payload=payload if payload is not None else {}, source=source,
+                     data=data, group=group, silent=silent, created=create_from_second_now_to_int())
 
     @classmethod
-    def from_stop(cls, data:Dict[str, Any], group: Optional[EventGroup] = None, silent: Optional[bool] = False):
-        return Event(id=create_uuid(), type=EventType.SYSTEM, sub_type=EventSubType.STOP, data=data, group=group, silent=silent,
-                     created=create_from_second_now_to_int())
+    def from_stop(
+        cls,
+        client_id:str,
+        data:Dict[str, Any],
+        group: Optional[EventGroup] = None,
+        silent: Optional[bool] = False):
+        return Event(id=create_uuid(), client_id=client_id, type=EventType.SYSTEM, sub_type=EventSubType.STOP,
+                     payload={}, source=None,
+                     data=data, group=group, silent=silent, created=create_from_second_now_to_int())

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from application.domain.agent import Agent
+from application.domain.agents.agent import Agent
 from typing import Optional, Dict, Any
 
 class AgentCase(ABC):

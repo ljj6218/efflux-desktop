@@ -85,6 +85,11 @@ LOGGING_CONFIG = {
         },
         "adapter.model_sdk.openai.client": {
             "handlers": ["console", "file"],
+            "level": "DEBUG",  # 只显示 INFO 及以上级别的日志
+            "propagate": False,
+        },
+        "application.service.task_handlers.tool_task_handler": {
+            "handlers": ["console", "file"],
             "level": "INFO",  # 只显示 INFO 及以上级别的日志
             "propagate": False,
         },

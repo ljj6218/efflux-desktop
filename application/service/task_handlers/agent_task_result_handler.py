@@ -1,6 +1,5 @@
-import json
-
 from application.domain.agents.agent import Agent, AgentInfo, AgentState
+from application.domain.events.event import Event, EventType, EventSubType, EventSource
 from application.domain.tasks.task import Task, TaskType, TaskState
 from application.port.inbound.task_handler import TaskHandler
 from application.port.outbound.conversation_port import ConversationPort
@@ -22,7 +21,7 @@ import injector
 logger = get_logger(__name__)
 
 @component
-class AgentTaskHandler(TaskHandler):
+class AgentTaskResultHandler(TaskHandler):
 
     @injector.inject
     def __init__(
@@ -44,37 +43,25 @@ class AgentTaskHandler(TaskHandler):
         self.conversation_port = conversation_port
 
     def execute(self, task: Task):
-        print("AgentTaskHandler")
-        agent_instance_id = task.payload["agent_instance_id"]
+        print("AgentTaskResultHandler")
+        agent_instance_id = task.data['agent_instance_id']
         conversation_id = task.data['conversation_id']
-        dialog_segment_id = task.data['dialog_segment_id']
-        generator_id = task.data['generator_id']
+        # 判断agent的类型，
+        agent_info = self.agent_port.load_instance_info(instance_id=agent_instance_id, conversation_id=conversation_id)
+        print(task.payload)
+        if task.payload['user_confirm']:
+            print(f"需用户确认-》[{task.payload['confirm_data']}]")
 
-        # 查询会话历史
-        history_conversation = self.conversation_port.conversation_load(conversation_id=conversation_id)
-        if not history_conversation:
-            raise BusinessException(error_code=GeneratorErrorCode.NO_CONVERSATION_FOUND,
-                                    dynamics_message=conversation_id)
+        Event.from_init(
+            client_id=task.client_id,
+            event_type=EventType.INTERACTIVE,
+            event_sub_type=EventSubType.CALL_USER,
+            source=EventSource.AGENT,
+            data={
 
-        # 获取agent实例
-        generator = self._llm_generator(generator_id=generator_id)
-        # 获取 agent 实例，并保存调用记录
-        agent_info: AgentInfo = self.agent_port.load_instance_info(instance_id=agent_instance_id, conversation_id=conversation_id)
-        # 创建可执行Agent实例
-        agent_instance = self.agent_port.make_instance(
-            agent_info=agent_info,
-            generators_port=self.generators_port,
-            llm_generator=generator,
-            ws_message_port=self.ws_message_port
+            },
+            payload=task.payload,
         )
-        agent_instance.init_info(agent_info=agent_info)
-        # payload 设置
-        if "json_result" in task.payload and "content" in task.data: # LLM返回的json结果
-            task.payload['json_result_data'] = json.loads(task.data["content"])
-        agent_instance.execute(history_message_list=history_conversation.convert_sort_memory(), payload=task.payload, client_id=task.client_id)
-
-        # 保存agent实例为运行状态
-        self.agent_port.save_instance_info(agent_instance.get_info())
 
     def state(self) -> TaskState:
         pass
@@ -88,7 +75,7 @@ class AgentTaskHandler(TaskHandler):
 
 
     def type(self) -> str:
-        return TaskType.AGENT_CALL.value
+        return TaskType.AGENT_CALL_RESULT.value
 
     def _llm_generator(self, generator_id: str) -> LLMGenerator:
         # 获取厂商api key

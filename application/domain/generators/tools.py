@@ -71,11 +71,6 @@ class ToolInstance(Tool):
             del data['input_schema']
         return data
 
-    # TODO 待注销
-    @classmethod
-    def from_init(cls, name: str, mcp_server_name: str, description: str, input_schema: Optional[Dict[str, Any]] = None) -> "ToolInstance":
-        return cls(name=name, mcp_server_name=mcp_server_name, description=description, input_schema=input_schema)
-
     @staticmethod
     def from_dict(data: Dict[str, Any]) -> List["ToolInstance"]:
         tool_call_list = []
@@ -88,7 +83,7 @@ class ToolInstance(Tool):
             tool_call_list.append(
                 ToolInstance(
                     conversation_id=data['conversation_id'],
-                    dialog_segment_id=data['id'],
+                    dialog_segment_id=data['dialog_segment_id'],
                     tool_call_id=tool_call['id'],
                     mcp_server_name=tool_call['mcp_server_name'],
                     group_name=tool_call['group_name'],

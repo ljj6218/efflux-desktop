@@ -106,7 +106,7 @@ class ClientManager(GeneratorsPort):
         **generation_kwargs,
     ) -> Dict[str, Any] | None:
         retries = 0
-        while retries < 3:
+        while retries < 1:
             contents = ""
             for chunk in self.generate_event(llm_generator=llm_generator, messages=messages, tools=[], **generation_kwargs):
                 print(chunk)
@@ -119,7 +119,7 @@ class ClientManager(GeneratorsPort):
                 else:
                     exception_message = "Validation failed for JSON response, retrying. You must return a valid JSON object parsed from the response."
             except json.JSONDecodeError as e:
-                json_response = self._extract_json_from_string(contents)
+                json_response = JSONFileUtil.extract_json_from_string(contents)
                 if json_response is not None:
                     if validate_json and validate_json(json_response):
                         return json_response
@@ -127,6 +127,7 @@ class ClientManager(GeneratorsPort):
                         exception_message = "Validation failed for JSON response, retrying. You must return a valid JSON object parsed from the response."
                 else:
                     exception_message = f"Failed to parse JSON response, retrying. You must return a valid JSON object parsed from the response. Error: {e}"
+                    return {"content": f"转换json失败 -> {contents}"}
             retries += 1
         raise ValueError("Failed to get a valid JSON response after multiple retries")
 
@@ -147,18 +148,3 @@ class ClientManager(GeneratorsPort):
             tools=tools,
             generation_kwargs=generation_kwargs
         )
-
-    @staticmethod
-    def _extract_json_from_string(s: str) -> Optional[Any]:
-        """
-        Searches for a JSON object within the string and returns the loaded JSON if found, otherwise returns None.
-        """
-        # Regex to find JSON objects (greedy, matches first { to last })
-        match = re.search(r"\{.*\}", s, re.DOTALL)
-        if match:
-            json_str = match.group(0)
-            try:
-                return json.loads(json_str)
-            except json.JSONDecodeError:
-                return None
-        return None

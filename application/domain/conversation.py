@@ -1,12 +1,45 @@
 from datetime import datetime
+from enum import Enum
 
 from common.utils.common_utils import create_uuid
 from common.utils.file_util import open_and_base64
 from common.utils.time_utils import create_from_second_now, create_from_timestamp, create_from_timestamp_to_int
 from application.domain.generators.tools import ToolInstance
 from pydantic import BaseModel
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Dict, Any
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
+
+class MetadataSource(Enum):
+    USER = "USER"
+    ASSISTANT = "ASSISTANT"
+    AGENT = "AGENT"
+
+class MetadataType(Enum):
+    MESSAGE = "MESSAGE"
+    AGENT_BEGIN = "AGENT_BEGIN"
+    AGENT_RESULT = "AGENT_RESULT"
+    USER_CONFIRMATION = "USER_CONFIRMATION"
+
+class DialogSegmentMetadata(BaseModel):
+    source: MetadataSource
+    type: MetadataType
+
+    def model_dump(self, **kwargs):
+        # 使用 super() 获取字典格式
+        data = super().model_dump()
+        # 转换 为字符串
+        data['source'] = self.source.value if self.source else None
+        data['type'] = self.type.value if self.type else None
+        return data
+
+    @classmethod
+    def model_validate(cls, obj, **kwargs):
+        # 字符串转枚举
+        if 'source' in obj and isinstance(obj['source'], MetadataSource):
+            obj['source'] = MetadataSource(value=obj['source'])
+        if 'type' in obj and isinstance(obj['type'], MetadataType):
+            obj['type'] = MetadataType(value=obj['type'])
+        return super().model_validate(obj)
 
 class DialogSegmentContent(BaseModel):
     type: Literal["text", "image"]
@@ -19,14 +52,15 @@ class DialogSegment(BaseModel):
     id: str
     # 会话ID
     conversation_id: Optional[str] = None
-    # agent id
-    agent_id: Optional[str] = None
     # 模型
     model: Optional[str] = None
     # 内容
     content: Optional[str | List[DialogSegmentContent]] = None
     # 思考
     reasoning_content: Optional[str] = None
+    # 拓展负载信息
+    payload: Dict[str, Any] = None
+    # 结束标识
     finish_reason: Optional[str] = None
     # 类型
     role: Optional[str] = None
@@ -34,31 +68,53 @@ class DialogSegment(BaseModel):
     tool_calls: Optional[List[ToolInstance]] = None
     # 创建时间
     created: Optional[datetime] = None
+    # 元数据
+    metadata: DialogSegmentMetadata
 
     @classmethod
-    def make_user_message(cls, content: str | List[DialogSegmentContent], conversation_id: str, agent_id: Optional[str] = None, id: Optional[str] = None) -> "DialogSegment":
+    def make_user_message(
+        cls,
+        content: str | List[DialogSegmentContent],
+        conversation_id: str,
+        id: Optional[str] = None,
+        metadata: Optional[DialogSegmentMetadata] = None,
+        payload: Dict[str, Any] = None
+    ) -> "DialogSegment":
+        default_metadata = DialogSegmentMetadata(source=MetadataSource.USER, type=MetadataType.MESSAGE)
         return cls(
             id=id if id else create_uuid(),
             conversation_id=conversation_id,
-            agent_id=agent_id,
             content=content,
             role="user",
             finish_reason="stop",
-            created=create_from_second_now()
+            created=create_from_second_now(),
+            payload=payload if payload else {},
+            metadata=metadata if metadata is not None else default_metadata,
         )
 
     @classmethod
-    def make_assistant_message(cls, content: str, conversation_id: str, reasoning_content: Optional[str], model: str, timestamp: int, agent_id: Optional[str] = None, id: Optional[str] = None):
+    def make_assistant_message(
+        cls, content: str,
+        conversation_id: str,
+        model: str,
+        timestamp: int,
+        reasoning_content: Optional[str] = None,
+        id: Optional[str] = None,
+        metadata: Optional[DialogSegmentMetadata] = None,
+        payload: Dict[str, Any] = None
+    ) -> "DialogSegment":
+        default_metadata = DialogSegmentMetadata(source=MetadataSource.ASSISTANT, type=MetadataType.MESSAGE)
         return cls(
             id=id if id else create_uuid(),
             conversation_id=conversation_id,
-            agent_id=agent_id,
             content=content,
             reasoning_content=reasoning_content,
             model=model,
             role="assistant",
             finish_reason="stop",
-            created = create_from_timestamp(timestamp)
+            created = create_from_timestamp(timestamp),
+            payload=payload if payload else {},
+            metadata=metadata if metadata is not None else default_metadata,
         )
 
     def convert_chat_streaming_chunk(self) -> ChatStreamingChunk:
@@ -93,6 +149,7 @@ class DialogSegment(BaseModel):
         data = super().model_dump()
         # 转换 datetime 字段为字符串（ISO 格式）
         data['created'] = self.created.isoformat() if self.created else None
+        data['metadata'] = self.metadata.model_dump(**kwargs)
         return data
 
     @classmethod
@@ -100,6 +157,8 @@ class DialogSegment(BaseModel):
         # 确保将创建的字符串转换为 datetime 对象
         if 'created' in obj and isinstance(obj['created'], str):
             obj['created'] = datetime.fromisoformat(obj['created'])
+        if 'metadata' in obj and isinstance(obj['metadata'], dict):
+            obj['metadata'] = DialogSegmentMetadata.model_validate(obj['metadata'], **kwargs)
         return super().model_validate(obj)
 
 class Conversation(BaseModel):
@@ -131,6 +190,8 @@ class Conversation(BaseModel):
         """用于普通会话的消息集合拼装，由于LLM任务开始的时候用户的输入已经保存，所以这里处理最后条消息，可能base64个图片"""
         rs_list: List[ChatStreamingChunk] = []
         for i, dialog_segment in enumerate(self.dialog_segment_list):
+            if dialog_segment.metadata.type != MetadataType.MESSAGE and dialog_segment.metadata.type != MetadataType.AGENT_RESULT:
+                continue
             if i == len(self.dialog_segment_list) - 1:
                 # 最后一个元素解析图片，非最后的对话则删除图片记录
                 chat_streaming_chunk = dialog_segment.convert_chat_streaming_chunk()

@@ -10,6 +10,7 @@ class TaskConfirm(BaseModel):
 
 class GeneratorsVo(BaseModel):
     generator_id: str
+    client_id: str
     query: str | Optional[List[DialogSegmentContent]] = None
     system: Optional[str] = None
     conversation_id: Optional[str] = None

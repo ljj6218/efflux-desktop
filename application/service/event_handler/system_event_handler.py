@@ -19,7 +19,7 @@ class SystemEventHandler(EventHandler):
         if event.sub_type == EventSubType.STOP:
             print(f"======停止====={event}")
 
-        self.ws_message_port.send(event.model_dump_json())
+        self.ws_message_port.send(event)
 
     def type(self) -> str:
         return EventType.SYSTEM.value
