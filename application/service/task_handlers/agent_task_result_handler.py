@@ -71,10 +71,11 @@ class AgentTaskResultHandler(TaskHandler):
                 message_list = self._thread_to_context(history_message_list=history_conversation.convert_sort_memory())
                 message_list.append(ChatStreamingChunk.from_system(message=self._redesign_step_prompt(plan=task.payload['plan'], step=first_step)))
                 # 重新规划step
-                result_dict = self._redesign_step(generator_id=generator_id)
+                result_dict = self._redesign_step(generator_id=generator_id, message_list=message_list)
                 logger.info(f"重新规划结果：--->{result_dict}")
                 # 根据重新规划的结果调用agent
                 # self._call_agent()
+
 
         # 判读是否需要用户确认
         if task.payload['user_confirm']:
@@ -149,10 +150,10 @@ class AgentTaskResultHandler(TaskHandler):
         logger.info(f"[AgentTaskResultHandler]发起[{EventType.AGENT} - {EventSubType.AGENT_CALL}]事件：[ID：{event.id}]")
         EventPort.get_event_port().emit_event(event)
 
-    def _redesign_step(self, generator_id: str) -> Dict[str, Any]:
+    def _redesign_step(self, generator_id: str, message_list:List[ChatStreamingChunk]) -> Dict[str, Any]:
         """重新检查计划执行"""
         return self.generators_port.generate_json(llm_generator=self._llm_generator(generator_id=generator_id),
-                  validate_json=validate_ledger_json, messages=None)
+                  validate_json=validate_ledger_json, messages=message_list)
 
     def _redesign_step_prompt(self, step: PlanStep, plan: Plan):
         agents, team_desc = self.agent_port.load_agent_teams()
