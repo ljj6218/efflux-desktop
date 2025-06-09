@@ -56,10 +56,24 @@ class AgentTaskResultHandler(TaskHandler):
         agent_instance_id = task.data['agent_instance_id']
         conversation_id = task.data['conversation_id']
         generator_id = task.data['generator_id']
+        dialog_segment_id = task.data['dialog_segment_id']
+        client_id = task.data['client_id']
         # 更新agent状态
         agent_info = self.agent_port.load_instance_info(instance_id=agent_instance_id, conversation_id=conversation_id)
         agent_info.state = task.payload['agent_state']
         self.agent_port.save_instance_info(instance_info=agent_info)
+        # 如果agent是clarification类型
+        if agent_info.name == "clarification":  # 更新计划状态
+            # 根据重新规划的结果调用agent
+            self._call_agent(agent_name='plan',
+                             client_id=client_id,
+                             conversation_id= conversation_id,
+                             dialog_segment_id = dialog_segment_id,
+                             generator_id = generator_id,
+                             payload = task.payload)
+            logger.info(f"需求澄清结束，调用计划Agent")
+
+
         # 如果agent是plan类型
         if agent_info.name == "plan": # 更新计划状态
             self.plan_port.sava(task.payload['plan'])

@@ -14,6 +14,17 @@
         ],
         "description": "The websurfer has access to a web browser that it can control.\nIt understands images and can use them to help it complete the task.\n\uFEFF\nIn a single step when you ask the agent to do something, it will perform multiple actions sequentially until it decides to stop.\nThe actions it can perform are:\n- visiting a web page url\n- performing a web search using Bing\n- Interact with a web page: clicking a button, hovering over a button, typing in a field, scrolling the page, select an option in a dropdown\n- Downloading a file from the web page and upload file from the local file system\n- Pressing a key on the keyboard to interact with the web page\n- answer a question based on the content of the entire page beyond just the vieport\n- wait on a page to load\n- interact with tabs on the page: closing a tab, switching to a tab, creating a new tab\n- refresh the page\n\uFEFF\nIt can do multiple actions in a single step, but it will stop after it has performed the maximum number of actions or once it decides to stop.\nAs mentioned, it can perform multiple actions per command given to it, for instance if asked to fill a form, it can input the first name, then the last name, then the email, and then submit, and then stop."
     },
+    "0": {
+        "id": "0",
+        "name": "clarification",
+        "tools_group_list": [
+            {
+                "group_name": "browser",
+                "type": "LOCAL"
+            }
+        ],
+        "description": "用户需求澄清Agent"
+    },
     "1": {
         "id": "1",
         "name": "plan",
