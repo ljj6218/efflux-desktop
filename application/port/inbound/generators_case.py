@@ -6,6 +6,7 @@ class GeneratorsCase(ABC):
 
     @abstractmethod
     async def generate_stream(self,
+        client_id: str,
         generator_id: str,
         query: Optional[str | List[DialogSegmentContent]],
         system: str,
@@ -16,6 +17,7 @@ class GeneratorsCase(ABC):
     ) -> tuple[str | None, str]:
         """
         ppt生成交互
+        :param client_id: ws id
         :param generator_id: 生成模型id
         :param query: 用户消息
         :param system: 系统提示词
@@ -29,10 +31,12 @@ class GeneratorsCase(ABC):
     @abstractmethod
     async def stop_generate(
         self,
+        client_id: str,
         conversation_id: str,
     ) -> str:
         """
         停止生成
+        :param client_id: ws id
         :param conversation_id:
         :return:
         """

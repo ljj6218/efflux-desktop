@@ -1,6 +1,11 @@
+from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
+from application.domain.generators.firm import GeneratorFirm
+from application.domain.generators.generator import LLMGenerator
 from application.domain.tasks.task import Task, TaskType
 from application.domain.conversation import Conversation
 from application.port.outbound.conversation_port import ConversationPort
+from application.port.outbound.generators_port import GeneratorsPort
+from application.port.outbound.user_setting_port import UserSettingPort
 from common.core.container.annotate import component
 from application.port.outbound.task_port import TaskPort
 from application.port.inbound.test_case import TestCase
@@ -10,7 +15,8 @@ from application.domain.events.event import Event, EventType, EventSubType
 import injector
 from common.utils.common_utils import create_uuid, CONVERSATION_STOP_FLAG_KEY
 from common.core.logger import get_logger
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
+import json
 
 logger = get_logger(__name__)
 
@@ -23,13 +29,17 @@ class TestService(TestCase):
         self,
         task_manager: TaskPort,
         conversation_port: ConversationPort,
+        generators_port: GeneratorsPort,
         cache_port: CachePort,
         event_port: EventPort,
+        user_setting_port: UserSettingPort,
     ):
         self.task_manager = task_manager
         self.conversation_port = conversation_port
         self.cache_port = cache_port
         self.event_port = event_port
+        self.generators_port = generators_port
+        self.user_setting_port = user_setting_port
 
     async def test_task(self):
         task = Task.from_singleton(task_type=TaskType.LLM_CALL, data={})
@@ -59,6 +69,7 @@ class TestService(TestCase):
         # 清除会话的停止状态
         self.cache_port.set_data(name=CONVERSATION_STOP_FLAG_KEY, key=conversation_id, value=False)
         event = Event.from_init(
+            client_id="1",
             event_type=EventType.AGENT,
             event_sub_type=EventSubType.AGENT_CALL,
             data={
@@ -72,3 +83,14 @@ class TestService(TestCase):
         logger.info(f"[GeneratorService]发起[{EventType.AGENT} - {EventSubType.AGENT_CALL}]事件：[ID：{event.id}]")
         self.event_port.emit_event(event)
         return conversation_id, uuid
+
+    async def test_prompts(self, chunks: List[ChatStreamingChunk], generator_id: str) -> Dict[str, Any]:
+        return self.generators_port.generate_json(llm_generator=self._llm_generator(generator_id=generator_id), messages=chunks, validate_json=None, json_object=True)
+
+    def _llm_generator(self, generator_id: str) -> LLMGenerator:
+        # 获取厂商api key
+        llm_generator: LLMGenerator = self.generators_port.load_generate(generator_id)
+        firm: GeneratorFirm = self.user_setting_port.load_firm_setting(llm_generator.firm)
+        llm_generator.set_api_key_secret(firm.api_key)
+        llm_generator.check_firm_api_key()
+        return llm_generator

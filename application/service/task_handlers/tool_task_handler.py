@@ -1,9 +1,8 @@
 from application.domain.tasks.task import TaskType, Task, TaskState
-from application.domain.events.event import EventType, Event, EventSubType, EventGroupStatus
+from application.domain.events.event import EventType, Event, EventSubType, EventSource
 from application.port.outbound.event_port import EventPort
 from application.port.inbound.task_handler import TaskHandler
 from common.core.container.annotate import component
-from common.utils.time_utils import create_from_second_now_to_int
 from application.port.outbound.tools_port import ToolsPort
 from application.port.outbound.mcp_server_port import MCPServerPort
 from application.domain.generators.tools import ToolInstance
@@ -60,19 +59,20 @@ class ToolTaskHandler(TaskHandler):
                 event_tool_calls.append(tool_call.model_dump())
             # 发送工具调用结果事件
             event = Event.from_init(
+                client_id=task.client_id,
                 event_type=EventType.TOOL,
                 event_sub_type=EventSubType.TOOL_CALL_RESULT,
+                source=EventSource.TOOL_HANDLER,
                 data={
                     'id': task.data['id'],
                     'model': task.data['model'],
                     'dialog_segment_id':task.data['dialog_segment_id'],
                     'conversation_id': task.data['conversation_id'],
                     'generator_id': task.data['generator_id'],
-                    'mcp_name_list': task.data['mcp_name_list'],
-                    'tools_group_name_list': task.data['tools_group_name_list'],
                     'created': task.data['created'],
                     'tool_calls': event_tool_calls
                 },
+                payload=task.payload
             )
             logger.info(f"任务处理器[{self.type()}]发起[{event.type} - {event.sub_type}]事件：[ID：{event.id}]")
             EventPort.get_event_port().emit_event(event)
@@ -103,17 +103,3 @@ class ToolTaskHandler(TaskHandler):
                     tool_call.result = tool_call_result['result']
                     # 更新工具调用实例记录的结果
                     self.tools_port.update_instance(tool_call)
-
-
-
-
-        # # 在当前线程中创建新的事件循环
-        # loop = asyncio.new_event_loop()
-        # asyncio.set_event_loop(loop)
-        # try:
-        #     # 在新的事件循环中运行协程
-        #     results = loop.run_until_complete(asyncio.gather(*tool_call_task_list))
-        #     logger.debug(f"工具调用结果：{results}")
-        # finally:
-        #     # 关闭事件循环
-        #     loop.close()

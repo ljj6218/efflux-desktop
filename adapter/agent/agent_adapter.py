@@ -1,27 +1,75 @@
-from application.domain.agent import Agent
+from application.domain.agents.agent import Agent, AgentInstance, AgentInfo
+from application.domain.agents.plan_agent import PlanAgent
 from application.domain.conversation import DialogSegment
+from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.agent_port import AgentPort
+from application.port.outbound.generators_port import GeneratorsPort
+from application.port.outbound.ws_message_port import WsMessagePort
 from common.core.container.annotate import component
 from common.utils.file_util import check_file_and_create, check_file
 from common.utils.json_file_util import JSONFileUtil
 from typing import Optional, Dict, List
 
 import jsonlines
+import asyncio
 
-# from adapter.agent.prompts.browser import (
-#     WEB_SURFER_OCR_PROMPT,
-#     WEB_SURFER_QA_PROMPT,
-#     WEB_SURFER_QA_SYSTEM_MESSAGE,
-#     WEB_SURFER_TOOL_PROMPT,
-#     WEB_SURFER_SYSTEM_MESSAGE,
-#     WEB_SURFER_NO_TOOLS_PROMPT,
-# )
+from adapter.agent.prompts.browser import (
+    WEB_SURFER_OCR_PROMPT,
+    WEB_SURFER_QA_PROMPT,
+    WEB_SURFER_QA_SYSTEM_MESSAGE,
+    WEB_SURFER_TOOL_PROMPT,
+    WEB_SURFER_SYSTEM_MESSAGE,
+    WEB_SURFER_NO_TOOLS_PROMPT,
+)
+
+from adapter.agent.prompts.plan import (
+    ORCHESTRATOR_SYSTEM_MESSAGE_PLANNING,
+    ORCHESTRATOR_SYSTEM_MESSAGE_EXECUTION,
+    ORCHESTRATOR_PLAN_PROMPT_JSON,
+    ORCHESTRATOR_PLAN_REPLAN_JSON
+)
 
 
 @component
 class AgentAdapter(AgentPort):
 
+    @staticmethod
+    def _load_prompt_list(type: str) -> Dict[str, str]:
+        prompts = {}
+        if type == "browser":
+            prompts['WEB_SURFER_OCR_PROMPT'] = WEB_SURFER_OCR_PROMPT
+            prompts['WEB_SURFER_QA_PROMPT'] = WEB_SURFER_QA_PROMPT
+            prompts['WEB_SURFER_QA_SYSTEM_MESSAGE'] = WEB_SURFER_QA_SYSTEM_MESSAGE
+            prompts['WEB_SURFER_TOOL_PROMPT'] = WEB_SURFER_TOOL_PROMPT
+            prompts['WEB_SURFER_SYSTEM_MESSAGE'] = WEB_SURFER_SYSTEM_MESSAGE
+            prompts['WEB_SURFER_NO_TOOLS_PROMPT'] = WEB_SURFER_NO_TOOLS_PROMPT
+        if type == "plan":
+            prompts['ORCHESTRATOR_SYSTEM_MESSAGE_PLANNING'] = ORCHESTRATOR_SYSTEM_MESSAGE_PLANNING
+            prompts['ORCHESTRATOR_SYSTEM_MESSAGE_EXECUTION'] = ORCHESTRATOR_SYSTEM_MESSAGE_EXECUTION
+            prompts['ORCHESTRATOR_PLAN_PROMPT_JSON'] = ORCHESTRATOR_PLAN_PROMPT_JSON
+            prompts['ORCHESTRATOR_PLAN_REPLAN_JSON'] = ORCHESTRATOR_PLAN_REPLAN_JSON
+        return prompts
+
     agent_file_url = "adapter/agent/agent.json"
+    agent_instance_file_pre_url = "conversations/agent_instance/"
+
+    def load_instance_info(self, instance_id: str, conversation_id: str) -> Optional[AgentInfo]:
+        agent_instance_file = f"{self.agent_instance_file_pre_url}{conversation_id}.json"
+        agent_instance_config = JSONFileUtil(agent_instance_file)
+        # 遍历所有agent
+        for agent_instance_dict_id in agent_instance_config.read().keys():
+            # 获取agent
+            if agent_instance_dict_id == instance_id:
+                agent_instance_dict = agent_instance_config.read_key(instance_id)
+                agent_info = AgentInfo.model_validate(agent_instance_dict)
+                return agent_info
+        return None
+
+    def save_instance_info(self, instance_info: AgentInfo) -> AgentInfo:
+        agent_instance_file = f"{self.agent_instance_file_pre_url}{instance_info.conversation_id}.json"
+        agent_instance_config = JSONFileUtil(agent_instance_file)
+        agent_instance_config.update_key(instance_info.instance_id, instance_info.model_dump())
+        return instance_info
 
     def load_record(self, agent_instance_id: str) -> List[DialogSegment]:
         dialog_segment_list = []
@@ -34,7 +82,7 @@ class AgentAdapter(AgentPort):
         return dialog_segment_list
 
     def add_record(self, dialog_segment: DialogSegment) -> DialogSegment:
-        dialog_segment_file = f'conversations/agent/{dialog_segment.agent_id}.jsonl'
+        dialog_segment_file = f'conversations/agent/{dialog_segment.payload['agent_instance_id']}.jsonl'
         check_file_and_create(dialog_segment_file)
         with jsonlines.open(dialog_segment_file, mode='a') as writer:
             writer.write(dialog_segment.model_dump())
@@ -55,19 +103,39 @@ class AgentAdapter(AgentPort):
                 agent_dict = agent_config.read_key(agent_id)
                 agent = Agent.model_validate(agent_dict)
                 # 加载所有提示词 TODO 后面可能会持久化，统一返回
-                # agent.agent_prompts = self._load_prompt_list(agent.name)
+                agent.agent_prompts = self._load_prompt_list(agent.name)
                 return agent
         return None
 
-    # @staticmethod
-    # def _load_prompt_list(type: str) -> List[Dict[str, str]]:
-    #     prompt_list = []
-    #     if type == "browser":
-    #         prompt_list.append({'WEB_SURFER_OCR_PROMPT': WEB_SURFER_OCR_PROMPT})
-    #         prompt_list.append({'WEB_SURFER_QA_PROMPT': WEB_SURFER_QA_PROMPT})
-    #         prompt_list.append({'WEB_SURFER_QA_SYSTEM_MESSAGE': WEB_SURFER_QA_SYSTEM_MESSAGE})
-    #         prompt_list.append({'WEB_SURFER_TOOL_PROMPT': WEB_SURFER_TOOL_PROMPT})
-    #         prompt_list.append({'WEB_SURFER_SYSTEM_MESSAGE': WEB_SURFER_SYSTEM_MESSAGE})
-    #         prompt_list.append({'WEB_SURFER_NO_TOOLS_PROMPT': WEB_SURFER_NO_TOOLS_PROMPT})
-    #
-    #     return prompt_list
+
+    def make_instance(self, agent_info: AgentInfo, llm_generator: LLMGenerator, generators_port: GeneratorsPort,
+                      ws_message_port: WsMessagePort) -> Optional[AgentInstance]:
+        if agent_info.name == 'plan':
+            agent_instance = PlanAgent(
+                generators_port=generators_port,
+                llm_generator=llm_generator,
+                ws_message_port=ws_message_port
+            )
+            agents, team_description = self._load_agent()
+            asyncio.run(
+                agent_instance.lazy_init(
+                config={
+                    "agents": agents,
+                    "team_description": team_description
+                    }
+                )
+            )
+            return agent_instance
+
+
+    def _load_agent(self) -> tuple[List[Agent], str]:
+        agents = [
+            self.load("4877f996-2fb5-400d-9b26-245a824e325f")
+        ]
+        team_description = "\n".join(
+            [
+                f"{agent.name}: {agent.description}".strip()
+                for agent in agents
+            ]
+        )
+        return agents, team_description

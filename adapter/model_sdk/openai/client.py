@@ -5,7 +5,7 @@ from openai import OpenAI
 from adapter.model_sdk.client import ModelClient
 from common.utils.auth import Secret
 from common.core.errors.system_exception import ThirdPartyServiceException, ThirdPartyServiceApiCode
-from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, CompletionUsage, ChatCompletionMessageToolCall
+from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, ChatCompletionMessageToolCall
 from openai.types.chat.chat_completion_tool_param import ChatCompletionToolParam
 from application.domain.generators.tools import Tool
 from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
@@ -110,9 +110,9 @@ class OpenAIClient(ModelClient):
         for event in stream:
             if not started_event:
                 started_event = True
-            logger.debug("============================================================================================")
-            logger.debug(f"原始chunk返回：{event}")
-            logger.debug("============================================================================================")
+            # logger.debug("============================================================================================")
+            # logger.debug(f"原始chunk返回：{event}")
+            # logger.debug("============================================================================================")
             if hasattr(event, "type") and event.type == 'ping': # claude sse ping 兼容
                 logger.debug("LLM API SSE Pong")
             else:

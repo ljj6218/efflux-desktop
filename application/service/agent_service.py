@@ -1,4 +1,4 @@
-from application.domain.agent import Agent
+from application.domain.agents.agent import Agent
 from application.port.inbound.agent_case import AgentCase
 from application.port.outbound.agent_port import AgentPort
 from common.core.container.annotate import component

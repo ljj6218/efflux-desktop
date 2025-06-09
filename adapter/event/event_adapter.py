@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import List, Dict, Type, Optional
 import injector
 import threading
+import traceback
 import queue
 import time
 
@@ -168,6 +169,7 @@ class EventAdapter(EventPort):
             handler.handle(event)
         except Exception as e:
             logger.error(f"事件处理器 {handler.__class__.__name__} 处理事件 {event} 时发生错误: {str(e)}")
+            logger.error(traceback.format_exc())  # 记录完整的堆栈跟踪
 
     def emit_event(self, event: Event) -> str:
         """发布事件"""

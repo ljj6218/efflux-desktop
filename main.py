@@ -92,10 +92,10 @@ from websockets import serve
 
 async def ws_handler(websocket):
     # 假设你在路径参数中指定了 client_id，例如 ws://localhost:8765/ws?client_id=abc
-    # query = dict((kv.split("=") for kv in websocket.request.path.split("?")[1].split("&")))
-    # client_id = query.get("client_id", SINGLETON_WEBSOCKET_CLIENT_ID)
+    query = dict((kv.split("=") for kv in websocket.request.path.split("?")[1].split("&")))
+    client_id = query.get("client_id", create_uuid())
     # client_id = SINGLETON_WEBSOCKET_CLIENT_ID
-    client_id = create_uuid()
+    # client_id = create_uuid()
     manager.register(client_id, websocket)
     logger.info(f"connection open -> client_id[{client_id}]")
     try:

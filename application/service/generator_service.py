@@ -4,8 +4,8 @@ from application.domain.generators.firm import GeneratorFirm
 from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.generators_port import GeneratorsPort
 from application.port.inbound.model_case import ModelCase
-from application.domain.events.event import Event, EventType, EventSubType
-from application.domain.conversation import Conversation, DialogSegmentContent
+from application.domain.events.event import Event, EventType, EventSubType, EventSource
+from application.domain.conversation import Conversation, DialogSegmentContent, DialogSegment
 from common.core.container.annotate import component
 from common.utils.common_utils import create_uuid, CONVERSATION_STOP_FLAG_KEY
 from application.port.outbound.event_port import EventPort
@@ -152,6 +152,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
 
     async def generate_stream(
         self,
+        client_id: str,
         generator_id: str,
         query: Optional[str | List[DialogSegmentContent]],
         system: str,
@@ -176,40 +177,54 @@ class GeneratorService(ModelCase, GeneratorsCase):
                         query_str = item.content
             else:
                 query_str = query
-            # 创建会话
-            if not conversation_id:
-                conversation = Conversation()
-                conversation.init()
-                conversation.theme = query_str
-                conversation.dialog_segment_list = []
-                self.conversation_port.conversation_save(conversation=conversation)
-                conversation_id = conversation.id
-                logger.info(f"首次发送消息创建会话：[ID：{conversation.id} - 主题：{conversation.theme}]")
-            else:
-                logger.info(f"历史会话消息：[ID：{conversation_id}]")
-            uuid = create_uuid()
-            # 清楚会话的停止状态
+            # 会话检查
+            conversation_id = self._conversation_check(conversation_id=conversation_id, query_str=query_str)
+            dialog_segment_id = create_uuid()
+            # 保存用户输入
+            user_dialog_segment = DialogSegment.make_user_message(
+                content=query_str, conversation_id=conversation_id, id=create_uuid())
+            self.conversation_port.conversation_add(dialog_segment=user_dialog_segment)
+            logger.info(f"保存用户对话片段：[ID：{user_dialog_segment.id} - 内容：{user_dialog_segment.content}]")
+            # 清除会话的停止状态
             self.cache_port.set_data(name=CONVERSATION_STOP_FLAG_KEY, key=conversation_id, value=False)
             event = Event.from_init(
                 event_type=EventType.USER_MESSAGE,
                 event_sub_type=EventSubType.MESSAGE,
+                client_id=client_id,
+                source=EventSource.GENERATOR_SVC,
                 data={
-                    "id": uuid,
-                    "dialog_segment_id": uuid,
+                    "id": create_uuid(),
+                    "dialog_segment_id": dialog_segment_id,
                     "conversation_id": conversation_id,
                     "generator_id": generator_id,
-                    "content": query,
+                },
+                payload={
                     "system": system,
+                    "json_result": False,
                     "mcp_name_list": mcp_name_list,
                     "tools_group_name_list": tools_group_name_list,
                 }
             )
             logger.info(f"[GeneratorService]发起[{EventType.USER_MESSAGE} - {EventSubType.MESSAGE}]事件：[ID：{event.id}]")
             self.event_port.emit_event(event)
-            return conversation_id, uuid
+            return conversation_id, dialog_segment_id
 
-    async def stop_generate(self, conversation_id: str) -> str:
+    async def stop_generate(self, conversation_id: str, client_id: str) -> str:
         self.cache_port.set_data(name=CONVERSATION_STOP_FLAG_KEY, key=conversation_id, value=True)
+        return conversation_id
+
+    def _conversation_check(self, conversation_id: str, query_str: str) -> str:
+        # 创建会话
+        if not conversation_id:
+            conversation = Conversation()
+            conversation.init()
+            conversation.theme = query_str
+            conversation.dialog_segment_list = []
+            self.conversation_port.conversation_save(conversation=conversation)
+            conversation_id = conversation.id
+            logger.info(f"首次发送消息创建会话：[ID：{conversation.id} - 主题：{conversation.theme}]")
+        else:
+            logger.info(f"历史会话消息：[ID：{conversation_id}]")
         return conversation_id
 
     def _llm_generator(self, generator_id: str) -> LLMGenerator:

@@ -16,6 +16,7 @@ async def chat(generators_vo: GeneratorsVo, generators_service: GeneratorsCase =
 
     conversation_id, uuid = await generators_service.generate_stream(
         generator_id=generators_vo.generator_id,
+        client_id=generators_vo.client_id,
         query=generators_vo.query,
         system=generators_vo.system,
         conversation_id=generators_vo.conversation_id,

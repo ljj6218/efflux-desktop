@@ -1,9 +1,9 @@
 from pydantic import BaseModel
 
-from application.domain.events.event import Event, EventGroup, EventType, EventSubType
+from application.domain.events.event import Event, EventGroup, EventType, EventSubType, EventSource
 from common.utils.common_utils import create_uuid
 from common.utils.time_utils import create_from_second_now_to_int
-from typing import Optional, List, Union, Iterable
+from typing import Optional, List, Union, Iterable, Dict, Any
 from typing_extensions import Literal, Required
 
 class CompletionUsage(BaseModel):
@@ -81,19 +81,19 @@ class ChatStreamingChunk(BaseModel):
         return cls(id=create_uuid(), model=None, created=create_from_second_now_to_int(), usage=None,
                                   finish_reason="tool_calls", content="", tool_call_id=None, reasoning_content=None, role='assistant', tool_calls=tool_calls)
 
-    def to_assistant_message_event(self, id: str, conversation_id: str, dialog_segment_id: str,agent_id: str, generator_id: str, mcp_name_list: List[str], tools_group_name_list: List[str], event_group: EventGroup) -> Event:
+    def to_assistant_message_event(self, id: str, client_id: str, conversation_id: str, dialog_segment_id: str, generator_id: str, event_group: EventGroup, payload: Dict[str, Any]) -> Event:
         return Event.from_init(
+            client_id=client_id,
             event_type=EventType.ASSISTANT_MESSAGE,
             event_sub_type=EventSubType.MESSAGE,
             group=event_group,
+            payload=payload,
+            source=EventSource.LLM_HANDLER,
             data={
                 "id": id,
                 "conversation_id": conversation_id,
                 "dialog_segment_id": dialog_segment_id,
-                "agent_id": agent_id,
                 "generator_id": generator_id,
-                "mcp_name_list": mcp_name_list,
-                "tools_group_name_list": tools_group_name_list,
                 "model": self.model,
                 "content": self.content,
                 "reasoning_content": self.reasoning_content,
@@ -102,7 +102,7 @@ class ChatStreamingChunk(BaseModel):
             }
         )
 
-    def to_tool_calls_message_event(self, id: str, conversation_id: str, dialog_segment_id: str, agent_id: str, generator_id: str, mcp_name_list: List[str], tools_group_name_list: List[str], event_group: Optional[EventGroup] = None) -> Event:
+    def to_tool_calls_message_event(self, id: str, client_id: str, conversation_id: str, dialog_segment_id: str, generator_id: str, payload: Dict[str, Any], event_group: Optional[EventGroup] = None) -> Event:
         tool_call_list = []
         for tool_call in self.tool_calls:
             tool_call_list.append(
@@ -116,17 +116,17 @@ class ChatStreamingChunk(BaseModel):
                 }
             )
         return Event.from_init(
+            client_id=client_id,
             event_type=EventType.TOOL,
             event_sub_type=EventSubType.TOOL_CALL,
             group=event_group,
+            payload=payload,
+            source=EventSource.LLM_HANDLER,
             data={
                 "id": id,
                 "conversation_id": conversation_id,
                 "dialog_segment_id": dialog_segment_id,
-                "agent_id": agent_id,
                 "generator_id": generator_id,
-                "mcp_name_list": mcp_name_list,
-                "tools_group_name_list": tools_group_name_list,
                 "model": self.model,
                 "created": self.created,
                 "tool_calls": tool_call_list,

@@ -1,6 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor, Future
 from application.domain.tasks.task import Task
-from application.domain.events.event import Event, EventType, EventSubType
+from application.domain.events.event import Event, EventType, EventSubType, EventSource
 from common.core.container.annotate import component
 from common.core.container.container import get_container
 from application.port.inbound.task_handler import TaskHandler
@@ -70,22 +70,24 @@ class TaskManager(TaskPort):
         self.task_futures[task.id] = future
 
         # 添加回调函数来处理任务完成或失败
-        future.add_done_callback(lambda f: self._task_completed_callback(task.id, f))
+        future.add_done_callback(lambda f: self._task_completed_callback(task, f))
 
         return task.id
 
-    def _task_completed_callback(self, task_id: str, future: Future):
+    def _task_completed_callback(self, task: Task, future: Future):
         """处理任务完成的回调函数"""
         try:
             # 尝试获取结果，如果任务失败，这里会抛出异常
             result = future.result()
-            logger.info(f"任务 {task_id} 回调: {result}")
+            logger.info(f"任务 {task.id} 回调: {result}")
         except Exception as e:
-            logger.error(f"任务 {task_id} 在回调中检测到失败: {str(e)}")
+            logger.error(f"任务 {task.id} 在回调中检测到失败: {str(e)}")
             EventPort.get_event_port().emit_event(
                 Event.from_init(
+                    client_id=task.client_id,
                     event_type=EventType.SYSTEM,
                     event_sub_type=EventSubType.ERROR,
+                    source=EventSource.TASK_MANAGER,
                     data={
                         "code": "1",
                         "message": str(e)
@@ -94,8 +96,8 @@ class TaskManager(TaskPort):
             )
         finally:
             # 清理完成的任务
-            if task_id in self.task_futures:
-                del self.task_futures[task_id]
+            if task.id in self.task_futures:
+                del self.task_futures[task.id]
 
     def get_task_status(self, task_id: str) -> str:
         """获取任务状态"""

@@ -33,7 +33,7 @@ def handle_exception(default_func):
             except Exception as e:
                 logger.error(f"Exception occurred in {func.__name__}: {e}")
                 traceback.print_exc()  # 打印异常栈信息
-                return default_func(exception=e)  # 将异常对象作为参数传递给 default_func
+                return default_func(*args, **kwargs, exception=e)  # 将异常对象作为参数传递给 default_func
         return wrapper
     return decorator
 

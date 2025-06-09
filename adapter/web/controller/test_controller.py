@@ -1,3 +1,4 @@
+from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from application.port.inbound.teams_case import TeamsCase
 from common.utils.markdown_util import read
 from adapter.web.vo.base_response import BaseResponse
@@ -5,15 +6,16 @@ from fastapi import APIRouter, BackgroundTasks, Depends
 from application.port.outbound.cache_port import CachePort
 from common.core.container.container import get_container
 from application.port.inbound.test_case import TestCase
-from adapter.web.vo.test_vo import CachaVo, AgentVo
+from adapter.web.vo.test_vo import CachaVo, AgentVo, PromptsVo
 from application.port.outbound.event_port import EventPort
 from application.domain.events.event import Event, EventType, EventSubType
 from common.core.connection_manager import manager
 from common.utils.common_utils import SINGLETON_WEBSOCKET_CLIENT_ID
+
+
 import threading
-from autogen_agentchat.teams._group_chat._base_group_chat_manager import (
-    BaseGroupChatManager,
-)
+
+
 
 router = APIRouter(prefix="/api/test", tags=["TEST"])
 
@@ -67,5 +69,15 @@ async def test_agent(agent_ve: AgentVo, task_service: TestCase = Depends(test_ca
 
 @router.post("/team_test")
 async def team_test(agent_ve: AgentVo, team_service: TeamsCase = Depends(team_case)) -> BaseResponse:
-    await team_service.do_work(content=agent_ve.query, generator_id=agent_ve.generator_id, conversation_id=agent_ve.conversation_id)
+    await team_service.on_message(client_id=agent_ve.client_id, content=agent_ve.query, generator_id=agent_ve.generator_id, conversation_id=agent_ve.conversation_id)
     return BaseResponse.from_success(data=None)
+
+@router.post("/test_prompt")
+async def test_prompt(prompts_vo: PromptsVo, task_service: TestCase = Depends(test_case)) -> BaseResponse:
+    messages = []
+    for e in prompts_vo.prompt:
+        if e.role == "system":
+            messages.append(ChatStreamingChunk.from_system(e.content))
+        if e.role == "user":
+            messages.append(ChatStreamingChunk.from_user(e.content))
+    return BaseResponse.from_success(data=await task_service.test_prompts(chunks=messages, generator_id=prompts_vo.generator_id))
