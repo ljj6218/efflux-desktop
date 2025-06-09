@@ -18,4 +18,9 @@ class PlanCase(ABC):
     ) -> str:
         pass
 
-
+    @abstractmethod
+    async def load(
+        self,
+        conversation_id: str
+    ) -> Plan:
+        pass

@@ -18,6 +18,10 @@ class AgentPort(ABC):
         pass
 
     @abstractmethod
+    def load_by_name(self, agent_name: str) -> Optional[Agent]:
+        pass
+
+    @abstractmethod
     def make_instance(
         self,
         agent_info: AgentInfo,
@@ -41,4 +45,8 @@ class AgentPort(ABC):
 
     @abstractmethod
     def add_record(self, dialog_segment: DialogSegment) -> DialogSegment:
+        pass
+
+    @abstractmethod
+    def load_agent_teams(self) -> tuple[List[Agent], str]:
         pass

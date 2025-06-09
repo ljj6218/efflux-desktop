@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from application.domain.agents.agent import Agent, AgentInstance, AgentState
 from application.domain.events.event import Event, EventType, EventSubType, EventSource
@@ -10,13 +10,8 @@ from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.ws_message_port import WsMessagePort
 from application.port.outbound.event_port import EventPort
 from common.utils.common_utils import create_uuid
-from application.service.prompts.orchestration import (
-    ORCHESTRATOR_PLAN_PROMPT_JSON,
-    validate_plan_json, ORCHESTRATOR_SYSTEM_MESSAGE_PLANNING
-)
 
 from datetime import datetime
-import json
 
 from common.core.logger import get_logger
 
@@ -46,14 +41,8 @@ class PlanAgent(AgentInstance):
 
 
     def execute(self, history_message_list: List[ChatStreamingChunk], payload: Dict[str, Any], client_id: str) -> None:
-        # 拼接生成plan的提示词
-        context_message_list = self._thread_to_context(history_message_list=history_message_list)
-        # 请求大模型返回计划列表
-        # rs = self.generators_port.generate_json(llm_generator=self.llm_generator, messages=context_message_list,
-        #                                         validate_json=validate_plan_json, json_object=True)
-        # print(json.dumps(rs, ensure_ascii=False))
 
-        if "json_result_data" in payload: # 模型返回json结果
+        if "json_result_data" in payload: # 接受模型返回json结果
             json_result_data = payload["json_result_data"]
             if json_result_data['needs_plan']:
                 steps = []
@@ -63,41 +52,61 @@ class PlanAgent(AgentInstance):
                 new_plan = Plan.from_init(conversation_id=self.info.conversation_id, task=json_result_data['task'], plan_summary=json_result_data['plan_summary'], steps=steps)
                 payload['user_confirm'] = True
                 payload['confirm_data'] = new_plan
-                payload['type'] = 'plan_create'
+                payload['plan'] = new_plan
+                del payload['json_result_data']  # agent请求的删除json返回
+                del payload['json_result']
                 self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.RUNNING)
-        else:
+        else: # plan创建/修改/确认
             if payload['update']: # 修改任务规划
                 if payload['replan']: # 重新规划任务
-                    logger.info("重新规划任务")
-
+                    logger.info("重新规划plan")
+                    # 拼接重新生成plan的提示词
+                    context_message_list = self._thread_to_context(history_message_list=history_message_list, old_plan=payload['old_plan'], content=payload['content'])
+                    # 请求大模型生成计划
+                    self._send_llm_event(client_id=client_id, context_message_list=context_message_list)
                 else:
-                    logger.info("新任务规划")
-                    print(str(payload['plan']))
+                    logger.info("人工修改任务或确认plan")
+                    payload['plan'].state = PlanState.RUNNING # 设置plan进入运行状态
                     self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
-
             else: # 新建任务规划
+                # 拼接生成plan的提示词
+                context_message_list = self._thread_to_context(history_message_list=history_message_list)
                 # 请求大模型生成计划
                 self._send_llm_event(client_id=client_id, context_message_list=context_message_list)
 
-    def _thread_to_context(self, history_message_list: List[ChatStreamingChunk]) -> List[ChatStreamingChunk]:
+    def _thread_to_context(self, history_message_list: List[ChatStreamingChunk], old_plan: Optional[Plan] = None, content: Optional[str] = None ) -> List[ChatStreamingChunk]:
         """拼装基础system提示词和会话历史信息"""
         date_today = datetime.now().strftime("%Y-%m-%d")
+        orchestrator_system_message_planning = self.info.agent_prompts['ORCHESTRATOR_SYSTEM_MESSAGE_PLANNING']
+        orchestrator_plan_prompt_json = self.info.agent_prompts['ORCHESTRATOR_PLAN_PROMPT_JSON']
+        orchestrator_plan_replan_json = self.info.agent_prompts['ORCHESTRATOR_PLAN_REPLAN_JSON']
         # 拼装系统提示词
         messages: List[ChatStreamingChunk] = [ChatStreamingChunk.from_system(
-            message=ORCHESTRATOR_SYSTEM_MESSAGE_PLANNING.format(
+            message=orchestrator_system_message_planning.format(
                 date_today=date_today,
                 team=self._team_description,
             )
         )]
         # 拼装对话上下文
         messages.extend(history_message_list)
-        # 拼接生成计划的提示词
-        make_plan_message = ChatStreamingChunk.from_user(message=ORCHESTRATOR_PLAN_PROMPT_JSON.format(
-            team=self._team_description, additional_instructions=""))
-        messages.append(make_plan_message)
+        if old_plan:
+            # 拼接重新生成计划的提示词
+            make_replan_message = ChatStreamingChunk.from_user(message=orchestrator_plan_replan_json.format(
+                task=old_plan.task,
+                plan=f"Previous plan:\n{str(old_plan)}", # TODO 此处如果是执行任务途中重新规划，需要增加plan目前执行的情况描述（比如已执行step列表）
+                team=self._team_description,
+                additional_instructions=content if content else ""
+            ))
+            messages.append(make_replan_message)
+        else:
+            # 拼接生成计划的提示词
+            make_plan_message = ChatStreamingChunk.from_user(message=orchestrator_plan_prompt_json.format(
+                team=self._team_description, additional_instructions=""))
+            messages.append(make_plan_message)
         return messages
 
     def _send_agent_result_event(self, client_id: str, payload: Dict[str, Any], agent_state: AgentState) -> None:
+        payload['agent_state'] = agent_state
         event = Event.from_init(
             client_id=client_id,
             event_type=EventType.AGENT,
@@ -113,7 +122,6 @@ class PlanAgent(AgentInstance):
             payload=payload
         )
         EventPort.get_event_port().emit_event(event)
-        self.info.state = agent_state
 
     def _send_llm_event(self, client_id: str, context_message_list: List[ChatStreamingChunk]):
         """发送大模型请求事件"""

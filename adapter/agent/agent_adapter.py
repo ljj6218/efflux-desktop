@@ -62,6 +62,7 @@ class AgentAdapter(AgentPort):
             if agent_instance_dict_id == instance_id:
                 agent_instance_dict = agent_instance_config.read_key(instance_id)
                 agent_info = AgentInfo.model_validate(agent_instance_dict)
+                agent_info.agent_prompts = self._load_prompt_list(agent_info.name)
                 return agent_info
         return None
 
@@ -107,6 +108,17 @@ class AgentAdapter(AgentPort):
                 return agent
         return None
 
+    def load_by_name(self, agent_name: str) -> Optional[Agent]:
+        agent_config = JSONFileUtil(self.agent_file_url)
+        # 遍历所有agent
+        for agent_dict_id in agent_config.read().keys():
+            agent_dict = agent_config.read_key(agent_dict_id)
+            if agent_dict['name'] == agent_name:
+                agent = Agent.model_validate(agent_dict)
+                # 加载所有提示词 TODO 后面可能会持久化，统一返回
+                agent.agent_prompts = self._load_prompt_list(agent.name)
+                return agent
+        return None
 
     def make_instance(self, agent_info: AgentInfo, llm_generator: LLMGenerator, generators_port: GeneratorsPort,
                       ws_message_port: WsMessagePort) -> Optional[AgentInstance]:
@@ -116,7 +128,7 @@ class AgentAdapter(AgentPort):
                 llm_generator=llm_generator,
                 ws_message_port=ws_message_port
             )
-            agents, team_description = self._load_agent()
+            agents, team_description = self.load_agent_teams()
             asyncio.run(
                 agent_instance.lazy_init(
                 config={
@@ -128,7 +140,7 @@ class AgentAdapter(AgentPort):
             return agent_instance
 
 
-    def _load_agent(self) -> tuple[List[Agent], str]:
+    def load_agent_teams(self) -> tuple[List[Agent], str]:
         agents = [
             self.load("4877f996-2fb5-400d-9b26-245a824e325f")
         ]
