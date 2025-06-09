@@ -4,6 +4,7 @@ from application.domain.tasks.task import Task, TaskType, TaskState
 from application.port.inbound.task_handler import TaskHandler
 from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.event_port import EventPort
+from application.port.outbound.plan_port import PlanPort
 from application.port.outbound.ws_message_port import WsMessagePort
 from common.core.container.annotate import component
 from application.port.outbound.agent_port import AgentPort
@@ -33,6 +34,7 @@ class AgentTaskResultHandler(TaskHandler):
         generators_port: GeneratorsPort,
         ws_message_port: WsMessagePort,
         user_setting_port: UserSettingPort,
+        plan_port: PlanPort,
     ):
         self.agent_port = agent_port
         self.tools_port = tools_port
@@ -41,6 +43,7 @@ class AgentTaskResultHandler(TaskHandler):
         self.ws_message_port = ws_message_port
         self.user_setting_port = user_setting_port
         self.conversation_port = conversation_port
+        self.plan_port = plan_port
 
     def execute(self, task: Task):
         print("AgentTaskResultHandler")
@@ -48,20 +51,25 @@ class AgentTaskResultHandler(TaskHandler):
         conversation_id = task.data['conversation_id']
         # 判断agent的类型，
         agent_info = self.agent_port.load_instance_info(instance_id=agent_instance_id, conversation_id=conversation_id)
+
+
+        if task.payload['type'] == 'plan_create': # 保存计划
+            self.plan_port.sava(task.payload['confirm_data'])
+            del task.payload['json_result_data'] # agent请求的删除json返回
+            del task.payload['json_result']
+
         print(task.payload)
         if task.payload['user_confirm']:
             print(f"需用户确认-》[{task.payload['confirm_data']}]")
-
-        Event.from_init(
-            client_id=task.client_id,
-            event_type=EventType.INTERACTIVE,
-            event_sub_type=EventSubType.CALL_USER,
-            source=EventSource.AGENT,
-            data={
-
-            },
-            payload=task.payload,
-        )
+            event = Event.from_init(
+                client_id=task.client_id,
+                event_type=EventType.INTERACTIVE,
+                event_sub_type=EventSubType.CALL_USER,
+                source=EventSource.AGENT,
+                data=task.data,
+                payload=task.payload,
+            )
+            EventPort.get_event_port().emit_event(event)
 
     def state(self) -> TaskState:
         pass

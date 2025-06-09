@@ -111,4 +111,5 @@ class AgentInstance(ABC):
     def get_info(self):
         return self.info
 
-
+    def run(self):
+        self.info.state = AgentState.RUNNING
