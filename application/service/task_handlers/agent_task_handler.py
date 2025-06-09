@@ -71,10 +71,13 @@ class AgentTaskHandler(TaskHandler):
         # payload 设置
         if "json_result" in task.payload and "content" in task.data: # LLM返回的json结果
             task.payload['json_result_data'] = json.loads(task.data["content"])
-        agent_instance.execute(history_message_list=history_conversation.convert_sort_memory(), payload=task.payload, client_id=task.client_id)
 
         # 保存agent实例为运行状态
+        agent_instance.run()
         self.agent_port.save_instance_info(agent_instance.get_info())
+        # 执行agent
+        agent_instance.execute(history_message_list=history_conversation.convert_sort_memory(), payload=task.payload, client_id=task.client_id)
+
 
     def state(self) -> TaskState:
         pass

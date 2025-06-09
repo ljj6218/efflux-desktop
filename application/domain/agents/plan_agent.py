@@ -63,6 +63,8 @@ class PlanAgent(AgentInstance):
                 new_plan = Plan.from_init(conversation_id=self.info.conversation_id, task=json_result_data['task'], plan_summary=json_result_data['plan_summary'], steps=steps)
                 payload['user_confirm'] = True
                 payload['confirm_data'] = new_plan
+                payload['type'] = 'plan_create'
+
                 event = Event.from_init(
                     client_id=client_id,
                     event_type=EventType.AGENT,

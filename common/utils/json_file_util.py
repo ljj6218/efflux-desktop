@@ -9,7 +9,6 @@ logger = get_logger(__name__)
 
 
 class JSONFileUtil:
-
     def __init__(self, file_path):
         """初始化工具类，指定 JSON 文件路径"""
         self.file_path = file_path
@@ -17,8 +16,8 @@ class JSONFileUtil:
         # 确保文件存在，如果不存在则创建空的 JSON 文件
         if not os.path.exists(self.file_path):
             logger.debug(f"文件 {self.file_path} 不存在，创建一个空的 JSON 文件.")
-            with open(self.file_path, 'w') as f:
-                json.dump({}, f)  # 初始为空字典
+            with open(self.file_path, 'w', encoding='utf-8') as f:
+                json.dump({}, f, ensure_ascii=False)  # 初始为空字典
             logger.info(f"已创建空 JSON 文件：{self.file_path}")
         else:
             logger.debug(f"文件 {self.file_path} 已存在，准备操作。")
@@ -28,7 +27,11 @@ class JSONFileUtil:
         logger.debug(f"读取文件 {self.file_path} 中的数据.")
         try:
             with open(self.file_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+                # 如果文件为空，返回空字典
+                file_content = f.read().strip()
+                if not file_content:  # 如果文件内容为空
+                    return {}
+                data = json.loads(file_content)
                 logger.debug(f"成功读取数据: {data}")
                 return data
         except Exception as e:
