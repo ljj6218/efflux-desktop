@@ -30,15 +30,16 @@ class ClarificationAgent(AgentInstance):
         # 拼接生成Clarification的提示词
         context_message_list = self._thread_to_context(history_message_list=history_message_list)
 
-        if "json_result_data" in payload: # 模型返回json结果
-            json_result_data = payload["json_result_data"]
-            if json_result_data['needs_clarification']:
-                logger.info("需要用户继续澄清需求")
-            else:
-                self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
-        else:
+        if "json_result_data" not in payload:
+            logger.error(f"No json_result_data found in payload :{payload}")
+            return
+
+        if payload["json_result_data"]['needs_clarification']: # 模型返回json结果
+            logger.info("需要用户继续澄清需求")
             # 请求大模型澄清用户需求
             self._send_llm_event(client_id=client_id, context_message_list=context_message_list)
+        else:
+            self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
 
     def _thread_to_context(self, history_message_list: List[ChatStreamingChunk]) -> List[ChatStreamingChunk]:
         """拼装基础system提示词和会话历史信息"""
@@ -51,6 +52,7 @@ class ClarificationAgent(AgentInstance):
         return messages
 
     def _send_agent_result_event(self, client_id: str, payload: Dict[str, Any], agent_state: AgentState) -> None:
+        payload['agent_state'] = agent_state
         event = Event.from_init(
             client_id=client_id,
             event_type=EventType.AGENT,
@@ -66,7 +68,6 @@ class ClarificationAgent(AgentInstance):
             payload=payload
         )
         EventPort.get_event_port().emit_event(event)
-        self.info.state = agent_state
 
     def _send_llm_event(self, client_id: str, context_message_list: List[ChatStreamingChunk]):
         """发送大模型请求事件"""

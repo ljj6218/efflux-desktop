@@ -63,7 +63,7 @@ class AgentTaskResultHandler(TaskHandler):
         agent_info.state = task.payload['agent_state']
         self.agent_port.save_instance_info(instance_info=agent_info)
         # 如果agent是clarification类型
-        if agent_info.name == "clarification":  # 更新计划状态
+        if agent_info.name == "clarification" and agent_info.state == AgentState.DONE:  # 更新计划状态
             # 根据重新规划的结果调用agent
             self._call_agent(agent_name='plan',
                              client_id=client_id,
