@@ -67,14 +67,14 @@ class AgentTaskResultHandler(TaskHandler):
         self.agent_port.save_instance_info(instance_info=agent_info)
         # 如果agent是clarification类型
         if agent_info.name == "clarification" and agent_info.state == AgentState.DONE:  # 更新计划状态
-            # 清除当前会话agent_instance_id
-            self.cache_port.delete_from_cache(CURRENT_CONVERSATION_AGENT_INSTANCE_ID, conversation_id)
             # 根据重新规划的结果调用agent
             self._call_agent(agent_name='plan',
                              client_id=client_id,
                              conversation_id= conversation_id,
                              generator_id = generator_id,
                              payload = {'update': False})
+            # 清除当前会话agent_instance_id
+            self.cache_port.delete_from_cache(CURRENT_CONVERSATION_AGENT_INSTANCE_ID, conversation_id)
             logger.info(f"需求澄清结束，调用计划Agent")
 
 
@@ -147,6 +147,7 @@ class AgentTaskResultHandler(TaskHandler):
             conversation_id=conversation_id,
             dialog_segment_id=dialog_segment_id,
             generator_id=generator_id,
+            instance_id=create_uuid(),
         )
         # 默认负载值
         payload['agent_instance_id'] = agent_info.instance_id
