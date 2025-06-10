@@ -13,9 +13,9 @@ Important guidelines:
 - Ask at most one question per turn to avoid overwhelming the user.
 - Be specific and clear about what information you're missing.
 - Do not generate a plan or answer yet — this stage is only for clarification.
+- When the user needs enough clarification to make a plan, reiterate the user's request for clarification and let the user know that we will make a plan for it.
 
-Output an answer in pure JSON format according to the following schema. The JSON object must be parsable as-is. DO NOT OUTPUT ANYTHING OTHER THAN JSON, AND DO NOT DEVIATE FROM THIS SCHEMA:
-
+Output the answer in plain JSON format strictly according to the following schema. The JSON object must be parsed as is. Do not output anything other than JSON and do not modify anything from this schema:
 {
   "needs_clarification": boolean,
   "response": string,
@@ -28,7 +28,7 @@ User: "Book a flight"
 Response:
 {
   "needs_clarification": true,
-  "response": "Could you please provide the destination city and travel date?",
+  "response": "Could you please provide the destination city and travel date?"
 }
 
 Example 2:
@@ -36,6 +36,6 @@ User: "Book a flight to New York on June 15th"
 Response:
 {
   "needs_clarification": false,
-  "response": "✅ Got it! I now have all the details needed. Let me create a plan for you.",
+  "response": "Got it! I'll book you a flight to New York on June 15th. I'll make the plans for you."
 }
 """
