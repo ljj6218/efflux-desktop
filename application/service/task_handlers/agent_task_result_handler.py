@@ -7,6 +7,7 @@ from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from application.domain.plan import PlanState, PlanStep, Plan
 from application.domain.tasks.task import Task, TaskType, TaskState
 from application.port.inbound.task_handler import TaskHandler
+from application.port.outbound.cache_port import CachePort
 from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.event_port import EventPort
 from application.port.outbound.plan_port import PlanPort
@@ -23,7 +24,7 @@ from application.service.prompts.orchestration import ORCHESTRATOR_PROGRESS_LEDG
 from common.core.logger import get_logger
 import injector
 
-from common.utils.common_utils import create_uuid
+from common.utils.common_utils import create_uuid, CURRENT_CONVERSATION_AGENT_INSTANCE_ID
 
 logger = get_logger(__name__)
 
@@ -33,6 +34,7 @@ class AgentTaskResultHandler(TaskHandler):
     @injector.inject
     def __init__(
         self,
+        cache_port: CachePort,
         agent_port: AgentPort,
         tools_port: ToolsPort,
         event_port: EventPort,
@@ -45,6 +47,7 @@ class AgentTaskResultHandler(TaskHandler):
         self.agent_port = agent_port
         self.tools_port = tools_port
         self.event_port = event_port
+        self.cache_port = cache_port
         self.generators_port = generators_port
         self.ws_message_port = ws_message_port
         self.user_setting_port = user_setting_port
@@ -69,7 +72,9 @@ class AgentTaskResultHandler(TaskHandler):
                              client_id=client_id,
                              conversation_id= conversation_id,
                              generator_id = generator_id,
-                             payload = task.payload)
+                             payload = {'update': False})
+            # 清除当前会话agent_instance_id
+            self.cache_port.delete_from_cache(CURRENT_CONVERSATION_AGENT_INSTANCE_ID, conversation_id)
             logger.info(f"需求澄清结束，调用计划Agent")
 
 
@@ -142,6 +147,7 @@ class AgentTaskResultHandler(TaskHandler):
             conversation_id=conversation_id,
             dialog_segment_id=dialog_segment_id,
             generator_id=generator_id,
+            instance_id=create_uuid(),
         )
         # 默认负载值
         payload['agent_instance_id'] = agent_info.instance_id
