@@ -43,7 +43,7 @@ class Agent(BaseModel):
             conversation_id = conversation_id,
             dialog_segment_id = dialog_segment_id,
             generator_id = generator_id,
-            instance_id=instance_id if instance_id else create_uuid(),
+            instance_id=instance_id,
             state=AgentState.INIT,
         )
 

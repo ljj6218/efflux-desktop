@@ -69,7 +69,7 @@ class AgentTaskResultHandler(TaskHandler):
                              client_id=client_id,
                              conversation_id= conversation_id,
                              generator_id = generator_id,
-                             payload = task.payload)
+                             payload = {'update': False})
             logger.info(f"需求澄清结束，调用计划Agent")
 
 
