@@ -18,7 +18,7 @@ from application.port.outbound.plan_port import PlanPort
 from application.domain.plan import Plan, PlanState, PlanStep
 from application.port.outbound.generators_port import GeneratorsPort
 from common.core.container.annotate import component
-from common.utils.common_utils import create_uuid, CONVERSATION_STOP_FLAG_KEY
+from common.utils.common_utils import create_uuid, CONVERSATION_STOP_FLAG_KEY, CURRENT_CONVERSATION_AGENT_INSTANCE_ID
 from common.core.logger import get_logger
 
 # from application.service.prompts.orchestration import (
@@ -135,10 +135,16 @@ class TeamsService(TeamsCase):
         """Agent 调用方法"""
         # 创建并保存agent instance info 实体
         agent: Agent = self.agent_port.load(agent_id=agent_id)
+        instance_id = self.cache_port.get_from_cache(CURRENT_CONVERSATION_AGENT_INSTANCE_ID, conversation_id)
+        if not instance_id:
+            instance_id = create_uuid()
+            self.cache_port.set_data(CURRENT_CONVERSATION_AGENT_INSTANCE_ID, conversation_id, instance_id)
+
         agent_info: AgentInfo = agent.info(
             conversation_id=conversation_id,
             dialog_segment_id=dialog_segment_id,
             generator_id=generator_id,
+            instance_id=instance_id
         )
         # 默认负载值
         payload['agent_instance_id'] = agent_info.instance_id

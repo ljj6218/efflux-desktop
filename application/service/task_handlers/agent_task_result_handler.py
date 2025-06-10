@@ -7,6 +7,7 @@ from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from application.domain.plan import PlanState, PlanStep, Plan
 from application.domain.tasks.task import Task, TaskType, TaskState
 from application.port.inbound.task_handler import TaskHandler
+from application.port.outbound.cache_port import CachePort
 from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.event_port import EventPort
 from application.port.outbound.plan_port import PlanPort
@@ -23,7 +24,7 @@ from application.service.prompts.orchestration import ORCHESTRATOR_PROGRESS_LEDG
 from common.core.logger import get_logger
 import injector
 
-from common.utils.common_utils import create_uuid
+from common.utils.common_utils import create_uuid, CURRENT_CONVERSATION_AGENT_INSTANCE_ID
 
 logger = get_logger(__name__)
 
@@ -33,6 +34,7 @@ class AgentTaskResultHandler(TaskHandler):
     @injector.inject
     def __init__(
         self,
+        cache_port: CachePort,
         agent_port: AgentPort,
         tools_port: ToolsPort,
         event_port: EventPort,
@@ -45,6 +47,7 @@ class AgentTaskResultHandler(TaskHandler):
         self.agent_port = agent_port
         self.tools_port = tools_port
         self.event_port = event_port
+        self.cache_port = cache_port
         self.generators_port = generators_port
         self.ws_message_port = ws_message_port
         self.user_setting_port = user_setting_port
@@ -64,6 +67,8 @@ class AgentTaskResultHandler(TaskHandler):
         self.agent_port.save_instance_info(instance_info=agent_info)
         # 如果agent是clarification类型
         if agent_info.name == "clarification" and agent_info.state == AgentState.DONE:  # 更新计划状态
+            # 清除当前会话agent_instance_id
+            self.cache_port.delete_from_cache(CURRENT_CONVERSATION_AGENT_INSTANCE_ID, conversation_id)
             # 根据重新规划的结果调用agent
             self._call_agent(agent_name='plan',
                              client_id=client_id,
