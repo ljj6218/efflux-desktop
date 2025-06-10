@@ -109,14 +109,15 @@ class ClientManager(GeneratorsPort):
         while retries < 1:
             contents = ""
             for chunk in self.generate_event(llm_generator=llm_generator, messages=messages, tools=[], **generation_kwargs):
-                print(chunk)
                 contents += chunk.content
             try:
+                print(contents)
                 json_response = json.loads(contents)
                 # Use the validate_json function to check the response
                 if validate_json and validate_json(json_response):
                     return json_response
                 else:
+                    return json_response
                     exception_message = "Validation failed for JSON response, retrying. You must return a valid JSON object parsed from the response."
             except json.JSONDecodeError as e:
                 json_response = JSONFileUtil.extract_json_from_string(contents)
@@ -124,6 +125,7 @@ class ClientManager(GeneratorsPort):
                     if validate_json and validate_json(json_response):
                         return json_response
                     else:
+                        return json_response
                         exception_message = "Validation failed for JSON response, retrying. You must return a valid JSON object parsed from the response."
                 else:
                     exception_message = f"Failed to parse JSON response, retrying. You must return a valid JSON object parsed from the response. Error: {e}"

@@ -31,7 +31,7 @@ class ClarificationAgent(AgentInstance):
         context_message_list = self._thread_to_context(history_message_list=history_message_list)
 
         # 模型返回json结果
-        if "json_result_data" not in payload and payload["json_result_data"]['needs_clarification']:
+        if "json_result_data" in payload and payload["json_result_data"]['needs_clarification']:
             logger.info("需要用户继续澄清需求")
             # 请求大模型澄清用户需求
             self._send_llm_event(client_id=client_id, context_message_list=context_message_list)
@@ -50,6 +50,7 @@ class ClarificationAgent(AgentInstance):
 
     def _send_agent_result_event(self, client_id: str, payload: Dict[str, Any], agent_state: AgentState) -> None:
         payload['agent_state'] = agent_state
+        payload['update'] = False
         event = Event.from_init(
             client_id=client_id,
             event_type=EventType.AGENT,

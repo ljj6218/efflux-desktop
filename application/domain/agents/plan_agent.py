@@ -50,7 +50,7 @@ class PlanAgent(AgentInstance):
                     plan_step = PlanStep(index=index, title=step['title'], details=step['details'], agent_name=step['agent_name'])
                     steps.append(plan_step)
                 new_plan = Plan.from_init(conversation_id=self.info.conversation_id, task=json_result_data['task'], plan_summary=json_result_data['plan_summary'], steps=steps)
-                payload['user_confirm'] = True
+                #payload['user_confirm'] = True
                 payload['confirm_data'] = new_plan
                 payload['plan'] = new_plan
                 del payload['json_result_data']  # agent请求的删除json返回

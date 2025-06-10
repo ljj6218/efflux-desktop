@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from application.domain.agents.agent import Agent, AgentInfo, AgentState
 from application.domain.events.event import Event, EventType, EventSubType, EventSource
@@ -57,7 +57,7 @@ class AgentTaskResultHandler(TaskHandler):
         conversation_id = task.data['conversation_id']
         generator_id = task.data['generator_id']
         dialog_segment_id = task.data['dialog_segment_id']
-        client_id = task.data['client_id']
+        client_id = task.client_id
         # 更新agent状态
         agent_info = self.agent_port.load_instance_info(instance_id=agent_instance_id, conversation_id=conversation_id)
         agent_info.state = task.payload['agent_state']
@@ -68,7 +68,6 @@ class AgentTaskResultHandler(TaskHandler):
             self._call_agent(agent_name='plan',
                              client_id=client_id,
                              conversation_id= conversation_id,
-                             dialog_segment_id = dialog_segment_id,
                              generator_id = generator_id,
                              payload = task.payload)
             logger.info(f"需求澄清结束，调用计划Agent")
@@ -77,7 +76,7 @@ class AgentTaskResultHandler(TaskHandler):
         # 如果agent是plan类型
         if agent_info.name == "plan": # 更新计划状态
             self.plan_port.sava(task.payload['plan'])
-            if task.payload['plan'].state == PlanState.RUNNING:
+            if agent_info.state == AgentState.DONE and task.payload['plan'].state == PlanState.RUNNING:
                 # 获取运行第一个step
                 first_step = task.payload['plan'].steps[0]
                 # 查询会话历史
@@ -92,7 +91,7 @@ class AgentTaskResultHandler(TaskHandler):
 
 
         # 判读是否需要用户确认
-        if task.payload['user_confirm']:
+        if 'confirm_data' in task.payload:
             print(f"需用户确认-》[{task.payload['confirm_data']}]")
             event = Event.from_init(
                 client_id=task.client_id,
@@ -131,10 +130,11 @@ class AgentTaskResultHandler(TaskHandler):
         agent_name: str,
         client_id: str,
         conversation_id: str,
-        dialog_segment_id: str,
         generator_id: str,
-        payload: Dict[str, Any]
+        payload: Dict[str, Any],
+        dialog_segment_id: Optional[str] = None,
     ):
+        dialog_segment_id = dialog_segment_id if dialog_segment_id else create_uuid()
         """Agent 调用方法"""
         # 创建并保存agent instance info 实体
         agent: Agent = self.agent_port.load_by_name(agent_name=agent_name)
@@ -167,7 +167,7 @@ class AgentTaskResultHandler(TaskHandler):
     def _redesign_step(self, generator_id: str, message_list:List[ChatStreamingChunk]) -> Dict[str, Any]:
         """重新检查计划执行"""
         return self.generators_port.generate_json(llm_generator=self._llm_generator(generator_id=generator_id),
-                  validate_json=validate_ledger_json, messages=message_list)
+                  validate_json=None, messages=message_list)
 
     def _redesign_step_prompt(self, step: PlanStep, plan: Plan):
         agents, team_desc = self.agent_port.load_agent_teams()
