@@ -30,11 +30,8 @@ class ClarificationAgent(AgentInstance):
         # 拼接生成Clarification的提示词
         context_message_list = self._thread_to_context(history_message_list=history_message_list)
 
-        if "json_result_data" not in payload:
-            logger.error(f"No json_result_data found in payload :{payload}")
-            return
-
-        if payload["json_result_data"]['needs_clarification']: # 模型返回json结果
+        # 模型返回json结果
+        if "json_result_data" not in payload and payload["json_result_data"]['needs_clarification']:
             logger.info("需要用户继续澄清需求")
             # 请求大模型澄清用户需求
             self._send_llm_event(client_id=client_id, context_message_list=context_message_list)
