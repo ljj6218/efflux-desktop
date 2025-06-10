@@ -5,6 +5,7 @@ from application.domain.agents.agent import Agent, AgentInstance, AgentState
 from application.domain.events.event import Event, EventType, EventSubType, EventSource
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from application.domain.plan import Plan, PlanStep, PlanState
+from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.generators_port import GeneratorsPort
 from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.ws_message_port import WsMessagePort
@@ -28,9 +29,10 @@ class PlanAgent(AgentInstance):
         self,
         generators_port: GeneratorsPort,
         llm_generator: LLMGenerator,
-        ws_message_port: WsMessagePort
+        ws_message_port: WsMessagePort,
+        conversation_port: ConversationPort,
     ):
-        super().__init__(llm_generator, generators_port, ws_message_port)
+        super().__init__(llm_generator, generators_port, ws_message_port, conversation_port)
         self._agents: List[Agent] = []
         self._team_description = None
 
@@ -49,7 +51,7 @@ class PlanAgent(AgentInstance):
                 for index, step in enumerate(json_result_data['steps']):
                     plan_step = PlanStep(index=index, title=step['title'], details=step['details'], agent_name=step['agent_name'])
                     steps.append(plan_step)
-                new_plan = Plan.from_init(conversation_id=self.info.conversation_id, task=json_result_data['task'], plan_summary=json_result_data['plan_summary'], steps=steps)
+                new_plan = Plan.from_init(conversation_id=self.info.conversation_id, agent_instance_id=self.info.instance_id, task=json_result_data['task'], plan_summary=json_result_data['plan_summary'], steps=steps)
                 #payload['user_confirm'] = True
                 payload['confirm_data'] = new_plan
                 payload['plan'] = new_plan
@@ -73,6 +75,9 @@ class PlanAgent(AgentInstance):
                 context_message_list = self._thread_to_context(history_message_list=history_message_list)
                 # 请求大模型生成计划
                 self._send_llm_event(client_id=client_id, context_message_list=context_message_list)
+
+    def _save_d(self):
+        self.conversation_port.add_agent_record()
 
     def _thread_to_context(self, history_message_list: List[ChatStreamingChunk], old_plan: Optional[Plan] = None, content: Optional[str] = None ) -> List[ChatStreamingChunk]:
         """拼装基础system提示词和会话历史信息"""

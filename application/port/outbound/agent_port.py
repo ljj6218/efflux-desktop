@@ -3,6 +3,7 @@ from application.domain.agents.agent import Agent, AgentInstance, AgentInfo
 from application.domain.conversation import DialogSegment
 from typing import Optional, List
 from application.domain.generators.generator import LLMGenerator
+from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.generators_port import GeneratorsPort
 from application.port.outbound.ws_message_port import WsMessagePort
 
@@ -27,6 +28,7 @@ class AgentPort(ABC):
         agent_info: AgentInfo,
         llm_generator: LLMGenerator,
         generators_port: GeneratorsPort,
+        conversation_port: ConversationPort,
         ws_message_port: WsMessagePort,
     ) -> Optional[AgentInstance]:
         pass
@@ -37,14 +39,6 @@ class AgentPort(ABC):
 
     @abstractmethod
     def save_instance_info(self, instance_info: AgentInfo) -> AgentInfo:
-        pass
-
-    @abstractmethod
-    def load_record(self, agent_instance_id: str) -> List[DialogSegment]:
-        pass
-
-    @abstractmethod
-    def add_record(self, dialog_segment: DialogSegment) -> DialogSegment:
         pass
 
     @abstractmethod

@@ -19,6 +19,7 @@ class PlanStep(BaseModel):
 class Plan(BaseModel):
     id: str
     conversation_id: str
+    agent_instance_id: str
     task: str
     plan_summary: str
     current_step: int
@@ -49,10 +50,11 @@ class Plan(BaseModel):
         return super().model_validate(obj)
 
     @classmethod
-    def from_init(cls, conversation_id: str, task: str, plan_summary: str,  steps: List[PlanStep]) -> "Plan":
+    def from_init(cls, conversation_id: str, agent_instance_id:str, task: str, plan_summary: str,  steps: List[PlanStep]) -> "Plan":
         return cls(
             id = create_uuid(),
             conversation_id = conversation_id,
+            agent_instance_id = agent_instance_id,
             task = task,
             plan_summary = plan_summary,
             steps = steps,

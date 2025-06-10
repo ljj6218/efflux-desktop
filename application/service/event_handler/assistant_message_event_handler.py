@@ -1,7 +1,6 @@
 from application.domain.events.event import EventType, Event, EventSubType, EventGroupStatus, EventSource
 from application.domain.tasks.task import Task, TaskType
 from application.port.inbound.event_handler import EventHandler
-from application.port.outbound.agent_port import AgentPort
 from application.port.outbound.task_port import TaskPort
 from common.core.container.annotate import component
 from application.port.outbound.ws_message_port import WsMessagePort
@@ -25,12 +24,10 @@ class AssistantMessageEventHandler(EventHandler):
     def __init__(self,
         ws_message_port: WsMessagePort,
         conversation_port: ConversationPort,
-        agent_port: AgentPort,
         tool_port: ToolsPort
         ):
         self.ws_message_port = ws_message_port
         self.conversation_port = conversation_port
-        self.agent_port = agent_port
         self.tool_port = tool_port
 
         # 确保事件收集器已初始化
@@ -110,7 +107,7 @@ class AssistantMessageEventHandler(EventHandler):
                     agent_instance_id = copy_last_event.payload['agent_instance_id'] if 'agent_instance_id' in copy_last_event.payload else None
                     if agent_instance_id:
                         assistant_dialog_segment.payload = {"agent_instance_id": agent_instance_id}
-                        self.agent_port.add_record(dialog_segment=assistant_dialog_segment)
+                        self.conversation_port.add_agent_record(dialog_segment=assistant_dialog_segment)
                         if copy_last_event.payload['json_result']:
                             # 创建agent call任务
                             task = Task.from_singleton(task_type=TaskType.AGENT_CALL, data=copy_last_event.data,

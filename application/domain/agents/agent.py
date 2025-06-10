@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.generators_port import GeneratorsPort
+from application.port.outbound.conversation_port import ConversationPort
 from common.utils.common_utils import create_uuid
 
 from typing import Dict, Any, Optional, List
@@ -89,10 +90,12 @@ class AgentInstance(ABC):
         llm_generator: LLMGenerator,
         generators_port: GeneratorsPort,
         ws_message_port: WsMessagePort,
+        conversation_port: ConversationPort,
     ):
         self.llm_generator = llm_generator
         self.generators_port = generators_port
         self.ws_message_port = ws_message_port
+        self.conversation_port = conversation_port
         self.info: Optional[AgentInfo] = None
 
     @abstractmethod

@@ -5,6 +5,7 @@ from application.domain.agents.plan_agent import PlanAgent
 from application.domain.conversation import DialogSegment
 from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.agent_port import AgentPort
+from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.generators_port import GeneratorsPort
 from application.port.outbound.ws_message_port import WsMessagePort
 from common.core.container.annotate import component
@@ -76,23 +77,6 @@ class AgentAdapter(AgentPort):
         agent_instance_config.update_key(instance_info.instance_id, instance_info.model_dump())
         return instance_info
 
-    def load_record(self, agent_instance_id: str) -> List[DialogSegment]:
-        dialog_segment_list = []
-        dialog_segment_file = f'conversations/agent/{agent_instance_id}.jsonl'
-        if not check_file(dialog_segment_file): # 不存在，返回空列表
-            return dialog_segment_list
-        with jsonlines.open(dialog_segment_file, mode='r') as reader:
-            for obj in reader:
-                dialog_segment_list.append(DialogSegment.model_validate(obj))
-        return dialog_segment_list
-
-    def add_record(self, dialog_segment: DialogSegment) -> DialogSegment:
-        dialog_segment_file = f'conversations/agent/{dialog_segment.payload['agent_instance_id']}.jsonl'
-        check_file_and_create(dialog_segment_file)
-        with jsonlines.open(dialog_segment_file, mode='a') as writer:
-            writer.write(dialog_segment.model_dump())
-        return dialog_segment
-
     def save(self, agent: Agent) -> str:
         # check_file_and_create(self.agent_file_url, init_str="{}")
         agent_config = JSONFileUtil(self.agent_file_url)
@@ -125,12 +109,13 @@ class AgentAdapter(AgentPort):
         return None
 
     def make_instance(self, agent_info: AgentInfo, llm_generator: LLMGenerator, generators_port: GeneratorsPort,
-                      ws_message_port: WsMessagePort) -> Optional[AgentInstance]:
+                      conversation_port: ConversationPort, ws_message_port: WsMessagePort) -> Optional[AgentInstance]:
         if agent_info.name == 'plan':
             agent_instance = PlanAgent(
                 generators_port=generators_port,
                 llm_generator=llm_generator,
-                ws_message_port=ws_message_port
+                ws_message_port=ws_message_port,
+                conversation_port=conversation_port,
             )
             agents, team_description = self.load_agent_teams()
             asyncio.run(
@@ -146,7 +131,8 @@ class AgentAdapter(AgentPort):
             agent_instance = ClarificationAgent(
                 generators_port=generators_port,
                 llm_generator=llm_generator,
-                ws_message_port=ws_message_port
+                ws_message_port=ws_message_port,
+                conversation_port=conversation_port,
             )
             return agent_instance
 

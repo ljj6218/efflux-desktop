@@ -65,6 +65,7 @@ class AgentTaskHandler(TaskHandler):
             agent_info=agent_info,
             generators_port=self.generators_port,
             llm_generator=generator,
+            conversation_port=self.conversation_port,
             ws_message_port=self.ws_message_port
         )
         agent_instance.init_info(agent_info=agent_info)

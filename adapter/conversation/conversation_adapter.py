@@ -77,6 +77,23 @@ class ConversationAdapter(ConversationPort):
 
         return None
 
+    def load_agent_record(self, agent_instance_id: str) -> List[DialogSegment]:
+        dialog_segment_list = []
+        dialog_segment_file = f'conversations/agent/{agent_instance_id}.jsonl'
+        if not check_file(dialog_segment_file): # 不存在，返回空列表
+            return dialog_segment_list
+        with jsonlines.open(dialog_segment_file, mode='r') as reader:
+            for obj in reader:
+                dialog_segment_list.append(DialogSegment.model_validate(obj))
+        return dialog_segment_list
+
+    def add_agent_record(self, dialog_segment: DialogSegment) -> DialogSegment:
+        dialog_segment_file = f'conversations/agent/{dialog_segment.payload['agent_instance_id']}.jsonl'
+        check_file_and_create(dialog_segment_file)
+        with jsonlines.open(dialog_segment_file, mode='a') as writer:
+            writer.write(dialog_segment.model_dump())
+        return dialog_segment
+
     def conversation_save(self, conversation: Conversation) -> Conversation:
         conversation_file = f'conversations/conversations_list.jsonl'
         check_file_and_create(conversation_file)

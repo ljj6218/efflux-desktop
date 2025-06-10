@@ -5,6 +5,7 @@ from application.domain.agents.agent import AgentInstance, Agent, AgentState
 from application.domain.events.event import Event, EventType, EventSubType, EventSource
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from application.domain.generators.generator import LLMGenerator
+from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.event_port import EventPort
 from application.port.outbound.generators_port import GeneratorsPort
 from application.port.outbound.ws_message_port import WsMessagePort
@@ -19,9 +20,10 @@ class ClarificationAgent(AgentInstance):
         self,
         generators_port: GeneratorsPort,
         llm_generator: LLMGenerator,
-        ws_message_port: WsMessagePort
+        ws_message_port: WsMessagePort,
+        conversation_port = ConversationPort,
     ):
-        super().__init__(llm_generator, generators_port, ws_message_port)
+        super().__init__(llm_generator, generators_port, ws_message_port, conversation_port)
 
     async def lazy_init(self, config: Dict[str, Any]) -> None:
         pass
