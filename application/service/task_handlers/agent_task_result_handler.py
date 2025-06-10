@@ -65,8 +65,8 @@ class AgentTaskResultHandler(TaskHandler):
         agent_info = self.agent_port.load_instance_info(instance_id=agent_instance_id, conversation_id=conversation_id)
         agent_info.state = task.payload['agent_state']
         self.agent_port.save_instance_info(instance_info=agent_info)
-        # 如果agent是clarification类型
-        if agent_info.name == "clarification" and agent_info.state == AgentState.DONE:  # 更新计划状态
+        # 如果agent是clarification类型,并且任务完成，调用plan agent
+        if agent_info.name == "clarification" and agent_info.state == AgentState.DONE:
             # 根据重新规划的结果调用agent
             self._call_agent(agent_name='plan',
                              client_id=client_id,
@@ -76,7 +76,6 @@ class AgentTaskResultHandler(TaskHandler):
             # 清除当前会话agent_instance_id
             self.cache_port.delete_from_cache(CURRENT_CONVERSATION_AGENT_INSTANCE_ID, conversation_id)
             logger.info(f"需求澄清结束，调用计划Agent")
-
 
         # 如果agent是plan类型
         if agent_info.name == "plan": # 更新计划状态
@@ -94,7 +93,6 @@ class AgentTaskResultHandler(TaskHandler):
                 # 根据重新规划的结果调用agent
                 # self._call_agent()
 
-
         # 判读是否需要用户确认
         if 'confirm_data' in task.payload:
             print(f"需用户确认-》[{task.payload['confirm_data']}]")
@@ -107,6 +105,10 @@ class AgentTaskResultHandler(TaskHandler):
                 payload=task.payload,
             )
             EventPort.get_event_port().emit_event(event)
+
+        # todo 如果agent是ppter类型,并且任务完成，待确认做啥
+        if agent_info.name == "ppter" and agent_info.state == AgentState.DONE:
+            pass
 
     def state(self) -> TaskState:
         pass
