@@ -9,8 +9,10 @@ from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.generators_port import GeneratorsPort
 from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.ws_message_port import WsMessagePort
+from application.domain.conversation import DialogSegment, DialogSegmentMetadata, MetadataSource, MetadataType
 from application.port.outbound.event_port import EventPort
 from common.utils.common_utils import create_uuid
+from common.utils.time_utils import create_from_second_now_to_int
 
 from datetime import datetime
 
@@ -66,18 +68,26 @@ class PlanAgent(AgentInstance):
                     context_message_list = self._thread_to_context(history_message_list=history_message_list, old_plan=payload['old_plan'], content=payload['content'])
                     # 请求大模型生成计划
                     self._send_llm_event(client_id=client_id, context_message_list=context_message_list)
+                    # 保存agent记录
+                    dialog_segment = DialogSegment.make_user_message(content=f"重新生成计划：{payload['content']}", conversation_id=self.info.conversation_id,
+                                                                     payload={'agent_instance_id': self.info.instance_id},
+                                                    metadata=DialogSegmentMetadata(source=MetadataSource.AGENT, type=MetadataType.USER_CONFIRMATION))
+                    self.conversation_port.add_agent_record(dialog_segment=dialog_segment)
                 else:
                     logger.info("人工修改任务或确认plan")
                     payload['plan'].state = PlanState.RUNNING # 设置plan进入运行状态
                     self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
+                    # 保存agent结果
+                    dialog_segment = DialogSegment.make_assistant_message(content="", id=self.info.dialog_segment_id, conversation_id=self.info.conversation_id,
+                                                                          model=self.llm_generator.model, timestamp=create_from_second_now_to_int(),
+                                                                          payload={'agent_instance_id': self.info.instance_id},
+                                                                          metadata=DialogSegmentMetadata(source=MetadataSource.AGENT, type=MetadataType.AGENT_RESULT))
+                    self.conversation_port.conversation_add(dialog_segment=dialog_segment)
             else: # 新建任务规划
                 # 拼接生成plan的提示词
                 context_message_list = self._thread_to_context(history_message_list=history_message_list)
                 # 请求大模型生成计划
                 self._send_llm_event(client_id=client_id, context_message_list=context_message_list)
-
-    def _save_d(self):
-        self.conversation_port.add_agent_record()
 
     def _thread_to_context(self, history_message_list: List[ChatStreamingChunk], old_plan: Optional[Plan] = None, content: Optional[str] = None ) -> List[ChatStreamingChunk]:
         """拼装基础system提示词和会话历史信息"""
