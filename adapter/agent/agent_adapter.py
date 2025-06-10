@@ -1,4 +1,6 @@
+from adapter.agent.prompts.clarification import SYSTEM_MESSAGE_CLARIFICATION
 from application.domain.agents.agent import Agent, AgentInstance, AgentInfo
+from application.domain.agents.clarification_agent import ClarificationAgent
 from application.domain.agents.plan_agent import PlanAgent
 from application.domain.conversation import DialogSegment
 from application.domain.generators.generator import LLMGenerator
@@ -48,6 +50,8 @@ class AgentAdapter(AgentPort):
             prompts['ORCHESTRATOR_SYSTEM_MESSAGE_EXECUTION'] = ORCHESTRATOR_SYSTEM_MESSAGE_EXECUTION
             prompts['ORCHESTRATOR_PLAN_PROMPT_JSON'] = ORCHESTRATOR_PLAN_PROMPT_JSON
             prompts['ORCHESTRATOR_PLAN_REPLAN_JSON'] = ORCHESTRATOR_PLAN_REPLAN_JSON
+        if type == "clarification":
+            prompts['SYSTEM_MESSAGE_CLARIFICATION'] = SYSTEM_MESSAGE_CLARIFICATION
         return prompts
 
     agent_file_url = "adapter/agent/agent.json"
@@ -138,7 +142,13 @@ class AgentAdapter(AgentPort):
                 )
             )
             return agent_instance
-
+        if agent_info.name == 'clarification':
+            agent_instance = ClarificationAgent(
+                generators_port=generators_port,
+                llm_generator=llm_generator,
+                ws_message_port=ws_message_port
+            )
+            return agent_instance
 
     def load_agent_teams(self) -> tuple[List[Agent], str]:
         agents = [

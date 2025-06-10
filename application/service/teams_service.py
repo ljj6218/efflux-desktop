@@ -107,11 +107,9 @@ class TeamsService(TeamsCase):
                 # # 调用任务规划agent
                 # await self._call_agent(agent_id, client_id, conversation_id, dialog_segment_id, generator_id, payload)
         else:
-            agent_id = "1"
-            payload = {
-                "update": False,
-            }
-            # 调用任务规划agent
+            agent_id = "0"
+            payload = {}
+            # 调用用户需求澄清Agent
             await self._call_agent(agent_id, client_id, conversation_id, dialog_segment_id, generator_id, payload)
 
         # 未存在计划/存在已完成的计划。 TODO system_agent?
