@@ -31,12 +31,13 @@ class ClarificationAgent(AgentInstance):
         context_message_list = self._thread_to_context(history_message_list=history_message_list)
 
         # 模型返回json结果
-        if "json_result_data" in payload and payload["json_result_data"]['needs_clarification']:
+        if "json_result_data" not in payload or payload["json_result_data"]['needs_clarification']:
             logger.info("需要用户继续澄清需求")
             # 请求大模型澄清用户需求
             self._send_llm_event(client_id=client_id, context_message_list=context_message_list)
         else:
             self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
+
 
     def _thread_to_context(self, history_message_list: List[ChatStreamingChunk]) -> List[ChatStreamingChunk]:
         """拼装基础system提示词和会话历史信息"""
