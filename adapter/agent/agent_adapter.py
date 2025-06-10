@@ -150,7 +150,8 @@ class AgentAdapter(AgentPort):
 
     def load_agent_teams(self) -> tuple[List[Agent], str]:
         agents = [
-            self.load("4877f996-2fb5-400d-9b26-245a824e325f")
+            self.load("4877f996-2fb5-400d-9b26-245a824e325f"),
+            self.load("f83b0799-366c-4b1b-8983-050ef0ebcf49")
         ]
         team_description = "\n".join(
             [
