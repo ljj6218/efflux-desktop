@@ -1,7 +1,9 @@
 from adapter.agent.prompts.clarification import SYSTEM_MESSAGE_CLARIFICATION
+from adapter.agent.prompts.ppter import SYSTEM_MESSAGE_PPTER
 from application.domain.agents.agent import Agent, AgentInstance, AgentInfo
 from application.domain.agents.clarification_agent import ClarificationAgent
 from application.domain.agents.plan_agent import PlanAgent
+from application.domain.agents.ppter_agent import PpterAgent
 from application.domain.conversation import DialogSegment
 from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.agent_port import AgentPort
@@ -53,6 +55,8 @@ class AgentAdapter(AgentPort):
             prompts['ORCHESTRATOR_PLAN_REPLAN_JSON'] = ORCHESTRATOR_PLAN_REPLAN_JSON
         if type == "clarification":
             prompts['SYSTEM_MESSAGE_CLARIFICATION'] = SYSTEM_MESSAGE_CLARIFICATION
+        if type == "ppter":
+            prompts['SYSTEM_MESSAGE_PPTER'] = SYSTEM_MESSAGE_PPTER
         return prompts
 
     agent_file_url = "adapter/agent/agent.json"
@@ -135,10 +139,19 @@ class AgentAdapter(AgentPort):
                 conversation_port=conversation_port,
             )
             return agent_instance
+        if agent_info.name == 'ppter':
+            agent_instance = PpterAgent(
+                generators_port=generators_port,
+                llm_generator=llm_generator,
+                ws_message_port=ws_message_port,
+                conversation_port=conversation_port,
+            )
+            return agent_instance
 
     def load_agent_teams(self) -> tuple[List[Agent], str]:
         agents = [
-            self.load("4877f996-2fb5-400d-9b26-245a824e325f")
+            self.load("4877f996-2fb5-400d-9b26-245a824e325f"),
+            self.load("f83b0799-366c-4b1b-8983-050ef0ebcf49")
         ]
         team_description = "\n".join(
             [

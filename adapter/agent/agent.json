@@ -50,5 +50,16 @@
             }
         ],
         "description": "这是个测试agent"
+    },
+    "f83b0799-366c-4b1b-8983-050ef0ebcf49": {
+        "id": "f83b0799-366c-4b1b-8983-050ef0ebcf49",
+        "name": "ppter",
+        "tools_group_list": [
+            {
+                "group_name": "browser",
+                "type": "LOCAL"
+            }
+        ],
+        "description": "PPT Agent"
     }
 }
