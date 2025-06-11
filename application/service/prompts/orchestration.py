@@ -66,6 +66,14 @@ You have access to a team of agents who can help you answer questions and comple
 The date today is: {date_today}
 """
 
+INSTRUCTION_AGENT_FORMAT = """
+Step {step_index}: {step_title}
+\n\n
+{step_details}
+\n\n
+Instruction for {agent_name}: {instruction}
+"""
+
 
 def validate_ledger_json(json_response: Dict[str, Any], agent_names: List[str]) -> bool:
     required_keys = [

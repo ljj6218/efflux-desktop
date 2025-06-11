@@ -1,6 +1,7 @@
 from adapter.agent.prompts.clarification import SYSTEM_MESSAGE_CLARIFICATION
 from adapter.agent.prompts.ppter import SYSTEM_MESSAGE_PPTER
 from application.domain.agents.agent import Agent, AgentInstance, AgentInfo
+from application.domain.agents.browser_agent import BrowserAgent
 from application.domain.agents.clarification_agent import ClarificationAgent
 from application.domain.agents.plan_agent import PlanAgent
 from application.domain.agents.ppter_agent import PpterAgent
@@ -41,9 +42,9 @@ class AgentAdapter(AgentPort):
     @staticmethod
     def _load_prompt_list(type: str) -> Dict[str, str]:
         prompts = {}
-        if type == "browser":
+        if type == "websurfer":
             prompts['WEB_SURFER_OCR_PROMPT'] = WEB_SURFER_OCR_PROMPT
-            prompts['WEB_SURFER_QA_PROMPT'] = WEB_SURFER_QA_PROMPT
+            # prompts['WEB_SURFER_QA_PROMPT'] = WEB_SURFER_QA_PROMPT
             prompts['WEB_SURFER_QA_SYSTEM_MESSAGE'] = WEB_SURFER_QA_SYSTEM_MESSAGE
             prompts['WEB_SURFER_TOOL_PROMPT'] = WEB_SURFER_TOOL_PROMPT
             prompts['WEB_SURFER_SYSTEM_MESSAGE'] = WEB_SURFER_SYSTEM_MESSAGE
@@ -114,6 +115,19 @@ class AgentAdapter(AgentPort):
 
     def make_instance(self, agent_info: AgentInfo, llm_generator: LLMGenerator, generators_port: GeneratorsPort,
                       conversation_port: ConversationPort, ws_message_port: WsMessagePort) -> Optional[AgentInstance]:
+        if agent_info.name == 'websurfer':
+            agent_instance = BrowserAgent(
+                generators_port=generators_port,
+                llm_generator=llm_generator,
+                ws_message_port=ws_message_port,
+                conversation_port=conversation_port,
+            )
+            asyncio.run(
+                agent_instance.lazy_init(
+                    config={}
+                )
+            )
+            return agent_instance
         if agent_info.name == 'plan':
             agent_instance = PlanAgent(
                 generators_port=generators_port,
@@ -160,3 +174,11 @@ class AgentAdapter(AgentPort):
             ]
         )
         return agents, team_description
+
+    def check_agent_in_teams(self, agent_name: str) -> bool:
+        agents, load_agent_teams = self.load_agent_teams()
+        result = False
+        for agent in agents:
+            if agent.name == agent_name:
+                result = True
+        return result

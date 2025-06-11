@@ -274,7 +274,7 @@ Your output should follow the exact JSON format as shown below:
 {
   "message": "",
   "artifacts": {
-    "code_commentary": "",
+    "commentary": "",
     "code_template": "",
     "code_title": "",
     "code_description": "",

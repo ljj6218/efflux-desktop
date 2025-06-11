@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 from typing import List, Dict, Optional
 import jsonlines
 from common.utils.file_util import check_file_and_create, del_file, check_file
@@ -91,6 +92,9 @@ class ConversationAdapter(ConversationPort):
         dialog_segment_file = f'conversations/agent/{dialog_segment.payload['agent_instance_id']}.jsonl'
         check_file_and_create(dialog_segment_file)
         with jsonlines.open(dialog_segment_file, mode='a') as writer:
+            for key, value in dialog_segment.payload.items():
+                if isinstance(value, BaseModel):
+                    dialog_segment.payload[key] = value.model_dump()
             writer.write(dialog_segment.model_dump())
         return dialog_segment
 

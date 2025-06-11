@@ -78,7 +78,7 @@ class PlanAgent(AgentInstance):
                     payload['plan'].state = PlanState.RUNNING # 设置plan进入运行状态
                     self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
                     # 保存agent结果
-                    dialog_segment = DialogSegment.make_assistant_message(content="", id=self.info.dialog_segment_id, conversation_id=self.info.conversation_id,
+                    dialog_segment = DialogSegment.make_assistant_message(content=payload['plan'].to_show_user_str(), id=self.info.dialog_segment_id, conversation_id=self.info.conversation_id,
                                                                           model=self.llm_generator.model, timestamp=create_from_second_now_to_int(),
                                                                           payload={'agent_instance_id': self.info.instance_id},
                                                                           metadata=DialogSegmentMetadata(source=MetadataSource.AGENT, type=MetadataType.AGENT_RESULT))

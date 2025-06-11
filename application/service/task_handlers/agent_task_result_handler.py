@@ -19,7 +19,7 @@ from application.port.outbound.generators_port import GeneratorsPort
 from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.user_setting_port import UserSettingPort
 from application.domain.generators.firm import GeneratorFirm
-from application.service.prompts.orchestration import ORCHESTRATOR_PROGRESS_LEDGER_PROMPT, ORCHESTRATOR_SYSTEM_MESSAGE_EXECUTION, validate_ledger_json
+from application.service.prompts.orchestration import ORCHESTRATOR_PROGRESS_LEDGER_PROMPT, ORCHESTRATOR_SYSTEM_MESSAGE_EXECUTION, INSTRUCTION_AGENT_FORMAT
 
 from common.core.logger import get_logger
 import injector
@@ -82,16 +82,7 @@ class AgentTaskResultHandler(TaskHandler):
             self.plan_port.sava(task.payload['plan'])
             if agent_info.state == AgentState.DONE and task.payload['plan'].state == PlanState.RUNNING:
                 # 获取运行第一个step
-                first_step = task.payload['plan'].steps[0]
-                # 查询会话历史
-                history_conversation = self.conversation_port.conversation_load(conversation_id=conversation_id)
-                message_list = self._thread_to_context(history_message_list=history_conversation.convert_sort_memory())
-                message_list.append(ChatStreamingChunk.from_system(message=self._redesign_step_prompt(plan=task.payload['plan'], step=first_step)))
-                # 重新规划step
-                result_dict = self._redesign_step(generator_id=generator_id, message_list=message_list)
-                logger.info(f"重新规划结果：--->{result_dict}")
-                # 根据重新规划的结果调用agent
-                # self._call_agent()
+                self._execute_step(client_id=client_id, conversation_id=conversation_id, generator_id=generator_id, plan=task.payload['plan'])
 
         # 判读是否需要用户确认
         if 'confirm_data' in task.payload:
@@ -102,13 +93,59 @@ class AgentTaskResultHandler(TaskHandler):
                 event_sub_type=EventSubType.CALL_USER,
                 source=EventSource.AGENT,
                 data=task.data,
-                payload=task.payload,
+                payload={
+                    "confirm_data": task.payload['confirm_data'],
+                    "agent_instance_id": agent_instance_id,
+                },
             )
             EventPort.get_event_port().emit_event(event)
 
         # todo 如果agent是ppter类型,并且任务完成，待确认做啥
         if agent_info.name == "ppter" and agent_info.state == AgentState.DONE:
             pass
+
+    def _execute_step(self, client_id: str, conversation_id: str, generator_id: str, plan: Plan):
+        history_conversation = self.conversation_port.conversation_load(conversation_id=conversation_id)
+        message_list = self._thread_to_context(history_message_list=history_conversation.convert_sort_memory())
+        message_list.append(ChatStreamingChunk.from_system(
+            message=self._redesign_step_prompt(plan=plan, step=plan.steps[plan.current_step])))
+        # 检查当前的step
+        llm_generator = self._llm_generator(generator_id=generator_id)
+        result_dict = self._redesign_step(llm_generator=llm_generator, message_list=message_list)
+        logger.info(f"\nTask[{plan.task}]-[{plan.conversation_id}]总任务数：[{len(plan.steps)}],当前任务index[{plan.current_step}] \n任务进展：[{result_dict["progress_summary"]}]")
+        if result_dict["need_to_replan"]["answer"]:
+            print(f"需要重新规划任务： 原因：[{result_dict["need_to_replan"]["reason"]}]")
+            # TODO重新规划逻辑
+        # 任务进行
+        if result_dict["is_current_step_complete"]["answer"]: # step任务完成
+            logger.info(f"当前任务完成：[{result_dict["is_current_step_complete"]["reason"]}]")
+            if len(plan.steps) == plan.current_step + 1:
+                logger.info(f"计划[{plan.task}]-[{plan.conversation_id}]全部完成")
+            else:
+                # 更新当前步骤
+                plan.go_next_step()
+                self.plan_port.sava(plan)
+                logger.info(f"执行下一步任务[{plan.current_step}]。。。")
+                self._execute_step(client_id, conversation_id, generator_id, plan)
+        else:
+            logger.info(f"当前任务未完成：[{result_dict["is_current_step_complete"]["reason"]}]，继续执行。。。")
+            next_call_agent_name = result_dict["instruction_or_question"]["agent_name"]
+            # 获取调用提示词
+            new_instruction = self._agent_instruction(
+                instruction=result_dict["instruction_or_question"]["answer"],
+                agent_name=next_call_agent_name,
+                plan=plan
+            )
+            logger.info(f"选择AGENT[{next_call_agent_name}]，任务：[{result_dict["instruction_or_question"]["answer"]}]")
+            # 检查是否存在这个agent
+            if not self.agent_port.check_agent_in_teams(agent_name=next_call_agent_name):
+                print(f"未找到AI返回的Agent[{next_call_agent_name}]")
+                # 异常处理
+            # 调用agent
+            self._call_agent(agent_name=next_call_agent_name, client_id=client_id,
+                             conversation_id=conversation_id, generator_id=generator_id,
+                             payload={'prompt': new_instruction, "plan": plan})
+
 
     def state(self) -> TaskState:
         pass
@@ -172,10 +209,9 @@ class AgentTaskResultHandler(TaskHandler):
         logger.info(f"[AgentTaskResultHandler]发起[{EventType.AGENT} - {EventSubType.AGENT_CALL}]事件：[ID：{event.id}]")
         EventPort.get_event_port().emit_event(event)
 
-    def _redesign_step(self, generator_id: str, message_list:List[ChatStreamingChunk]) -> Dict[str, Any]:
+    def _redesign_step(self, llm_generator: LLMGenerator, message_list:List[ChatStreamingChunk]) -> Dict[str, Any]:
         """重新检查计划执行"""
-        return self.generators_port.generate_json(llm_generator=self._llm_generator(generator_id=generator_id),
-                  validate_json=None, messages=message_list)
+        return self.generators_port.generate_json(llm_generator=llm_generator, validate_json=None, messages=message_list)
 
     def _redesign_step_prompt(self, step: PlanStep, plan: Plan):
         agents, team_desc = self.agent_port.load_agent_teams()
@@ -190,6 +226,16 @@ class AgentTaskResultHandler(TaskHandler):
             team=team_desc,
             names=", ".join(names),
             additional_instructions="",
+        )
+
+    def _agent_instruction(self, instruction: str, agent_name: str, plan: Plan) -> str:
+        """agent 执行提示词"""
+        return INSTRUCTION_AGENT_FORMAT.format(
+            step_index=plan.current_step + 1,
+            step_title=plan.steps[plan.current_step].title,
+            step_details=plan.steps[plan.current_step].details,
+            agent_name=agent_name,
+            instruction=instruction,
         )
 
     def _thread_to_context(self, history_message_list: List[ChatStreamingChunk]) -> List[ChatStreamingChunk]:

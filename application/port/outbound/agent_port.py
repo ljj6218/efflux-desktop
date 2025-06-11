@@ -44,3 +44,7 @@ class AgentPort(ABC):
     @abstractmethod
     def load_agent_teams(self) -> tuple[List[Agent], str]:
         pass
+
+    @abstractmethod
+    def check_agent_in_teams(self, agent_name: str) -> bool:
+        pass

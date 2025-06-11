@@ -1,6 +1,6 @@
 from application.domain.agents.agent import Agent
 from application.domain.events.event import EventType, EventSubType, Event, EventSource
-from application.domain.plan import Plan
+from application.domain.plan import Plan, PlanState
 from application.domain.conversation import DialogSegment, DialogSegmentMetadata, MetadataType, MetadataSource
 from application.port.inbound.plan_case import PlanCase
 from application.port.outbound.agent_port import AgentPort
@@ -40,6 +40,10 @@ class PlanService(PlanCase):
         generator_id: str
     ) -> str:
         old_plan = self.plan_port.load(conversation_id=plan.conversation_id)
+        if old_plan.state == PlanState.RUNNING:
+            # TODO 已经运行的计划不能修改
+            print("err")
+        
         payload = {
             "agent_instance_id": agent_instance_id,
             "plan": plan.model_dump(),

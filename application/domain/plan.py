@@ -35,6 +35,15 @@ class Plan(BaseModel):
             plan_str += f"{i}. {step.agent_name}: {step.title}\n   {step.details}\n"
         return plan_str
 
+    def to_show_user_str(self) -> str:
+        """作为agent最终返回展示的内容"""
+        plan_str = ""
+        if self.task is not None:
+            plan_str += f"Task: {self.task}\n"
+        for i, step in enumerate(self.steps):
+            plan_str += f"{i+1}. {step.agent_name}: {step.title}\n"
+        return plan_str
+
     def model_dump(self, **kwargs):
         # 使用 super() 获取字典格式
         data = super().model_dump()
@@ -61,3 +70,6 @@ class Plan(BaseModel):
             state=PlanState.INITIALIZING,
             current_step=0
         )
+
+    def go_next_step(self):
+        self.current_step += 1
