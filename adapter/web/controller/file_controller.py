@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File, Query
+from fastapi import APIRouter, Depends, UploadFile, File, Query, Form
 from common.core.logger import get_logger
 from common.core.container.container import get_container
 from application.port.inbound.file_case import FileCase
@@ -24,10 +24,11 @@ async def get_allowed_file_types(
 @router.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
+    client_id: Optional[str] = Form(None),
     file_service: FileCase = Depends(file_case)
 ) -> BaseResponse:
     return BaseResponse.from_success(
-        data=await file_service.upload_file(file)
+        data=await file_service.upload_file(file, client_id)
     )
 
 @router.get("/list")
