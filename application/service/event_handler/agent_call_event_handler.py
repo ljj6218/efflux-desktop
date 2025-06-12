@@ -10,6 +10,8 @@ from application.port.outbound.event_port import EventHandler
 from application.port.outbound.generators_port import GeneratorsPort
 from application.port.outbound.user_setting_port import UserSettingPort
 from application.port.outbound.ws_message_port import WsMessagePort
+from common.core.errors.business_error_code import GeneratorErrorCode
+from common.core.errors.business_exception import BusinessException
 from common.utils.time_utils import create_from_second_now_to_int
 from common.core.container.annotate import component
 from application.port.outbound.task_port import TaskPort
@@ -72,6 +74,8 @@ class AgentCallEventHandler(EventHandler):
     def _llm_generator(self, generator_id: str) -> LLMGenerator:
         # 获取厂商api key
         llm_generator: LLMGenerator = self.generators_port.load_generate(generator_id)
+        if llm_generator is None:
+            raise BusinessException(error_code=GeneratorErrorCode.GENERATOR_NOT_FOUND, dynamics_message=generator_id)
         firm: GeneratorFirm = self.user_setting_port.load_firm_setting(llm_generator.firm)
         llm_generator.set_api_key_secret(firm.api_key)
         llm_generator.check_firm_api_key()

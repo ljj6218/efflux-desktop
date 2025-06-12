@@ -46,6 +46,7 @@ class PpterAgent(AgentInstance):
                                     html_code=json_result_data['html_code'],
                                     design_summary=json_result_data['design_summary'])
             payload['confirm_data'] = new_ppt
+            payload['confirm_type'] = 'ppt'
             self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
         else:
             # 请求大模型澄清用户需求

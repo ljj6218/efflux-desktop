@@ -31,51 +31,58 @@ class ToolTaskHandler(TaskHandler):
                 unauthorized_mcp_server_names.add(tool_call['mcp_server_name'])
         # 判断是否有未授权的mcp server
         if len(unauthorized_mcp_server_names) > 0:
-            # 判断用户是否确认工具使用
-
-            # 发送用户授权请求事件
-
-            # TODO
-            # tool_call_list = []
-            # for tool_call in task.data.tool_calls:
-            #     tool_call_list.append(
-            #         ToolCalls.from_init(id=tool_call.id, mcp_server_name=tool_call.mcp_server_name, name=tool_call.name,
-            #                             arguments=tool_call.arguments))
-            # event = Event.from_init(
-            #     event_type=EventType.ASSISTANT_MESSAGE,
-            #     event_data=ToolCallsEventData.from_tool_calls(id=task.data.id, model=task.data.model, conversation_id=task.data.conversation_id,
-            #                                                   created=task.data.created, tool_calls=tool_call_list))
-            # EventPort.get_event_port().emit_event()
-            return
+            if task.payload['option'] == 'agree':
+                self.execute_tools(task)
+            else:
+                # 发送用户授权请求事件
+                event = Event.from_init(
+                    client_id=task.client_id,
+                    event_type=EventType.INTERACTIVE,
+                    event_sub_type=EventSubType.CALL_USER,
+                    source=EventSource.TOOL_HANDLER,
+                    data=task.data,
+                    payload={
+                        "confirm_data": {
+                            "unauthorized_tools_names": unauthorized_mcp_server_names,
+                            "option": ["agree", "reject"]
+                        },
+                        "confirm_type": "tools_execute"
+                    }
+                )
+                EventPort.get_event_port().emit_event(event)
         else:
-            tool_call_list: List[ToolInstance] = ToolInstance.from_task_data(task)
-            asyncio.run(self._tools_call(tool_call_list))
-            # 工具调用结果
-            # 封装工具调用结果事件的工具结果
-            event_tool_calls: List[Dict[str, Any]] = []
-            for tool_call in tool_call_list:
-                logger.info(f"工具调用结果：[{tool_call.mcp_server_name} - {tool_call.name} - {tool_call.tool_call_id} - {tool_call.arguments} - 结果：略]")
-                # 转字典
-                event_tool_calls.append(tool_call.model_dump())
-            # 发送工具调用结果事件
-            event = Event.from_init(
-                client_id=task.client_id,
-                event_type=EventType.TOOL,
-                event_sub_type=EventSubType.TOOL_CALL_RESULT,
-                source=EventSource.TOOL_HANDLER,
-                data={
-                    'id': task.data['id'],
-                    'model': task.data['model'],
-                    'dialog_segment_id':task.data['dialog_segment_id'],
-                    'conversation_id': task.data['conversation_id'],
-                    'generator_id': task.data['generator_id'],
-                    'created': task.data['created'],
-                    'tool_calls': event_tool_calls
-                },
-                payload=task.payload
-            )
-            logger.info(f"任务处理器[{self.type()}]发起[{event.type} - {event.sub_type}]事件：[ID：{event.id}]")
-            EventPort.get_event_port().emit_event(event)
+            self.execute_tools(task)
+
+    def execute_tools(self, task):
+        tool_call_list: List[ToolInstance] = ToolInstance.from_task_data(task)
+        asyncio.run(self._tools_call(tool_call_list))
+        # 工具调用结果
+        # 封装工具调用结果事件的工具结果
+        event_tool_calls: List[Dict[str, Any]] = []
+        for tool_call in tool_call_list:
+            logger.info(
+                f"工具调用结果：[{tool_call.mcp_server_name} - {tool_call.name} - {tool_call.tool_call_id} - {tool_call.arguments} - 结果：略]")
+            # 转字典
+            event_tool_calls.append(tool_call.model_dump())
+        # 发送工具调用结果事件
+        event = Event.from_init(
+            client_id=task.client_id,
+            event_type=EventType.TOOL,
+            event_sub_type=EventSubType.TOOL_CALL_RESULT,
+            source=EventSource.TOOL_HANDLER,
+            data={
+                'id': task.data['id'],
+                'model': task.data['model'],
+                'dialog_segment_id': task.data['dialog_segment_id'],
+                'conversation_id': task.data['conversation_id'],
+                'generator_id': task.data['generator_id'],
+                'created': task.data['created'],
+                'tool_calls': event_tool_calls
+            },
+            payload=task.payload
+        )
+        logger.info(f"任务处理器[{self.type()}]发起[{event.type} - {event.sub_type}]事件：[ID：{event.id}]")
+        EventPort.get_event_port().emit_event(event)
 
     def type(self) -> str:
         return TaskType.TOOL_CALL.value

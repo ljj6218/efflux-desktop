@@ -20,6 +20,8 @@ from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.user_setting_port import UserSettingPort
 from application.domain.generators.firm import GeneratorFirm
 from application.service.prompts.orchestration import ORCHESTRATOR_PROGRESS_LEDGER_PROMPT, ORCHESTRATOR_SYSTEM_MESSAGE_EXECUTION, INSTRUCTION_AGENT_FORMAT
+from common.core.errors.business_error_code import GeneratorErrorCode
+from common.core.errors.business_exception import BusinessException
 
 from common.core.logger import get_logger
 import injector
@@ -95,6 +97,7 @@ class AgentTaskResultHandler(TaskHandler):
                 data=task.data,
                 payload={
                     "confirm_data": task.payload['confirm_data'],
+                    "confirm_type": task.payload['confirm_type'],
                     "agent_instance_id": agent_instance_id,
                 },
             )
@@ -160,6 +163,8 @@ class AgentTaskResultHandler(TaskHandler):
     def _llm_generator(self, generator_id: str) -> LLMGenerator:
         # 获取厂商api key
         llm_generator: LLMGenerator = self.generators_port.load_generate(generator_id)
+        if llm_generator is None:
+            raise BusinessException(error_code=GeneratorErrorCode.GENERATOR_NOT_FOUND, dynamics_message=generator_id)
         firm: GeneratorFirm = self.user_setting_port.load_firm_setting(llm_generator.firm)
         llm_generator.set_api_key_secret(firm.api_key)
         llm_generator.check_firm_api_key()

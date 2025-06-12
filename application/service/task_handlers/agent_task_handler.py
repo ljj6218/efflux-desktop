@@ -100,6 +100,8 @@ class AgentTaskHandler(TaskHandler):
     def _llm_generator(self, generator_id: str) -> LLMGenerator:
         # 获取厂商api key
         llm_generator: LLMGenerator = self.generators_port.load_generate(generator_id)
+        if llm_generator is None:
+            raise BusinessException(error_code=GeneratorErrorCode.GENERATOR_NOT_FOUND, dynamics_message=generator_id)
         firm: GeneratorFirm = self.user_setting_port.load_firm_setting(llm_generator.firm)
         llm_generator.set_api_key_secret(firm.api_key)
         llm_generator.check_firm_api_key()

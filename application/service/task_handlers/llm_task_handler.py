@@ -2,6 +2,8 @@ from application.domain.tasks.task import TaskType, Task, TaskState
 from application.domain.events.event import Event, EventType, EventGroupStatus, EventSubType, EventGroup, EventSource
 from application.port.inbound.task_handler import TaskHandler
 from common.core.container.annotate import component
+from common.core.errors.business_error_code import GeneratorErrorCode
+from common.core.errors.business_exception import BusinessException
 from common.utils.common_utils import create_uuid, CONVERSATION_STOP_FLAG_KEY
 from common.utils.time_utils import create_from_second_now_to_int
 from application.port.outbound.event_port import EventPort
@@ -77,8 +79,8 @@ class LLMTaskHandler(TaskHandler):
         dialog_segment_id = task.data['dialog_segment_id']
         generator_id = task.data['generator_id']
 
-        mcp_name_list = task.payload['mcp_name_list']
-        tools_group_name_list = task.payload['tools_group_name_list']
+        mcp_name_list = task.payload['mcp_name_list'] if 'mcp_name_list' in task.payload else []
+        tools_group_name_list = task.payload['tools_group_name_list'] if 'tools_group_name_list' in task.payload else []
         agent_instance_id = task.payload['agent_instance_id'] if 'agent_instance_id' in task.payload else None
         json_result = task.payload['json_result'] if 'json_result' in task.payload else None
         message_list = task.payload['context_message_list']
@@ -164,33 +166,9 @@ class LLMTaskHandler(TaskHandler):
                 }
             )
             EventPort.get_event_port().emit_event(event)
-            # if chunk.content and json_result:
-            #     full_content += chunk.content
             if stop_flag:
                 self._send_system_stop_event(uuid=uuid, agent_id=agent_instance_id, conversation_id=conversation_id, client_id=client_id)
                 break
-
-        # if json_result:
-        #     # 发送返回json结果事件
-        #     event = Event.from_init(
-        #         client_id=client_id,
-        #         event_type=EventType.ASSISTANT_MESSAGE,
-        #         event_sub_type=EventSubType.MESSAGE,
-        #         payload=task.payload,
-        #         source=EventSource.LLM_HANDLER,
-        #         data={
-        #             "id": uuid,
-        #             "conversation_id": conversation_id,
-        #             "dialog_segment_id": dialog_segment_id,
-        #             "generator_id": generator_id,
-        #             "model": llm_generator.model,
-        #             "content": full_content,
-        #             "created": create_from_second_now_to_int(),
-        #             "finish_reason": 'stop',
-        #         }
-        #     )
-        #     EventPort.get_event_port().emit_event(event)
-
 
     def _send_system_stop_event(self, uuid: str, conversation_id: str, agent_id: str, client_id: str):
         """
@@ -228,6 +206,8 @@ class LLMTaskHandler(TaskHandler):
     def _llm_generator(self, generator_id: str) -> LLMGenerator:
         # 获取厂商api key
         llm_generator: LLMGenerator = self.generators_port.load_generate(generator_id)
+        if llm_generator is None:
+            raise BusinessException(error_code=GeneratorErrorCode.GENERATOR_NOT_FOUND, dynamics_message=generator_id)
         firm: GeneratorFirm = self.user_setting_port.load_firm_setting(llm_generator.firm)
         llm_generator.set_api_key_secret(firm.api_key)
         llm_generator.check_firm_api_key()

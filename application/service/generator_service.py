@@ -3,15 +3,20 @@ from typing import List, Optional, Dict, Any
 from application.domain.agents.agent import Agent, AgentInfo
 from application.domain.generators.firm import GeneratorFirm
 from application.domain.generators.generator import LLMGenerator
+from application.domain.tasks.task import Task, TaskType
 from application.port.outbound.agent_port import AgentPort
 from application.port.outbound.generators_port import GeneratorsPort
 from application.port.inbound.model_case import ModelCase
 from application.domain.events.event import Event, EventType, EventSubType, EventSource
 from application.domain.conversation import Conversation, DialogSegmentContent, DialogSegment
+from application.port.outbound.task_port import TaskPort
 from common.core.container.annotate import component
+from common.core.errors.business_error_code import GeneratorErrorCode
+from common.core.errors.business_exception import BusinessException
 from common.core.errors.common_error_code import CommonErrorCode
 from common.core.errors.common_exception import CommonException
 from common.utils.common_utils import create_uuid, CONVERSATION_STOP_FLAG_KEY, CURRENT_CONVERSATION_AGENT_INSTANCE_ID
+from common.utils.time_utils import create_from_second_now_to_int
 from application.port.outbound.event_port import EventPort
 from application.port.inbound.generators_case import GeneratorsCase
 from application.port.outbound.user_setting_port import UserSettingPort
@@ -230,6 +235,43 @@ class GeneratorService(ModelCase, GeneratorsCase):
                       dialog_segment_id: str, confirm_type: str,
                       content: Dict[str, str], ) -> Optional[str]:
 
+        if "tools_execute" == confirm_type:
+            if content['option'] == 'agree':
+                # event = Event.from_init(
+                #     client_id=client_id,
+                #     event_type=EventType.TOOL,
+                #     event_sub_type=EventSubType.TOOL_CALL,
+                #     payload={},
+                #     source=EventSource.LLM_HANDLER,
+                #     data={
+                #         "id": create_uuid(),
+                #         "conversation_id": conversation_id,
+                #         "dialog_segment_id": dialog_segment_id,
+                #         "generator_id": generator_id,
+                #         "model": content['model'],
+                #         "created": create_from_second_now_to_int(),
+                #         "tool_calls": content['tool_calls'],
+                #     }
+                # )
+                # EventPort.get_event_port().emit_event(event)
+                # 构建TOOL_CALL任务
+                task = Task.from_singleton(
+                    task_type=TaskType.TOOL_CALL,
+                    data={
+                        "id": create_uuid(),
+                        "conversation_id": conversation_id,
+                        "dialog_segment_id": dialog_segment_id,
+                        "generator_id": generator_id,
+                        "model": content['model'],
+                        "created": create_from_second_now_to_int(),
+                        "tool_calls": content['tool_calls'],
+                    },
+                    payload={"option": content['option']},
+                client_id=client_id)
+                TaskPort.get_task_port().execute_task(task)
+                logger.info(f"事件处理器[GeneratorService]发起[{TaskType.TOOL_CALL}]任务：[ID：{task.id}]")
+            return dialog_segment_id
+
         # todo 暂时只考虑ppt的逻辑
         if "ppt" == confirm_type:
             # 加载该 agent 实例的全部对话记录
@@ -285,6 +327,8 @@ class GeneratorService(ModelCase, GeneratorsCase):
     def _llm_generator(self, generator_id: str) -> LLMGenerator:
         # 获取厂商api key
         llm_generator: LLMGenerator = self.generators_port.load_generate(generator_id)
+        if llm_generator is None:
+            raise BusinessException(error_code=GeneratorErrorCode.GENERATOR_NOT_FOUND, dynamics_message=generator_id)
         firm: GeneratorFirm = self.user_setting_port.load_firm_setting(llm_generator.firm)
         llm_generator.set_api_key_secret(firm.api_key)
         llm_generator.check_firm_api_key()

@@ -13,6 +13,9 @@ from application.port.outbound.event_port import EventPort
 from application.port.outbound.cache_port import CachePort
 from application.domain.events.event import Event, EventType, EventSubType
 import injector
+
+from common.core.errors.business_error_code import GeneratorErrorCode
+from common.core.errors.business_exception import BusinessException
 from common.utils.common_utils import create_uuid, CONVERSATION_STOP_FLAG_KEY
 from common.core.logger import get_logger
 from typing import Optional, List, Dict, Any
@@ -90,6 +93,8 @@ class TestService(TestCase):
     def _llm_generator(self, generator_id: str) -> LLMGenerator:
         # 获取厂商api key
         llm_generator: LLMGenerator = self.generators_port.load_generate(generator_id)
+        if llm_generator is None:
+            raise BusinessException(error_code=GeneratorErrorCode.GENERATOR_NOT_FOUND, dynamics_message=generator_id)
         firm: GeneratorFirm = self.user_setting_port.load_firm_setting(llm_generator.firm)
         llm_generator.set_api_key_secret(firm.api_key)
         llm_generator.check_firm_api_key()

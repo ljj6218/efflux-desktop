@@ -5,6 +5,10 @@ from typing import Optional
 def check_file_and_create(file_url: str, init_str:Optional[str] = None):
     # 获取文件夹路径
     folder_path = os.path.dirname(file_url)
+    if not folder_path:
+        # 获取当前工作目录
+        folder_path = current_directory()
+        print("当前目录是:", current_directory)
     # 如果文件夹不存在，则创建文件夹
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)  # 创建多级目录
@@ -16,6 +20,10 @@ def check_file_and_create(file_url: str, init_str:Optional[str] = None):
             if init_str:
                 file.write(init_str)
             pass  # 不需要写入任何内容，仅用于创建文件
+
+def current_directory():
+    # 获取当前工作目录
+    return os.getcwd()
 
 def check_file(file_url: str):
     # 判断文件是否存在
