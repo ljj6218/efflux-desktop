@@ -1,9 +1,16 @@
+from adapter.agent.prompts.clarification import SYSTEM_MESSAGE_CLARIFICATION
+from adapter.agent.prompts.ppter import SYSTEM_MESSAGE_PPTER
 from application.domain.agents.agent import Agent, AgentInstance, AgentInfo
+from application.domain.agents.browser_agent import BrowserAgent
+from application.domain.agents.clarification_agent import ClarificationAgent
 from application.domain.agents.plan_agent import PlanAgent
+from application.domain.agents.ppter_agent import PpterAgent
 from application.domain.conversation import DialogSegment
 from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.agent_port import AgentPort
+from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.generators_port import GeneratorsPort
+from application.port.outbound.tools_port import ToolsPort
 from application.port.outbound.ws_message_port import WsMessagePort
 from common.core.container.annotate import component
 from common.utils.file_util import check_file_and_create, check_file
@@ -36,9 +43,9 @@ class AgentAdapter(AgentPort):
     @staticmethod
     def _load_prompt_list(type: str) -> Dict[str, str]:
         prompts = {}
-        if type == "browser":
+        if type == "websurfer":
             prompts['WEB_SURFER_OCR_PROMPT'] = WEB_SURFER_OCR_PROMPT
-            prompts['WEB_SURFER_QA_PROMPT'] = WEB_SURFER_QA_PROMPT
+            # prompts['WEB_SURFER_QA_PROMPT'] = WEB_SURFER_QA_PROMPT
             prompts['WEB_SURFER_QA_SYSTEM_MESSAGE'] = WEB_SURFER_QA_SYSTEM_MESSAGE
             prompts['WEB_SURFER_TOOL_PROMPT'] = WEB_SURFER_TOOL_PROMPT
             prompts['WEB_SURFER_SYSTEM_MESSAGE'] = WEB_SURFER_SYSTEM_MESSAGE
@@ -48,6 +55,10 @@ class AgentAdapter(AgentPort):
             prompts['ORCHESTRATOR_SYSTEM_MESSAGE_EXECUTION'] = ORCHESTRATOR_SYSTEM_MESSAGE_EXECUTION
             prompts['ORCHESTRATOR_PLAN_PROMPT_JSON'] = ORCHESTRATOR_PLAN_PROMPT_JSON
             prompts['ORCHESTRATOR_PLAN_REPLAN_JSON'] = ORCHESTRATOR_PLAN_REPLAN_JSON
+        if type == "clarification":
+            prompts['SYSTEM_MESSAGE_CLARIFICATION'] = SYSTEM_MESSAGE_CLARIFICATION
+        if type == "ppter":
+            prompts['SYSTEM_MESSAGE_PPTER'] = SYSTEM_MESSAGE_PPTER
         return prompts
 
     agent_file_url = "adapter/agent/agent.json"
@@ -62,6 +73,7 @@ class AgentAdapter(AgentPort):
             if agent_instance_dict_id == instance_id:
                 agent_instance_dict = agent_instance_config.read_key(instance_id)
                 agent_info = AgentInfo.model_validate(agent_instance_dict)
+                agent_info.agent_prompts = self._load_prompt_list(agent_info.name)
                 return agent_info
         return None
 
@@ -70,23 +82,6 @@ class AgentAdapter(AgentPort):
         agent_instance_config = JSONFileUtil(agent_instance_file)
         agent_instance_config.update_key(instance_info.instance_id, instance_info.model_dump())
         return instance_info
-
-    def load_record(self, agent_instance_id: str) -> List[DialogSegment]:
-        dialog_segment_list = []
-        dialog_segment_file = f'conversations/agent/{agent_instance_id}.jsonl'
-        if not check_file(dialog_segment_file): # 不存在，返回空列表
-            return dialog_segment_list
-        with jsonlines.open(dialog_segment_file, mode='r') as reader:
-            for obj in reader:
-                dialog_segment_list.append(DialogSegment.model_validate(obj))
-        return dialog_segment_list
-
-    def add_record(self, dialog_segment: DialogSegment) -> DialogSegment:
-        dialog_segment_file = f'conversations/agent/{dialog_segment.payload['agent_instance_id']}.jsonl'
-        check_file_and_create(dialog_segment_file)
-        with jsonlines.open(dialog_segment_file, mode='a') as writer:
-            writer.write(dialog_segment.model_dump())
-        return dialog_segment
 
     def save(self, agent: Agent) -> str:
         # check_file_and_create(self.agent_file_url, init_str="{}")
@@ -107,16 +102,43 @@ class AgentAdapter(AgentPort):
                 return agent
         return None
 
+    def load_by_name(self, agent_name: str) -> Optional[Agent]:
+        agent_config = JSONFileUtil(self.agent_file_url)
+        # 遍历所有agent
+        for agent_dict_id in agent_config.read().keys():
+            agent_dict = agent_config.read_key(agent_dict_id)
+            if agent_dict['name'] == agent_name:
+                agent = Agent.model_validate(agent_dict)
+                # 加载所有提示词 TODO 后面可能会持久化，统一返回
+                agent.agent_prompts = self._load_prompt_list(agent.name)
+                return agent
+        return None
 
     def make_instance(self, agent_info: AgentInfo, llm_generator: LLMGenerator, generators_port: GeneratorsPort,
-                      ws_message_port: WsMessagePort) -> Optional[AgentInstance]:
+                      conversation_port: ConversationPort, ws_message_port: WsMessagePort, tools_port: ToolsPort) -> Optional[AgentInstance]:
+        if agent_info.name == 'websurfer':
+            agent_instance = BrowserAgent(
+                generators_port=generators_port,
+                llm_generator=llm_generator,
+                ws_message_port=ws_message_port,
+                conversation_port=conversation_port,
+                tools_port=tools_port,
+            )
+            asyncio.run(
+                agent_instance.lazy_init(
+                    config={}
+                )
+            )
+            return agent_instance
         if agent_info.name == 'plan':
             agent_instance = PlanAgent(
                 generators_port=generators_port,
                 llm_generator=llm_generator,
-                ws_message_port=ws_message_port
+                ws_message_port=ws_message_port,
+                conversation_port=conversation_port,
+                tools_port=tools_port,
             )
-            agents, team_description = self._load_agent()
+            agents, team_description = self.load_agent_teams()
             asyncio.run(
                 agent_instance.lazy_init(
                 config={
@@ -126,11 +148,29 @@ class AgentAdapter(AgentPort):
                 )
             )
             return agent_instance
+        if agent_info.name == 'clarification':
+            agent_instance = ClarificationAgent(
+                generators_port=generators_port,
+                llm_generator=llm_generator,
+                ws_message_port=ws_message_port,
+                conversation_port=conversation_port,
+                tools_port=tools_port,
+            )
+            return agent_instance
+        if agent_info.name == 'ppter':
+            agent_instance = PpterAgent(
+                generators_port=generators_port,
+                llm_generator=llm_generator,
+                ws_message_port=ws_message_port,
+                conversation_port=conversation_port,
+                tools_port=tools_port,
+            )
+            return agent_instance
 
-
-    def _load_agent(self) -> tuple[List[Agent], str]:
+    def load_agent_teams(self) -> tuple[List[Agent], str]:
         agents = [
-            self.load("4877f996-2fb5-400d-9b26-245a824e325f")
+            self.load("4877f996-2fb5-400d-9b26-245a824e325f"),
+            self.load("f83b0799-366c-4b1b-8983-050ef0ebcf49")
         ]
         team_description = "\n".join(
             [
@@ -139,3 +179,11 @@ class AgentAdapter(AgentPort):
             ]
         )
         return agents, team_description
+
+    def check_agent_in_teams(self, agent_name: str) -> bool:
+        agents, load_agent_teams = self.load_agent_teams()
+        result = False
+        for agent in agents:
+            if agent.name == agent_name:
+                result = True
+        return result

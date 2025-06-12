@@ -115,7 +115,7 @@ class LLMTaskHandler(TaskHandler):
         stop_flag = False
         # # 完整结果
         # full_content = ""
-        for chunk in self.generators_port.generate_event(llm_generator=llm_generator, messages=messages, tools=tools):
+        for chunk in self.generators_port.generate_event(llm_generator=llm_generator, messages=messages, tools=tools, json_object=json_result):
             if chunk.usage: # 跳过用量chunk消息
                 continue
             # 确定当前事件的组状态

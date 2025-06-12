@@ -10,7 +10,8 @@ from adapter.web.core.exception_registry import register_exception_handlers
 from application.port.outbound.task_port import TaskPort
 from application.port.outbound.event_port import EventPort
 from application.port.outbound.cache_port import CachePort
-from common.utils.common_utils import CONVERSATION_STOP_FLAG_KEY, SINGLETON_WEBSOCKET_CLIENT_ID, create_uuid
+from common.utils.common_utils import CONVERSATION_STOP_FLAG_KEY, SINGLETON_WEBSOCKET_CLIENT_ID, create_uuid, \
+    CURRENT_CONVERSATION_AGENT_INSTANCE_ID
 import uvicorn
 import copy
 import asyncio
@@ -24,6 +25,7 @@ async def startup():
     get_container()
     # 设置会话停止缓存
     get_container().get(CachePort).set_data(name=CONVERSATION_STOP_FLAG_KEY, key="test", value=False)
+    get_container().get(CachePort).set_data(name=CURRENT_CONVERSATION_AGENT_INSTANCE_ID, key="test", value=False)
 
 async def shutdown():
     logger.info("app关闭")

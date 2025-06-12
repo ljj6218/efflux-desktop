@@ -12,9 +12,10 @@ class JSONFileUtil:
     def __init__(self, file_path):
         """初始化工具类，指定 JSON 文件路径"""
         self.file_path = file_path
-
         # 确保文件存在，如果不存在则创建空的 JSON 文件
         if not os.path.exists(self.file_path):
+            # 确保文件所在的目录存在
+            os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
             logger.debug(f"文件 {self.file_path} 不存在，创建一个空的 JSON 文件.")
             with open(self.file_path, 'w', encoding='utf-8') as f:
                 json.dump({}, f, ensure_ascii=False)  # 初始为空字典

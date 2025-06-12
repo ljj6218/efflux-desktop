@@ -38,7 +38,7 @@ class AgentCallEventHandler(EventHandler):
         self.ws_message_port = ws_message_port
 
     def handle(self, event: Event) -> None:
-        agent_instance_id = event.data['agent_instance_id']
+        agent_instance_id = event.payload['agent_instance_id']
         dialog_segment_id = event.data['dialog_segment_id']
         conversation_id = event.data['conversation_id']
         generator_id = event.data['generator_id']
@@ -55,10 +55,12 @@ class AgentCallEventHandler(EventHandler):
             self.conversation_port.conversation_add(dialog_segment=assistant_dialog_segment)
             logger.info(f"保存Agent调用对话片段：[ID：{assistant_dialog_segment.id} - 内容：{content}]")
             self.ws_message_port.send(event)
+
         if event.sub_type == EventSubType.AGENT_CALL:
             # 创建agent call任务
             task = Task.from_singleton(task_type=TaskType.AGENT_CALL, data=event.data, payload=event.payload, client_id=event.client_id)
             TaskPort.get_task_port().execute_task(task)
+
         if event.sub_type == EventSubType.AGENT_CALL_RESULT:
             # 创建agent反馈请求任务
             task = Task.from_singleton(task_type=TaskType.AGENT_CALL_RESULT, data=event.data, payload=event.payload, client_id=event.client_id)

@@ -87,7 +87,7 @@ class OpenAIClient(ModelClient):
         tool_choice: str = self._tool_choice(openai_tools=openai_tools, generation_kwargs=generation_kwargs)
 
         response_format = ResponseFormatText(type="text")
-        if "json_object" in generation_kwargs.keys():
+        if "json_object" in generation_kwargs.keys() and generation_kwargs["json_object"]:
             response_format = ResponseFormatJSONObject(type="json_object")
         try:
             stream = client.chat.completions.create(
@@ -285,6 +285,7 @@ class OpenAIClient(ModelClient):
         for tool in tools:
             if chunk_tools_call.name == tool.name:
                 chunk_tools_call.mcp_server_name = tool.mcp_server_name
+                chunk_tools_call.group_name = tool.group_name
                 chunk_tools_call.description = tool.description
 
     @staticmethod
