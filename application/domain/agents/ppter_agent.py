@@ -6,6 +6,7 @@ from application.domain.conversation import DialogSegmentMetadata, MetadataSourc
 from application.domain.events.event import Event, EventType, EventSubType, EventSource
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from application.domain.generators.generator import LLMGenerator
+from application.domain.ppt import Ppt
 from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.event_port import EventPort
 from application.port.outbound.generators_port import GeneratorsPort
@@ -38,9 +39,14 @@ class PpterAgent(AgentInstance):
         content = None
         if "json_result_data" in payload: # 模型返回json结果
             json_result_data = payload["json_result_data"]
-            self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
             content = json_result_data['response']
             logger.info(f"ppter agent 记录自己的会话历史: {json_result_data}")
+            new_ppt = Ppt.from_init(conversation_id=self.info.conversation_id,
+                                    agent_instance_id=self.info.instance_id,
+                                    html_code=json_result_data['html_code'],
+                                    design_summary=json_result_data['design_summary'])
+            payload['confirm_data'] = new_ppt
+            self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
         else:
             # 请求大模型澄清用户需求
             self._send_llm_event(client_id=client_id, context_message_list=context_message_list)

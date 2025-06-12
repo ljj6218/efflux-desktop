@@ -42,6 +42,28 @@ class GeneratorsCase(ABC):
         """
 
     @abstractmethod
+    async def confirm(
+            self,
+            client_id: str,
+            generator_id: str,
+            conversation_id: str,
+            agent_instance_id: str,
+            dialog_segment_id: str,
+            html_code: str,
+    ) -> str:
+        """
+        停止生成
+        :param client_id: ws id
+        :param generator_id: llm id
+        :param conversation_id: 会话id
+        :param agent_instance_id: agent_instance_id
+        :param dialog_segment_id: 对话片段id
+        :param html_code: html
+        :return:
+        """
+
+
+    @abstractmethod
     async def generate(self,
         generator_id: str,
         query: str,

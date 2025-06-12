@@ -32,6 +32,10 @@ class ConversationPort(ABC):
         pass
 
     @abstractmethod
+    def update_agent_record(self, agent_instance_id: str, updated_segments: List[DialogSegment]):
+        pass
+
+    @abstractmethod
     def add_agent_record(self, dialog_segment: DialogSegment) -> DialogSegment:
         pass
 

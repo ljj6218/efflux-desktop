@@ -100,10 +100,6 @@ class AgentTaskResultHandler(TaskHandler):
             )
             EventPort.get_event_port().emit_event(event)
 
-        # todo 如果agent是ppter类型,并且任务完成，待确认做啥
-        if agent_info.name == "ppter" and agent_info.state == AgentState.DONE:
-            pass
-
     def _execute_step(self, client_id: str, conversation_id: str, generator_id: str, plan: Plan):
         history_conversation = self.conversation_port.conversation_load(conversation_id=conversation_id)
         message_list = self._thread_to_context(history_message_list=history_conversation.convert_sort_memory())

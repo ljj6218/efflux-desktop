@@ -88,6 +88,13 @@ class ConversationAdapter(ConversationPort):
                 dialog_segment_list.append(DialogSegment.model_validate(obj))
         return dialog_segment_list
 
+    def update_agent_record(self, agent_instance_id: str, updated_segments: List[DialogSegment]):
+            dialog_segment_file = f'conversations/agent/{agent_instance_id}.jsonl'
+            # 写入更新后的记录
+            with jsonlines.open(dialog_segment_file, mode='w') as writer:
+                for segment in updated_segments:
+                    writer.write(segment.model_dump())
+
     def add_agent_record(self, dialog_segment: DialogSegment) -> DialogSegment:
         dialog_segment_file = f'conversations/agent/{dialog_segment.payload['agent_instance_id']}.jsonl'
         check_file_and_create(dialog_segment_file)

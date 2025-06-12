@@ -7,6 +7,8 @@ from application.port.inbound.model_case import ModelCase
 from application.domain.events.event import Event, EventType, EventSubType, EventSource
 from application.domain.conversation import Conversation, DialogSegmentContent, DialogSegment
 from common.core.container.annotate import component
+from common.core.errors.common_error_code import CommonErrorCode
+from common.core.errors.common_exception import CommonException
 from common.utils.common_utils import create_uuid, CONVERSATION_STOP_FLAG_KEY
 from application.port.outbound.event_port import EventPort
 from application.port.inbound.generators_case import GeneratorsCase
@@ -211,6 +213,47 @@ class GeneratorService(ModelCase, GeneratorsCase):
 
     async def stop_generate(self, conversation_id: str, client_id: str) -> str:
         self.cache_port.set_data(name=CONVERSATION_STOP_FLAG_KEY, key=conversation_id, value=True)
+        return conversation_id
+
+    async def confirm(self, client_id: str, generator_id: str,
+                      conversation_id: str, agent_instance_id: str,
+                      dialog_segment_id: str, html_code: str) -> str:
+
+        # todo 暂时只考虑ppt的逻辑
+
+        # 加载该 agent 实例的全部对话记录
+        dialog_segments: List[DialogSegment] = self.conversation_port.load_agent_record(agent_instance_id)
+
+        if not dialog_segments:
+            raise ValueError(f"未找到 agent_instance_id={agent_instance_id} 的对话记录")
+
+        updated = False
+
+        # 遍历查找要修改的 DialogSegment
+        for segment in dialog_segments:
+            if segment.id == dialog_segment_id:
+                try:
+                    # 将 content 字符串解析为 JSON 对象
+                    content_dict = json.loads(segment.content)
+
+                    # 修改 html_code 字段
+                    content_dict['html_code'] = html_code
+
+                    # 将修改后的 dict 转回字符串并赋值给 content
+                    segment.content = json.dumps(content_dict, ensure_ascii=False)
+
+                    updated = True
+                    break
+                except json.JSONDecodeError as e:
+                    logger.error(f"解析 content 字段失败：{e}")
+                    raise CommonException(error_code=CommonErrorCode.DIALOG_SEGMENT_CONTENT_JSON_DECODE_ERROR, dynamics_message = "segment.content: " + segment.content)
+
+        if not updated:
+            logger.error(f"未找到 id={dialog_segment_id} 的对话片段")
+            raise CommonException(error_code=CommonErrorCode.DIALOG_SEGMENT_NOT_FOUND, dynamics_message = "dialog_segment_id: " + dialog_segment_id)
+
+        # 将更新后的对话记录保存回文件
+        self.conversation_port.update_agent_record(agent_instance_id, dialog_segments)
         return conversation_id
 
     def _conversation_check(self, conversation_id: str, query_str: str) -> str:

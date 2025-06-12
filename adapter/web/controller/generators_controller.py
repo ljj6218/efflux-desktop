@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends
+
+from adapter.web.vo.ppt_vo import PPTVo
 from common.core.logger import get_logger
 from common.core.container.container import get_container
 from application.port.inbound.generators_case import GeneratorsCase
@@ -30,6 +32,17 @@ async def chat(generators_vo: GeneratorsVo, generators_service: GeneratorsCase =
 @router.put("/stop")
 async def stop(conversation_id: str, client_id: str, generators_service: GeneratorsCase = Depends(generators_case)):
     return BaseResponse.from_success(data={"conversation_id": await generators_service.stop_generate(client_id=client_id, conversation_id=conversation_id)})
+
+@router.put("/confirm")
+async def confirm(ppt_vo: PPTVo, generators_service: GeneratorsCase = Depends(generators_case)):
+    return BaseResponse.from_success(data={"conversation_id": await generators_service.confirm(
+        client_id=ppt_vo.client_id,
+        generator_id=ppt_vo.generator_id,
+        conversation_id=ppt_vo.conversation_id,
+        agent_instance_id=ppt_vo.agent_instance_id,
+        dialog_segment_id=ppt_vo.dialog_segment_id,
+        html_code=ppt_vo.html_code
+    )})
 
 
 @router.post("/chat_test")
