@@ -50,3 +50,7 @@ class AgentPort(ABC):
     @abstractmethod
     def check_agent_in_teams(self, agent_name: str) -> bool:
         pass
+
+    @abstractmethod
+    def load_all(self):
+        pass

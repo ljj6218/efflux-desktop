@@ -187,3 +187,14 @@ class AgentAdapter(AgentPort):
             if agent.name == agent_name:
                 result = True
         return result
+
+    def load_all(self) -> List[Agent]:
+        agent_config = JSONFileUtil(self.agent_file_url)
+        res :List[Agent] = []
+        # 遍历所有agent
+        for agent_dict_id in agent_config.read().keys():
+            agent_dict = agent_config.read_key(agent_dict_id)
+            agent = Agent.model_validate(agent_dict)
+            res.append(agent)
+
+        return res

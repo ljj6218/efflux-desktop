@@ -1,7 +1,9 @@
 from typing import List, Optional, Dict, Any
 
+from application.domain.agents.agent import Agent, AgentInfo
 from application.domain.generators.firm import GeneratorFirm
 from application.domain.generators.generator import LLMGenerator
+from application.port.outbound.agent_port import AgentPort
 from application.port.outbound.generators_port import GeneratorsPort
 from application.port.inbound.model_case import ModelCase
 from application.domain.events.event import Event, EventType, EventSubType, EventSource
@@ -9,7 +11,7 @@ from application.domain.conversation import Conversation, DialogSegmentContent, 
 from common.core.container.annotate import component
 from common.core.errors.common_error_code import CommonErrorCode
 from common.core.errors.common_exception import CommonException
-from common.utils.common_utils import create_uuid, CONVERSATION_STOP_FLAG_KEY
+from common.utils.common_utils import create_uuid, CONVERSATION_STOP_FLAG_KEY, CURRENT_CONVERSATION_AGENT_INSTANCE_ID
 from application.port.outbound.event_port import EventPort
 from application.port.inbound.generators_case import GeneratorsCase
 from application.port.outbound.user_setting_port import UserSettingPort
@@ -28,21 +30,23 @@ from common.core.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 @component
 class GeneratorService(ModelCase, GeneratorsCase):
-
 
     @injector.inject
     def __init__(self,
                  generators_port: GeneratorsPort,
                  event_port: EventPort,
+                 agent_port: AgentPort,
                  tools_port: ToolsPort,
                  user_setting_port: UserSettingPort,
                  conversation_port: ConversationPort,
                  cache_port: CachePort,
-        ):
+                 ):
         self.generators_port = generators_port
         self.event_port = event_port
+        self.agent_port = agent_port
         self.tools_port = tools_port
         self.user_setting_port = user_setting_port
         self.conversation_port = conversation_port
@@ -63,13 +67,13 @@ class GeneratorService(ModelCase, GeneratorsCase):
         return self.generators_port.enable_or_disable_model(firm, model, enabled)
 
     async def generate_test(
-        self,
-        generator_id: str,
-        query: str,
-        conversation_id: str,
-        mcp_name_list: List[str],
-        tools_group_name_list: Optional[List[str]] = None,
-        task_confirm: Optional[Dict[str, Any]] = None
+            self,
+            generator_id: str,
+            query: str,
+            conversation_id: str,
+            mcp_name_list: List[str],
+            tools_group_name_list: Optional[List[str]] = None,
+            task_confirm: Optional[Dict[str, Any]] = None
     ) -> str:
         # 获取LLMGenerator
         llm_generator: LLMGenerator = self._llm_generator(generator_id)
@@ -88,7 +92,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
             },
             {
                 "type": "image_url",
-                "image_url":{
+                "image_url": {
                     "url": f"data:image/jpeg;base64,{base64_image}"
                 }
             }
@@ -107,13 +111,13 @@ class GeneratorService(ModelCase, GeneratorsCase):
         return "ok"
 
     async def generate(
-        self,
-        generator_id: str,
-        query: str,
-        conversation_id: str,
-        mcp_name_list: Optional[List[str]] = None,
-        tools_group_name_list: Optional[List[str]] = None,
-        task_confirm: Optional[Dict[str, Any]] = None,
+            self,
+            generator_id: str,
+            query: str,
+            conversation_id: str,
+            mcp_name_list: Optional[List[str]] = None,
+            tools_group_name_list: Optional[List[str]] = None,
+            task_confirm: Optional[Dict[str, Any]] = None,
     ) -> str:
 
         # 获取LLMGenerator
@@ -127,11 +131,13 @@ class GeneratorService(ModelCase, GeneratorsCase):
         message_list.append(ChatStreamingChunk.from_user(message=query))
 
         # chunk: ChatStreamingChunk = self.generators_port.generate(llm_generator=llm_generator, messages=message_list, tools=tools)
-        chunk: ChatStreamingChunk = await self._tool_call(chunk_list=message_list, llm_generator=llm_generator, tools=tools)
+        chunk: ChatStreamingChunk = await self._tool_call(chunk_list=message_list, llm_generator=llm_generator,
+                                                          tools=tools)
 
         return chunk.content
 
-    async def _tool_call(self, chunk_list: [ChatStreamingChunk], llm_generator: LLMGenerator, tools: List[Tool]) -> ChatStreamingChunk:
+    async def _tool_call(self, chunk_list: [ChatStreamingChunk], llm_generator: LLMGenerator,
+                         tools: List[Tool]) -> ChatStreamingChunk:
         chunk: ChatStreamingChunk = self.generators_port.generate(llm_generator=llm_generator, messages=chunk_list,
                                                                   tools=tools)
         if chunk.finish_reason == "tool_calls":
@@ -147,48 +153,51 @@ class GeneratorService(ModelCase, GeneratorsCase):
             results = await asyncio.gather(*tool_task_list)
             logger.debug(f"工具调用结果：{results}")
             for tool_call_result in results:
-                chunk_list.append(ChatStreamingChunk.from_tool_calls_result(content=str(tool_call_result['result']), tool_call_id=tool_call_result['id']))
+                chunk_list.append(ChatStreamingChunk.from_tool_calls_result(content=str(tool_call_result['result']),
+                                                                            tool_call_id=tool_call_result['id']))
                 return await self._tool_call(chunk_list, llm_generator, tools)
 
         return chunk
 
     async def generate_stream(
-        self,
-        client_id: str,
-        generator_id: str,
-        query: Optional[str | List[DialogSegmentContent]],
-        system: str,
-        conversation_id: str,
-        mcp_name_list: Optional[List[str]] = None,
-        tools_group_name_list: Optional[List[str]] = None,
-        task_confirm: Optional[Dict[str, Any]] = None,
+            self,
+            client_id: str,
+            generator_id: str,
+            query: Optional[str | List[DialogSegmentContent]],
+            system: str,
+            conversation_id: str,
+            mcp_name_list: Optional[List[str]] = None,
+            agent_name: Optional[str] = None,
+            tools_group_name_list: Optional[List[str]] = None,
+            task_confirm: Optional[Dict[str, Any]] = None,
     ) -> tuple[str | None, str]:
-
-        if task_confirm:
-            event_data: Dict[str, Any] = {
-                'generator_id': generator_id,
-                'conversation_id': conversation_id,
-                'mcp_name_list': mcp_name_list,
-            }
-            return self.event_port.emit_event(Event.from_init(event_type=EventType.TOOL_CALL_CONFiRM, event_data=event_data))
+        query_str = None
+        if isinstance(query, List):
+            for item in query:
+                if item.type == 'text':
+                    query_str = item.content
         else:
-            query_str=None
-            if isinstance(query, List):
-                for item in query:
-                    if item.type == 'text':
-                        query_str = item.content
-            else:
-                query_str = query
-            # 会话检查
-            conversation_id = self._conversation_check(conversation_id=conversation_id, query_str=query_str)
-            dialog_segment_id = create_uuid()
-            # 保存用户输入
-            user_dialog_segment = DialogSegment.make_user_message(
-                content=query_str, conversation_id=conversation_id, id=create_uuid())
-            self.conversation_port.conversation_add(dialog_segment=user_dialog_segment)
-            logger.info(f"保存用户对话片段：[ID：{user_dialog_segment.id} - 内容：{user_dialog_segment.content}]")
-            # 清除会话的停止状态
-            self.cache_port.set_data(name=CONVERSATION_STOP_FLAG_KEY, key=conversation_id, value=False)
+            query_str = query
+        # 会话检查
+        conversation_id = self._conversation_check(conversation_id=conversation_id, query_str=query_str)
+        # 对话片段id
+        dialog_segment_id = create_uuid()
+        # 保存用户输入
+        user_dialog_segment = DialogSegment.make_user_message(
+            content=query_str, conversation_id=conversation_id, id=create_uuid())
+        self.conversation_port.conversation_add(dialog_segment=user_dialog_segment)
+        logger.info(f"保存用户对话片段：[ID：{user_dialog_segment.id} - 内容：{user_dialog_segment.content}]")
+        # 清除会话的停止状态
+        self.cache_port.set_data(name=CONVERSATION_STOP_FLAG_KEY, key=conversation_id, value=False)
+        if agent_name:
+            agent = self.agent_port.load_by_name(agent_name=agent_name)
+            self._call_agent(agent_id=agent.id,
+                             client_id=client_id,
+                             conversation_id=conversation_id,
+                             dialog_segment_id=dialog_segment_id,
+                             generator_id=generator_id,
+                             payload={})
+        else:
             event = Event.from_init(
                 event_type=EventType.USER_MESSAGE,
                 event_sub_type=EventSubType.MESSAGE,
@@ -207,9 +216,10 @@ class GeneratorService(ModelCase, GeneratorsCase):
                     "tools_group_name_list": tools_group_name_list,
                 }
             )
-            logger.info(f"[GeneratorService]发起[{EventType.USER_MESSAGE} - {EventSubType.MESSAGE}]事件：[ID：{event.id}]")
+            logger.info(
+                f"[GeneratorService]发起[{EventType.USER_MESSAGE} - {EventSubType.MESSAGE}]事件：[ID：{event.id}]")
             self.event_port.emit_event(event)
-            return conversation_id, dialog_segment_id
+        return conversation_id, dialog_segment_id
 
     async def stop_generate(self, conversation_id: str, client_id: str) -> str:
         self.cache_port.set_data(name=CONVERSATION_STOP_FLAG_KEY, key=conversation_id, value=True)
@@ -246,11 +256,13 @@ class GeneratorService(ModelCase, GeneratorsCase):
                     break
                 except json.JSONDecodeError as e:
                     logger.error(f"解析 content 字段失败：{e}")
-                    raise CommonException(error_code=CommonErrorCode.DIALOG_SEGMENT_CONTENT_JSON_DECODE_ERROR, dynamics_message = "segment.content: " + segment.content)
+                    raise CommonException(error_code=CommonErrorCode.DIALOG_SEGMENT_CONTENT_JSON_DECODE_ERROR,
+                                          dynamics_message="segment.content: " + segment.content)
 
         if not updated:
             logger.error(f"未找到 id={dialog_segment_id} 的对话片段")
-            raise CommonException(error_code=CommonErrorCode.DIALOG_SEGMENT_NOT_FOUND, dynamics_message = "dialog_segment_id: " + dialog_segment_id)
+            raise CommonException(error_code=CommonErrorCode.DIALOG_SEGMENT_NOT_FOUND,
+                                  dynamics_message="dialog_segment_id: " + dialog_segment_id)
 
         # 将更新后的对话记录保存回文件
         self.conversation_port.update_agent_record(agent_instance_id, dialog_segments)
@@ -293,3 +305,47 @@ class GeneratorService(ModelCase, GeneratorsCase):
                 tool_instance.tool_call_id = call_id
                 return tool_instance
         return None
+
+    def _call_agent(
+            self,
+            agent_id: str,
+            client_id: str,
+            conversation_id: str,
+            dialog_segment_id: str,
+            generator_id: str,
+            payload: Dict[str, Any]
+    ):
+        """Agent 调用方法"""
+        # 创建并保存agent instance info 实体
+        agent: Agent = self.agent_port.load(agent_id=agent_id)
+        instance_id = self.cache_port.get_from_cache(CURRENT_CONVERSATION_AGENT_INSTANCE_ID, conversation_id)
+        if not instance_id:
+            instance_id = create_uuid()
+            self.cache_port.set_data(CURRENT_CONVERSATION_AGENT_INSTANCE_ID, conversation_id, instance_id)
+
+        agent_info: AgentInfo = agent.info(
+            conversation_id=conversation_id,
+            dialog_segment_id=dialog_segment_id,
+            generator_id=generator_id,
+            instance_id=instance_id
+        )
+        # 默认负载值
+        payload['agent_instance_id'] = agent_info.instance_id
+        # 保存
+        self.agent_port.save_instance_info(instance_info=agent_info)
+        event = Event.from_init(
+            client_id=client_id,
+            event_type=EventType.AGENT,
+            event_sub_type=EventSubType.AGENT_CALL,
+            source=EventSource.GENERATOR_SVC,
+            payload=payload,
+            data={
+                "id": create_uuid(),
+                "dialog_segment_id": dialog_segment_id,
+                "conversation_id": conversation_id,
+                "generator_id": generator_id,
+                "content": f"call {agent_info.name} agent",
+            },
+        )
+        logger.info(f"[TeamsService]发起[{EventType.AGENT} - {EventSubType.AGENT_CALL}]事件：[ID：{event.id}]")
+        EventPort.get_event_port().emit_event(event)

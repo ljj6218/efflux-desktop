@@ -36,3 +36,9 @@ class AgentService(AgentCase):
 
     async def load(self, agent_id: str) -> Optional[Agent]:
         return self.agent_port.load(agent_id)
+
+    async def load_all(self) -> List[Agent]:
+        return self.agent_port.load_all()
+
+    async def load_by_name(self, agent_name: str) -> Optional[Agent]:
+        return self.agent_port.load_by_name(agent_name)

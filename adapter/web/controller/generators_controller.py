@@ -23,6 +23,7 @@ async def chat(generators_vo: GeneratorsVo, generators_service: GeneratorsCase =
         system=generators_vo.system,
         conversation_id=generators_vo.conversation_id,
         mcp_name_list=generators_vo.mcp_name_list,
+        agent_name=generators_vo.agent_name,
         tools_group_name_list=generators_vo.tools_group_name_list,
         task_confirm=generators_vo.task_confirm
     )

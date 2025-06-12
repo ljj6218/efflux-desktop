@@ -12,6 +12,7 @@ class GeneratorsCase(ABC):
         system: str,
         conversation_id: str,
         mcp_name_list: Optional[List[str]] = None,
+        agent_name: Optional[str] = None,
         tools_group_name_list: Optional[List[str]] = None,
         task_confirm: Optional[Dict[str, Any]] = None,
     ) -> tuple[str | None, str]:
@@ -23,6 +24,7 @@ class GeneratorsCase(ABC):
         :param system: 系统提示词
         :param conversation_id: 会话id
         :param mcp_name_list: mcp名列表
+        :param agent_name: agent名
         :param task_confirm: 任务确认
         :param tools_group_name_list
         :return:

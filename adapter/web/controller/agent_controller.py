@@ -19,3 +19,7 @@ async def save_agent(agent_dict: Dict[str, Any], agent_service: AgentCase = Depe
 @router.get("/load")
 async def load_agent_by_id(agent_id: str, agent_service: AgentCase = Depends(agent_case)) -> BaseResponse:
     return BaseResponse.from_success(data=await agent_service.load(agent_id))
+
+@router.get("/load_all")
+async def load_all(agent_service: AgentCase = Depends(agent_case)) -> BaseResponse:
+    return BaseResponse.from_success(data=await agent_service.load_all())
