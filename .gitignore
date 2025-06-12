@@ -5,6 +5,7 @@ build/
 uploads/
 dist/
 wheels/
+chroma_files/
 *.egg-info
 # idea
 .idea
