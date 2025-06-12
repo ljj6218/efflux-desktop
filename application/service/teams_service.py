@@ -178,8 +178,7 @@ class TeamsService(TeamsCase):
     def _conversation_check(self, conversation_id: str, query_str: str) -> str:
         # 创建会话
         if not conversation_id:
-            conversation = Conversation()
-            conversation.init()
+            conversation = Conversation.init(conversation_type="plan")
             conversation.theme = query_str
             conversation.dialog_segment_list = []
             self.conversation_port.conversation_save(conversation=conversation)

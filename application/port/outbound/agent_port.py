@@ -5,6 +5,7 @@ from typing import Optional, List
 from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.generators_port import GeneratorsPort
+from application.port.outbound.tools_port import ToolsPort
 from application.port.outbound.ws_message_port import WsMessagePort
 
 
@@ -30,6 +31,7 @@ class AgentPort(ABC):
         generators_port: GeneratorsPort,
         conversation_port: ConversationPort,
         ws_message_port: WsMessagePort,
+        tools_port: ToolsPort,
     ) -> Optional[AgentInstance]:
         pass
 

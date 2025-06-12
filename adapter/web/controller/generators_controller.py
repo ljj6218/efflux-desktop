@@ -28,8 +28,8 @@ async def chat(generators_vo: GeneratorsVo, generators_service: GeneratorsCase =
     return BaseResponse.from_success(data={"conversation_id": conversation_id, "dialog_segment_id": uuid})
 
 @router.put("/stop")
-async def stop(conversation_id: str, generators_service: GeneratorsCase = Depends(generators_case)):
-    return BaseResponse.from_success(data={"conversation_id": await generators_service.stop_generate(conversation_id)})
+async def stop(conversation_id: str, client_id: str, generators_service: GeneratorsCase = Depends(generators_case)):
+    return BaseResponse.from_success(data={"conversation_id": await generators_service.stop_generate(client_id=client_id, conversation_id=conversation_id)})
 
 
 @router.post("/chat_test")

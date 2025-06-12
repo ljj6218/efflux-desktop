@@ -66,7 +66,8 @@ class AgentTaskHandler(TaskHandler):
             generators_port=self.generators_port,
             llm_generator=generator,
             conversation_port=self.conversation_port,
-            ws_message_port=self.ws_message_port
+            ws_message_port=self.ws_message_port,
+            tools_port=self.tools_port,
         )
         agent_instance.init_info(agent_info=agent_info)
         # payload 设置

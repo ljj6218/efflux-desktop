@@ -174,17 +174,18 @@ class Conversation(BaseModel):
     last_dialog_segment: Optional[DialogSegment] = None
     # 当前会话最大长度
     max_length: int = 50
+    # 会话类型
+    type: Optional[Literal["chat", "plan"]]
     # 对话片段集合
     dialog_segment_list: Optional[List[DialogSegment]] = None
 
-    def init(self):
-        self.id = create_uuid()
-        self.created = create_from_second_now()
-        self.dialog_segment_list = []
+    @classmethod
+    def init(cls, conversation_type: Optional[Literal["chat", "plan"]]) -> "Conversation":
+        return cls(id=create_uuid(), created=create_from_second_now(), dialog_segment_list=[], type=conversation_type)
 
     @classmethod
     def from_update_theme(cls, id: str, theme: str):
-        return cls(id=id, theme=theme)
+        return cls(id=id, theme=theme, type="chat")
 
     def convert_sort_memory(self) -> List[ChatStreamingChunk]:
         """用于普通会话的消息集合拼装，由于LLM任务开始的时候用户的输入已经保存，所以这里处理最后条消息，可能base64个图片"""

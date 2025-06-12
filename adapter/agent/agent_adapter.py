@@ -10,6 +10,7 @@ from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.agent_port import AgentPort
 from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.generators_port import GeneratorsPort
+from application.port.outbound.tools_port import ToolsPort
 from application.port.outbound.ws_message_port import WsMessagePort
 from common.core.container.annotate import component
 from common.utils.file_util import check_file_and_create, check_file
@@ -114,13 +115,14 @@ class AgentAdapter(AgentPort):
         return None
 
     def make_instance(self, agent_info: AgentInfo, llm_generator: LLMGenerator, generators_port: GeneratorsPort,
-                      conversation_port: ConversationPort, ws_message_port: WsMessagePort) -> Optional[AgentInstance]:
+                      conversation_port: ConversationPort, ws_message_port: WsMessagePort, tools_port: ToolsPort) -> Optional[AgentInstance]:
         if agent_info.name == 'websurfer':
             agent_instance = BrowserAgent(
                 generators_port=generators_port,
                 llm_generator=llm_generator,
                 ws_message_port=ws_message_port,
                 conversation_port=conversation_port,
+                tools_port=tools_port,
             )
             asyncio.run(
                 agent_instance.lazy_init(
@@ -134,6 +136,7 @@ class AgentAdapter(AgentPort):
                 llm_generator=llm_generator,
                 ws_message_port=ws_message_port,
                 conversation_port=conversation_port,
+                tools_port=tools_port,
             )
             agents, team_description = self.load_agent_teams()
             asyncio.run(
@@ -151,6 +154,7 @@ class AgentAdapter(AgentPort):
                 llm_generator=llm_generator,
                 ws_message_port=ws_message_port,
                 conversation_port=conversation_port,
+                tools_port=tools_port,
             )
             return agent_instance
         if agent_info.name == 'ppter':
@@ -159,6 +163,7 @@ class AgentAdapter(AgentPort):
                 llm_generator=llm_generator,
                 ws_message_port=ws_message_port,
                 conversation_port=conversation_port,
+                tools_port=tools_port,
             )
             return agent_instance
 

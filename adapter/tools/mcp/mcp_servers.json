@@ -38,6 +38,11 @@
       "@modelcontextprotocol/playwright-mcp-server"
     ],
     "env": {}
+  },
+  "deep-research":{
+    "server_name": "deep-research",
+    "server_description": "深度报告网络检索",
+    "server_tag": "bbb"
   }
 
 }

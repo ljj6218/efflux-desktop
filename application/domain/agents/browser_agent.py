@@ -1,9 +1,12 @@
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any, Tuple, Optional, cast
+from urllib.parse import quote_plus
 
 from playwright.async_api import Download, BrowserContext, Page
 
 from application.domain.events.event import Event, EventType, EventSubType, EventSource
+from application.domain.generators.tools import ToolType, ToolInstance
 from application.port.outbound.event_port import EventPort
+from application.port.outbound.tools_port import ToolsPort
 from common.utils.common_utils import create_uuid
 from common.utils.file_util import open_and_base64
 from common.utils.playwright import PlaywrightController, PlaywrightBrowser, InteractiveRegion, LocalPlaywrightBrowser
@@ -17,6 +20,7 @@ from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.generators_port import GeneratorsPort
 from application.port.outbound.ws_message_port import WsMessagePort
 
+from common.utils.time_utils import create_from_second_now_to_int
 from common.core.logger import get_logger
 from tldextract import tldextract
 import traceback
@@ -39,8 +43,9 @@ class BrowserAgent(AgentInstance):
         llm_generator: LLMGenerator,
         ws_message_port: WsMessagePort,
         conversation_port: ConversationPort,
+        tools_port: ToolsPort,
     ):
-        super().__init__(llm_generator, generators_port, ws_message_port, conversation_port)
+        super().__init__(llm_generator, generators_port, ws_message_port, conversation_port, tools_port)
 
         # url状态管理
         self._last_rejected_url: Optional[str] = None # 最后拒绝的url
@@ -139,15 +144,141 @@ class BrowserAgent(AgentInstance):
         message_list.append(system_chunk)
         # 拼接对话历史
         message_list.extend(history_message_list)
-        text_prompt, som_screenshot, screenshot = asyncio.run(self._load_pagr_info(message=content))
+        text_prompt, som_screenshot, screenshot, rects, element_id_mapping = asyncio.run(self._load_pagr_info(message=content))
         # 拼接页面状态提示词
         user_chunk: ChatStreamingChunk = asyncio.run(self._make_user_message(text_prompt=text_prompt, som_screenshot=som_screenshot, screenshot=screenshot))
         message_list.append(user_chunk)
         # 发起大模型请求
-        self._send_llm_event(client_id=client_id, context_message_list=message_list)
+        # 获取工具
+        all_tools = asyncio.run(self.tools_port.load_tools(group_name='browser', tool_type=ToolType.LOCAL))
+        # 匹配使用的工具
+        tool_call_list = []
+        # # 完整结果
+        full_content = ""
+        for chunk in self.generators_port.generate_event(llm_generator=self.llm_generator, messages=message_list, tools=all_tools):
+            # 工具调用
+            if chunk.finish_reason == 'tool_calls':
+                for tool_call in chunk.tool_calls:
+                    tool_call_list.append(
+                        {
+                            "id": tool_call.id,
+                            "name": tool_call.name,
+                            "description": tool_call.description,
+                            "mcp_server_name": None,
+                            "group_name": tool_call.group_name,
+                            "arguments": tool_call.arguments,
+                        }
+                    )
+                print(chunk)
+        if tool_call_list: # 工具调用逻辑
+            data={
+                "id": create_uuid(),
+                "conversation_id": self.info.conversation_id,
+                "dialog_segment_id": self.info.dialog_segment_id,
+                "generator_id": self.info.generator_id,
+                "model": self.llm_generator.model,
+                "created": create_from_second_now_to_int(),
+                "tool_calls": tool_call_list
+            }
+            tool_instance_list: List[ToolInstance] = ToolInstance.from_dict(data)
+            # 保存工具实例 TODO
+            # 执行工具并保存结果
+            asyncio.run(self._tools_call_result(tool_instance_list, rects, element_id_mapping))
 
+    async def _tools_call_result(self, tool_instance_list: List[ToolInstance], rects: Dict[str, InteractiveRegion], element_id_mapping: Dict[str, str]):
+        tool_call_task_list = []
+        for tool_instance in tool_instance_list:
+            tool_call_task_list.append(self._tools_call(tool_instance, rects, element_id_mapping))
+            logger.info(f"需要调用工具：{tool_instance.tool_call_id}-{tool_instance.name}-{tool_instance.arguments}")
+        results = await asyncio.gather(*tool_call_task_list)
+        logger.debug(f"工具调用结果：{results}")
+        for tool_call_result in results:
+            for tool_instance in tool_instance_list:
+                #if tool_instance.tool_call_id == tool_call_result['id']:
+                    tool_instance.result = tool_call_result['result']
+                    # 更新工具调用实例记录的结果
+                    # self.tools_port.update_instance(tool_call)
+                    print(f"工具调用完成：{tool_instance}")
 
-    async def _load_pagr_info(self, message: str) -> Tuple[str, bytes | PIL.Image.Image | io.BufferedIOBase, bytes | PIL.Image.Image | io.BufferedIOBase]:
+    async def _tools_call(self, tool_instance: ToolInstance, rects: Dict[str, InteractiveRegion], element_id_mapping: Dict[str, str]):
+        func_name = tool_instance.name
+        func_args = tool_instance.arguments
+        tool_kwargs = {"args": func_args}
+        if func_name in [
+            "click",
+            "input_text",
+            "hover",
+            "select_option",
+            "upload_file",
+            "click_full",
+        ]:
+            tool_kwargs.update(
+                {"rects": rects, "element_id_mapping": element_id_mapping}
+            )
+        # if func_name in ["answer_question", "summarize_page"]:
+        #     tool_kwargs["cancellation_token"] = cancellation_token
+
+        tool_func_name = f"_execute_tool_{func_name}"
+        print(f"执行方法～！～！～！～！{tool_func_name}")
+        tool_func = getattr(self, tool_func_name, None)
+        return await tool_func(**tool_kwargs)
+        # execute_tool_task = asyncio.create_task(tool_func(**tool_kwargs))
+        # return execute_tool_task
+
+    async def _execute_tool_input_text(
+        self,
+        args: Dict[str, Any],
+        rects: Dict[str, InteractiveRegion],
+        element_id_mapping: Dict[str, str],
+    ) -> str:
+        assert "input_field_id" in args
+        assert "text_value" in args
+        assert "press_enter" in args
+        assert "delete_existing_text" in args
+        input_field_id: str = str(args["input_field_id"])
+        input_field_name = self._target_name(input_field_id, rects)
+        input_field_id = element_id_mapping[input_field_id]
+
+        text_value = str(args.get("text_value"))
+        press_enter = bool(args.get("press_enter"))
+        delete_existing_text = bool(args.get("delete_existing_text"))
+
+        action_description = (
+            f"I typed '{text_value}' into '{input_field_name}'."
+            if input_field_name
+            else f"I typed '{text_value}'."
+        )
+        assert self._page is not None
+        await self._playwright_controller.fill_id(
+            self._page,
+            input_field_id,
+            text_value,
+            press_enter,
+            delete_existing_text,
+        )
+        return action_description
+
+    async def _execute_tool_web_search(self, args: Dict[str, Any]) -> str:
+        assert self._page is not None
+        ret, approved = await self._check_url_and_generate_msg("bing.com")
+        if not approved:
+            return ret
+        query = cast(str, args.get("query"))
+        action_description = f"I typed '{query}' into the browser search bar."
+        (
+            reset_prior_metadata,
+            reset_last_download,
+        ) = await self._playwright_controller.visit_page(
+            self._page,
+            f"https://www.bing.com/search?q={quote_plus(query)}&FORM=QBLH",
+        )
+        if reset_last_download:
+            self._last_download = None
+        if reset_prior_metadata:
+            self._prior_metadata_hash = None
+        return action_description
+
+    async def _load_pagr_info(self, message: str) -> Tuple[str, bytes | PIL.Image.Image | io.BufferedIOBase, bytes | PIL.Image.Image | io.BufferedIOBase, Dict[str, InteractiveRegion], Dict[str, str]]:
         # Ask the page for interactive elements, then prepare the state-of-mark screenshot
         rects = await self._playwright_controller.get_interactive_rects(self._page) # 获取交互区域
         viewport = await self._playwright_controller.get_visual_viewport(self._page) # 获取可视窗口
@@ -259,7 +390,7 @@ class BrowserAgent(AgentInstance):
             other_targets_str=other_targets_str,
             focused_hint=focused_hint
         ).strip()
-        return text_prompt, som_screenshot, screenshot
+        return text_prompt, som_screenshot, screenshot, rects, element_id_mapping
 
     async def _make_system_message(self) -> ChatStreamingChunk:
         date_today = datetime.now().strftime("%Y-%m-%d")
@@ -316,30 +447,30 @@ class BrowserAgent(AgentInstance):
         ]
         return ChatStreamingChunk.from_user(message=content)
 
-    def _send_llm_event(self, client_id: str, context_message_list: List[ChatStreamingChunk]):
-        """发送大模型请求事件"""
-        event = Event.from_init(
-            event_type=EventType.USER_MESSAGE,
-            event_sub_type=EventSubType.MESSAGE,
-            client_id=client_id,
-            source=EventSource.AGENT,
-            data={
-                "id": create_uuid(),
-                "dialog_segment_id": self.info.dialog_segment_id,
-                "conversation_id": self.info.conversation_id,
-                "generator_id": self.info.generator_id,
-            },
-            payload={
-                "agent_instance_id": self.info.instance_id,
-                "json_result": False,
-                "mcp_name_list": [],
-                "tools_group_name_list": self.use_tools_name_list,
-                "context_message_list": context_message_list,
-            }
-        )
-        EventPort.get_event_port().emit_event(event)
-        logger.info(
-            f"[{self.info.name}]Agent实例[{self.info.instance_id}],发送LLM请求事件[{self.info.dialog_segment_id}]")
+    # def _send_llm_event(self, client_id: str, context_message_list: List[ChatStreamingChunk]):
+    #     """发送大模型请求事件"""
+    #     event = Event.from_init(
+    #         event_type=EventType.USER_MESSAGE,
+    #         event_sub_type=EventSubType.MESSAGE,
+    #         client_id=client_id,
+    #         source=EventSource.AGENT,
+    #         data={
+    #             "id": create_uuid(),
+    #             "dialog_segment_id": self.info.dialog_segment_id,
+    #             "conversation_id": self.info.conversation_id,
+    #             "generator_id": self.info.generator_id,
+    #         },
+    #         payload={
+    #             "agent_instance_id": self.info.instance_id,
+    #             "json_result": False,
+    #             "mcp_name_list": [],
+    #             "tools_group_name_list": self.use_tools_name_list,
+    #             "context_message_list": context_message_list,
+    #         }
+    #     )
+    #     EventPort.get_event_port().emit_event(event)
+    #     logger.info(
+    #         f"[{self.info.name}]Agent实例[{self.info.instance_id}],发送LLM请求事件[{self.info.dialog_segment_id}]")
 
     async def _check_url_and_generate_msg(self, url: str) -> Tuple[str, bool]:
         """Returns a message to caller if the URL is not allowed and a boolean indicating if the user has approved the URL."""

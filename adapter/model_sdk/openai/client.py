@@ -285,6 +285,7 @@ class OpenAIClient(ModelClient):
         for tool in tools:
             if chunk_tools_call.name == tool.name:
                 chunk_tools_call.mcp_server_name = tool.mcp_server_name
+                chunk_tools_call.group_name = tool.group_name
                 chunk_tools_call.description = tool.description
 
     @staticmethod

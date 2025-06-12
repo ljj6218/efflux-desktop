@@ -8,6 +8,7 @@ from application.domain.plan import Plan, PlanStep, PlanState
 from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.generators_port import GeneratorsPort
 from application.domain.generators.generator import LLMGenerator
+from application.port.outbound.tools_port import ToolsPort
 from application.port.outbound.ws_message_port import WsMessagePort
 from application.domain.conversation import DialogSegment, DialogSegmentMetadata, MetadataSource, MetadataType
 from application.port.outbound.event_port import EventPort
@@ -33,8 +34,9 @@ class PlanAgent(AgentInstance):
         llm_generator: LLMGenerator,
         ws_message_port: WsMessagePort,
         conversation_port: ConversationPort,
+        tools_port: ToolsPort,
     ):
-        super().__init__(llm_generator, generators_port, ws_message_port, conversation_port)
+        super().__init__(llm_generator, generators_port, ws_message_port, conversation_port, tools_port)
         self._agents: List[Agent] = []
         self._team_description = None
 

@@ -109,9 +109,14 @@ class ClientManager(GeneratorsPort):
         while retries < 1:
             contents = ""
             for chunk in self.generate_event(llm_generator=llm_generator, messages=messages, tools=[], **generation_kwargs):
-                contents += chunk.content
+                contents += chunk.content if chunk.content else ""
             try:
                 print(contents)
+                if contents.startswith("```json"):
+                    # remove first and last line
+                    response_lines = contents.split("\n")
+                    response_lines = response_lines[1:-1]
+                    contents = "\n".join(response_lines)
                 json_response = json.loads(contents)
                 # Use the validate_json function to check the response
                 if validate_json and validate_json(json_response):
