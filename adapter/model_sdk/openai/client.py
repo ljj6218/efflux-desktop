@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, Iterable, List, Generator
+from typing import Optional, Dict, Any, Iterable, List, Generator, Literal
 import os
 
 from openai import OpenAI
@@ -39,15 +39,21 @@ class OpenAIClient(ModelClient):
         # 转换为 openAI 接口风格的工具
         openai_tools: List[ChatCompletionToolParam] = self._convert_openai_tools(tools)
 
-        tool_choice: str = self._tool_choice(openai_tools=openai_tools, generation_kwargs=generation_kwargs)
-
         try:
-            stream = client.chat.completions.create(
-                model=model,
-                messages=self._convert_openai_stream_chunk(message_list),
-                tools=None if len(openai_tools) == 0 else openai_tools,
-                tool_choice=tool_choice,
-            )
+            if len(openai_tools) > 0:
+                tool_choice: Literal["none", "auto", "required"] = self._tool_choice(
+                    generation_kwargs=generation_kwargs)
+                stream = client.chat.completions.create(
+                    model=model,
+                    messages=self._convert_openai_stream_chunk(message_list),
+                    tools=openai_tools,
+                    tool_choice=tool_choice,
+                )
+            else:
+                stream = client.chat.completions.create(
+                    model=model,
+                    messages=self._convert_openai_stream_chunk(message_list),
+                )
             return self._convert_chunk(stream)
         except Exception as exc:
             # 抛出三方调用异常
@@ -84,20 +90,27 @@ class OpenAIClient(ModelClient):
         # 转换为 openAI 接口风格的工具
         openai_tools: List[ChatCompletionToolParam] = self._convert_openai_tools(tools)
 
-        tool_choice: str = self._tool_choice(openai_tools=openai_tools, generation_kwargs=generation_kwargs)
-
         response_format = ResponseFormatText(type="text")
         if "json_object" in generation_kwargs.keys() and generation_kwargs["json_object"]:
             response_format = ResponseFormatJSONObject(type="json_object")
         try:
-            stream = client.chat.completions.create(
-                model=model,
-                messages=self._convert_openai_stream_chunk(message_list),
-                tools=None if len(openai_tools) == 0 else openai_tools,
-                response_format=response_format,
-                tool_choice=tool_choice,
-                stream=True,
-            )
+            if len(openai_tools) > 0:
+                tool_choice: Literal["none", "auto", "required"] = self._tool_choice(generation_kwargs=generation_kwargs)
+                stream = client.chat.completions.create(
+                    model=model,
+                    messages=self._convert_openai_stream_chunk(message_list),
+                    response_format=response_format,
+                    tools=openai_tools,
+                    tool_choice=tool_choice,
+                    stream=True,
+                )
+            else:
+                stream = client.chat.completions.create(
+                    model=model,
+                    messages=self._convert_openai_stream_chunk(message_list),
+                    response_format=response_format,
+                    stream=True,
+                )
         except Exception as exc:
             # 抛出三方调用异常
             raise ThirdPartyServiceException(error_code=ThirdPartyServiceApiCode.LLM_SERVICE_API_ERROR, dynamics_message=f"model:{model} - exception:{str(exc)}")
@@ -306,10 +319,8 @@ class OpenAIClient(ModelClient):
         return openai_tools
 
     @staticmethod
-    def _tool_choice(openai_tools: List[ChatCompletionToolParam], **generation_kwargs) -> str:
-        tool_choice: str = None
-        if len(openai_tools) > 0:
-            tool_choice = "auto"
+    def _tool_choice(**generation_kwargs) -> Literal["none", "auto", "required"]:
+        tool_choice: Literal["none", "auto", "required"] = "auto"
         if "tool_choice" in generation_kwargs.keys():
             tool_choice = generation_kwargs["tool_choice"]
         return tool_choice

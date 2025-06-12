@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Literal, Dict
+from typing import Optional, Literal, Dict, Any
 
 
 class ConfirmVo(BaseModel):
@@ -9,5 +9,5 @@ class ConfirmVo(BaseModel):
     conversation_id: str
     agent_instance_id: str
     dialog_segment_id: str
-    confirm_type: Literal["ppt"]
-    content: Dict[str, str]
+    confirm_type: Literal["ppt", "tools_execute"]
+    content: Dict[str, Any]

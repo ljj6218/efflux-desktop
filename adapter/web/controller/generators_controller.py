@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from adapter.web.vo.conform_vo import PPTVo, ConfirmVo
+from adapter.web.vo.conform_vo import ConfirmVo
 from common.core.logger import get_logger
 from common.core.container.container import get_container
 from application.port.inbound.generators_case import GeneratorsCase

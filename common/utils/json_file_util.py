@@ -4,6 +4,8 @@ import re
 from common.core.logger import get_logger
 from typing import Optional, Dict, Any
 
+from common.utils.file_util import current_directory
+
 # 获取logger实例
 logger = get_logger(__name__)
 
@@ -14,6 +16,11 @@ class JSONFileUtil:
         self.file_path = file_path
         # 确保文件存在，如果不存在则创建空的 JSON 文件
         if not os.path.exists(self.file_path):
+            # 获取文件夹路径
+            folder_path = os.path.dirname(self.file_path)
+            if not folder_path:
+                # 获取当前工作目录
+                self.file_path = current_directory() + "/" + self.file_path
             # 确保文件所在的目录存在
             os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
             logger.debug(f"文件 {self.file_path} 不存在，创建一个空的 JSON 文件.")

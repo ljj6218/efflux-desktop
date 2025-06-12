@@ -1,3 +1,8 @@
+isoftstone:
+  base_url:
+    https://cds:isoftstone:com/ali/v1
+  model_list:
+    - /models/DeepSeek-V3
 openai:
   base_url:
     https://api.openai.com/v1
@@ -22,7 +27,7 @@ openai:
     - text-davinci-003
 anthropic:
   base_url:
-    https://api.anthropic.com/v1/
+    https://api.anthropic.com/v1
   model_list:
     - claude-3-5-haiku-20241022
     - claude-3-5-sonnet-20241022
