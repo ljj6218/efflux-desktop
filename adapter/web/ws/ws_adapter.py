@@ -17,5 +17,5 @@ class WsAdapter(WsMessagePort):
         #     await get_cache("active_websocket_connection").send_text(message)
         # await self.ws_case.broadcast(message)
         # manager.send_to_threadsafe(client_id=SINGLETON_WEBSOCKET_CLIENT_ID, message=message)
-
+        #print(f"ws消息发送->{event.client_id}")
         dispatcher.enqueue_message(client_id=event.client_id, message=event.model_dump_json())

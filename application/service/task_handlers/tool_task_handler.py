@@ -31,7 +31,7 @@ class ToolTaskHandler(TaskHandler):
                 unauthorized_mcp_server_names.add(tool_call['mcp_server_name'])
         # 判断是否有未授权的mcp server
         if len(unauthorized_mcp_server_names) > 0:
-            if task.payload['option'] == 'agree':
+            if 'option' in task.payload and task.payload['option'] == 'agree':
                 self.execute_tools(task)
             else:
                 # 发送用户授权请求事件
