@@ -21,11 +21,16 @@ async def vector_model_list(vector_case: VectorModelCase = Depends(get_vector_mo
 
 @router.post("")
 async def add_vector_model(
-    req: CreateVectorModelRequest,  # 请求体参数（pydantic 自动校验）
-    vector_case: VectorModelCase = Depends(get_vector_model_case)  # 依赖注入（与 model_controller 一致）
+    req: CreateVectorModelRequest,
+    vector_case: VectorModelCase = Depends(get_vector_model_case)
 ):
-    """新增向量模型（含厂商、模型名、API Key）"""
-    await vector_case.add(firm=req.firm, model_name=req.model_name, api_key=req.api_key)  # 调用用例的 add 方法
+    """新增向量模型（含厂商、模型名、API Key、基础URL）"""
+    await vector_case.add(
+        firm=req.firm,
+        model=req.model,
+        api_key=req.api_key,
+        base_url=req.base_url
+    )
     return BaseResponse.from_success()
 
 @router.delete("")

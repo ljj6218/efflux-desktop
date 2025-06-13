@@ -13,12 +13,13 @@ class VectorModelCase(ABC):
         """
 
     @abstractmethod
-    async def add(self, firm: str, model_name: str, api_key: str) -> VectorModel:
+    async def add(self, firm: str, model: str, api_key: str, base_url: str) -> VectorModel:
         """
         新增向量模型（对应 controller 的 add 接口）
         :param firm: 所属厂商名称
-        :param model_name: 向量模型名称
+        :param model: 向量模型名称
         :param api_key: 模型关联的 API Key
+        :param base_url: 模型基础URL
         :return: 新增的向量模型对象
         """
 

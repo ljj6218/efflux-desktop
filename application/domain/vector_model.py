@@ -13,8 +13,9 @@ class VectorModel(BaseModel):
 
     # 业务相关字段
     firm: str  # 所属厂商名称
-    model_name: str  # 向量模型名称
+    model: str  # 向量模型名称
     api_key: str  # 模型关联的 API Key
+    base_url: str  # 模型基础URL
 
     def init(self):
         """初始化生成ID和创建时间（参考 File.init 方法）"""

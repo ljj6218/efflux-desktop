@@ -18,13 +18,14 @@ class VectorModelService(VectorModelCase):
         """调用端口获取所有向量模型列表"""
         return await self.vector_model_port.list()
 
-    async def add(self, firm: str, model_name: str, api_key: str) -> VectorModel:
+    async def add(self, firm: str, model: str, api_key: str, base_url: str) -> VectorModel:
         """创建并初始化向量模型实体，调用端口保存"""
         # 初始化领域模型（参考VectorModel.init方法）
         vector_model = VectorModel(
             firm=firm,
-            model_name=model_name,
-            api_key=api_key
+            model=model,
+            api_key=api_key,
+            base_url=base_url
         )
         vector_model.init()  # 生成ID和创建时间
         return await self.vector_model_port.add(vector_model)
