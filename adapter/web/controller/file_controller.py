@@ -24,11 +24,11 @@ async def get_allowed_file_types(
 @router.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
-    client_id: Optional[str] = Form(None),
+    generator_id: Optional[str] = Form(None),
     file_service: FileCase = Depends(file_case)
 ) -> BaseResponse:
     return BaseResponse.from_success(
-        data=await file_service.upload_file(file, client_id)
+        data=await file_service.upload_file(file, generator_id)
     )
 
 @router.get("/list")

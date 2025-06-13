@@ -9,7 +9,7 @@ class FileCase(ABC):
         """获取允许上传的文件类型列表"""
 
     @abstractmethod
-    async def upload_file(self, file: Any, client_id: str, **kwargs) -> File:
+    async def upload_file(self, file: Any, generator_id: str, **kwargs) -> File:
         """上传文件"""
 
     @abstractmethod

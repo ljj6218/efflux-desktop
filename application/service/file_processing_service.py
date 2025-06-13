@@ -2,9 +2,13 @@ from typing import List, Optional
 from common.core.container.annotate import component
 from application.domain.file import File, FileChunk
 from application.port.outbound.file_port import FilePort
-from application.port.outbound.vectordb_port import VectorDBPort
+from application.port.outbound.file_vector_port import FileVectorPort
+from application.port.outbound.embedding_port import EmbeddingPort
+from application.port.outbound.generators_port import GeneratorsPort
+from application.port.outbound.vector_model_port import VectorModelPort
 import injector
 from common.core.logger import get_logger
+from langchain.text_splitter import RecursiveCharacterTextSplitter, MarkdownTextSplitter
 
 logger = get_logger(__name__)
 
@@ -15,59 +19,32 @@ class FileProcessingService:
     def __init__(
         self,
         file_port: FilePort,
-        vectordb_port: VectorDBPort
+        file_vectordb_port: FileVectorPort,
+        embedding_port: EmbeddingPort,
+        generators_port: GeneratorsPort,
+        vector_model_port: VectorModelPort,
     ):
         self.file_port = file_port
-        self.vectordb_port = vectordb_port
+        self.file_vectordb_port = file_vectordb_port
+        self.embedding_port = embedding_port
+        self.generators_port = generators_port
+        self.vector_model_port = vector_model_port
 
-    async def process_file_to_chunks(self, file_id: str) -> List[FileChunk]:
-        """处理文件并转换为文本块"""
-        logger.info(f"开始处理文件 ---> [file_id={file_id}]")
+    async def process_file_to_chunks(self, generator_id: str, file_entity: File) -> List[FileChunk]:
+        llm_generator = self.generators_port.load_generate(generator_id)
+        logger.debug(f"加载的生成器: {llm_generator}")
+        embeddings_model_settings_list = self.vector_model_port.list()
+        embeddings_model_settings = None
 
-        # 1. 获取文件元信息
-        file_info = await self._get_file_info(file_id)
-        if not file_info:
-            logger.error(f"文件不存在 ---> [file_id={file_id}]")
-            return []
-
-        # 2. 读取并转换文件内容
-        content = await self._read_file_content(file_info)
-        if not content:
-            logger.error(f"文件内容为空 ---> [file_id={file_id}]")
-            return []
-
-        # 3. 文本分块处理
-        chunks = self._split_content_to_chunks(content, file_id)
-        if not chunks:
-            logger.error(f"分块处理失败 ---> [file_id={file_id}]")
-            return []
-
-        # 4. 存储向量
-        saved_chunks = await self._store_chunks_to_vectordb(chunks)
-        logger.info(f"文件处理完成 ---> [file_id={file_id}, chunks_count={len(saved_chunks)}]")
-        return saved_chunks
-
-    async def _get_file_info(self, file_id: str) -> Optional[File]:
-        """获取文件元信息"""
-        files = await self.file_port.get_file_list(file_id_list=[file_id])
-        return files[0] if files else None
-
-    async def _read_file_content(self, file_info: File) -> Optional[str]:
-        """读取文件内容"""
-        # 这里需要根据实际文件类型实现具体读取逻辑
-        # 例如: PDF解析、Word文档解析等
-        raise NotImplementedError("文件内容读取方法需要实现")
-
-    def _split_content_to_chunks(self, content: str, file_id: str) -> List[FileChunk]:
-        """将内容分割为块"""
-        # 这里实现具体分块逻辑，例如按段落、按字数等
-        raise NotImplementedError("内容分块方法需要实现")
-
-    async def _store_chunks_to_vectordb(self, chunks: List[FileChunk]) -> List[FileChunk]:
-        """存储块到向量数据库"""
-        saved_chunks = []
-        for chunk in chunks:
-            saved_chunk = await self.vectordb_port.store_chunk(chunk)
-            if saved_chunk:
-                saved_chunks.append(saved_chunk)
-        return saved_chunks
+        embeddings_model_settings_list = await self.vector_model_port.list()
+        logger.debug(f"嵌入模型设置列表: {embeddings_model_settings_list}")
+        if not embeddings_model_settings_list:
+            raise ValueError("未找到嵌入模型设置")
+        for i in embeddings_model_settings_list:  # 现在可以正常迭代
+            print(f"嵌入模型设置: {i}")
+            if i.firm == llm_generator.firm:
+                embeddings_model_settings = i
+        if not embeddings_model_settings:
+            raise ValueError(f"未找到对应的嵌入模型设置: {llm_generator.firm}")
+        embeddings = self.embedding_port.get_embeddings(embeddings_model_settings)
+        return await self.file_vectordb_port.store_chunks(embeddings, file_entity)

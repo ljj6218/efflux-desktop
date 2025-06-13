@@ -19,12 +19,15 @@ class FileAdapter(FilePort):
 
     async def upload(self, file: Any, **kwargs) -> File:
         """保存文件元信息到JSONL"""
+        # 获取文件后缀（不带点）
+        file_ext = os.path.splitext(file.filename)[1][1:] if '.' in file.filename else ''
         file_entity = File(
             name=file.filename,
             size=file.size,
-            type=file.content_type
+            type=file_ext
         )
         file_entity.init()
+        file_entity.path = f"uploads/{file_entity.id}"
         # 保存文件
         check_file_and_create(f"uploads/{file_entity.id}", await file.read())
         # 保存文件记录
@@ -34,9 +37,10 @@ class FileAdapter(FilePort):
         return file_entity
 
     def file_list(self,
-                 content_keyword: str = None,
-                 filename_keyword: str = None,
-                 **kwargs) -> List[Dict[str, Any]]:
+            file_id_list: List[str] = None,
+            content_keyword: str = None,
+            filename_keyword: str = None,
+            **kwargs) -> List[Dict[str, Any]]:
         """从JSONL读取文件列表"""
         files = []
         if not os.path.exists(self.file_info_list_path):
@@ -44,7 +48,11 @@ class FileAdapter(FilePort):
 
         with jsonlines.open(self.file_info_list_path, mode='r') as reader:
             for obj in reader:
+                if obj.get('id', '') not in file_id_list:
+                    continue
                 if filename_keyword and filename_keyword not in obj.get('name', ''):
+                    continue
+                if content_keyword and content_keyword not in obj.get('content', ''):
                     continue
                 files.append(obj)
         return files

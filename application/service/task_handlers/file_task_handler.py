@@ -14,11 +14,10 @@ class FileTaskHandler(TaskHandler):
     def __init__(self, file_processing_service: FileProcessingService):
         self.file_processing_service = file_processing_service
 
-    def execute(self, task: Task):
-        file_id = task.data['file_id']
-        logger.info(f"开始异步处理文件: {file_id}")
-        # 这里会调用FileProcessingService的处理逻辑
-        self.file_processing_service.process_file_to_chunks(file_id)
+    async def execute(self, task: Task) -> None:
+        file_entity = task.data["file_entity"]
+        generator_id = task.data["generator_id"]
+        return await self.file_processing_service.process_file_to_chunks(generator_id, file_entity)
 
     def type(self) -> str:
         return TaskType.FILE_PROCESSING.value

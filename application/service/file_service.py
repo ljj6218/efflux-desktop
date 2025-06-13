@@ -22,7 +22,7 @@ class FileService(FileCase):
     async def get_allowed_file_types(self) -> List[str]:
         return self.file_port.get_allowed_file_types()
 
-    async def upload_file(self, file: Any, client_id: str, **kwargs) -> File:
+    async def upload_file(self, file: Any, generator_id: str, **kwargs) -> File:
         logger.info(f"上传文件 ---> [filename={getattr(file, 'filename', 'unknown')}]")
         # 先快速上传文件获取基本信息
         file_entity = await self.file_port.upload(file, **kwargs)
@@ -32,7 +32,8 @@ class FileService(FileCase):
             client_id=file_entity.id,  # 使用文件ID作为任务ID
             task_type=TaskType.FILE_PROCESSING,
             data={
-                "file_id": file_entity.id,
+                "file_entity": file_entity,
+                "generator_id": generator_id,
             }
         )
         self.task_port.execute_task(task)

@@ -26,8 +26,9 @@ class FilePort(ABC):
 
     @abstractmethod
     def file_list(self,
-             content_keyword: str = None, filename_keyword: str = None,
-             **kwargs) -> list[dict[str, Any]]:
+            file_id_list: list[str] = None,
+            content_keyword: str = None, filename_keyword: str = None,
+            **kwargs) -> list[dict[str, Any]]:
         """
         查询 文件列表
         :param content_keyword: 内容关键字
@@ -57,17 +58,3 @@ class FilePort(ABC):
         :param kwargs: 参数
         :return: dict[str, Any]
         """
-
-
-class FileVectorPort(ABC):
-    """文件向量化专用接口"""
-
-    @abstractmethod
-    async def store_chunk(self, chunk: Any) -> Dict[str, Any]:
-        """存储文件块"""
-        pass
-
-    @abstractmethod
-    async def search_chunks(self, query: str, file_ids: List[str] = None) -> List[Dict]:
-        """搜索文件块"""
-        pass
