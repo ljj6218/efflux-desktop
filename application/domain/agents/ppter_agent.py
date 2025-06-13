@@ -47,6 +47,9 @@ class PpterAgent(AgentInstance):
                                     design_summary=json_result_data['design_summary'])
             payload['confirm_data'] = new_ppt
             payload['confirm_type'] = 'ppt'
+            # 删除agent请求的json
+            del payload['json_result_data']  # agent请求的删除json返回
+            del payload['json_result']  # 删除要求json结果返回标识
             self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
         else:
             # 请求大模型澄清用户需求
