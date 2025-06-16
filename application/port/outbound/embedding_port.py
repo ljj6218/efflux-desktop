@@ -8,5 +8,5 @@ class EmbeddingPort(ABC):
 
     @abstractmethod
     def get_embeddings(self, embeddings_model_settings: VectorModel) -> Embeddings:
-        """获取指定生成器的嵌入模型实例"""
+        """获取指定生成器的向量模型实例"""
         pass

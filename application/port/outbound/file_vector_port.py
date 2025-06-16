@@ -13,9 +13,7 @@ class FileVectorPort(ABC):
     @abstractmethod
     async def store_chunks(self, embedding: Embeddings, file: File) -> Dict[str, Any]:
         """存储文件块"""
-        pass
 
     @abstractmethod
-    async def search_chunks(self, query: str, file_ids: List[str] = None) -> List[Dict]:
+    async def search_chunks(self, embeddings: Embeddings, query: str, file_ids: List[str] = None) -> List[Dict]:
         """搜索文件块"""
-        pass

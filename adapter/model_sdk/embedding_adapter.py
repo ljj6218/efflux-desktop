@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 from langchain_core.embeddings import Embeddings
 
 class TongyiEmbeddings(Embeddings):
-    """通义千问嵌入模型适配器"""
+    """通义千问向量模型适配器"""
 
     def __init__(self, model: str, api_key: str, base_url: str):
         self.model = model
@@ -40,26 +40,25 @@ class TongyiEmbeddings(Embeddings):
         )
         result = completion.data
         result = [item.embedding for item in result]  # 提取嵌入向量
-        
 
         return result
 
     def embed_query(self, text: str) -> list[float]:
         """生成单个查询文本的嵌入向量"""
-
         client = OpenAI(
-            api_key=self.api_key,  # 如果您没有配置环境变量，请在此处用您的API Key进行替换
-            base_url=self.base_url  # 百炼服务的base_url
+            api_key=self.api_key,
+            base_url=self.base_url
         )
 
         completion = client.embeddings.create(
             model=self.model,
             input=text,
-            dimensions=1024, # 指定向量维度（仅 text-embedding-v3及 text-embedding-v4支持该参数）
+            dimensions=1024,
             encoding_format="float"
         )
-
-        return completion.model_dump_json()
+        result = completion.data
+        result = [item.embedding for item in result]
+        return result[0]
 
 
 @component
@@ -86,4 +85,4 @@ class EmbeddingAdapter(EmbeddingPort):
                 base_url=embeddings_model_settings.base_url,
             )
         else:
-            raise ValueError(f"不支持的嵌入模型厂商: {firm}")
+            raise ValueError(f"不支持的向量模型厂商: {firm}")

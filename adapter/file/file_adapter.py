@@ -48,7 +48,7 @@ class FileAdapter(FilePort):
 
         with jsonlines.open(self.file_info_list_path, mode='r') as reader:
             for obj in reader:
-                if obj.get('id', '') not in file_id_list:
+                if file_id_list and obj.get('id', '') not in file_id_list:
                     continue
                 if filename_keyword and filename_keyword not in obj.get('name', ''):
                     continue
@@ -80,5 +80,5 @@ class FileAdapter(FilePort):
                   content_keyword: str = None,
                   file_id_list: List[str] = None,
                   **kwargs) -> List[Dict[str, Any]]:
-        """由专门的VectorDBAdapter实现"""
+        
         raise NotImplementedError("Chunk operations should be handled by VectorDBAdapter")

@@ -6,7 +6,7 @@ from langchain_community.document_loaders import (
     UnstructuredPowerPointLoader,
     UnstructuredImageLoader
 )
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from application.port.outbound.file_vector_port import FileVectorPort
 from application.domain.file import File
 from langchain_core.embeddings import Embeddings
@@ -87,7 +87,7 @@ class LangchainFileVectorAdapter(FileVectorPort):
         if len(now_chunks) > 0:
             vectordb = Chroma.from_documents(
                 documents=now_chunks,
-                embedding=embedding,  # 使用领域端口替代具体实现
+                embedding=embedding,
                 persist_directory=self.persist_dir
             )
             vectordb.persist()
@@ -98,25 +98,23 @@ class LangchainFileVectorAdapter(FileVectorPort):
             "persist_dir": self.persist_dir
         }
 
-    async def search_chunks(self, query: str, file_ids: List[str] = None) -> List[Dict]:
+    async def search_chunks(self, embeddings: Embeddings, query: str, file_ids: List[str] = None) -> List[Dict]:
         """基于Chroma的相似性搜索"""
         # 加载已持久化的向量库
         vectordb = Chroma(
             persist_directory=self.persist_dir,
-            embedding_function=self.embeddings
+            embedding_function=embeddings,
         )
-
         # 执行搜索（默认返回前5个结果，可根据需求调整）
-        search_results = vectordb.similarity_search_with_score(query, k=5)
-
+        search_results = vectordb.similarity_search_with_score(
+            query,
+            k=3,
+            filter={"file_id": {"$in": file_ids}} if file_ids else None
+        )
+        if not search_results:
+            return []
         # 过滤指定文件ID的结果（如果有）
         filtered_results = []
         for doc, score in search_results:
-            if not file_ids or doc.metadata.get("file_id") in file_ids:
-                filtered_results.append({
-                    "content": doc.page_content,
-                    "metadata": doc.metadata,
-                    "similarity_score": float(score)
-                })
-
+            filtered_results.append(doc.page_content)
         return filtered_results

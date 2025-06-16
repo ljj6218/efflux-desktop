@@ -33,18 +33,16 @@ class FileProcessingService:
     async def process_file_to_chunks(self, generator_id: str, file_entity: File) -> List[FileChunk]:
         llm_generator = self.generators_port.load_generate(generator_id)
         logger.debug(f"加载的生成器: {llm_generator}")
-        embeddings_model_settings_list = self.vector_model_port.list()
         embeddings_model_settings = None
-
         embeddings_model_settings_list = await self.vector_model_port.list()
-        logger.debug(f"嵌入模型设置列表: {embeddings_model_settings_list}")
+        logger.debug(f"向量模型设置列表: {embeddings_model_settings_list}")
         if not embeddings_model_settings_list:
-            raise ValueError("未找到嵌入模型设置")
-        for i in embeddings_model_settings_list:  # 现在可以正常迭代
-            print(f"嵌入模型设置: {i}")
+            raise ValueError("未找到向量模型设置")
+        # 取 最新的 向量模型 设置
+        for i in embeddings_model_settings_list:
             if i.firm == llm_generator.firm:
                 embeddings_model_settings = i
         if not embeddings_model_settings:
-            raise ValueError(f"未找到对应的嵌入模型设置: {llm_generator.firm}")
+            raise ValueError(f"未找到对应的向量模型设置: {llm_generator.firm}")
         embeddings = self.embedding_port.get_embeddings(embeddings_model_settings)
         return await self.file_vectordb_port.store_chunks(embeddings, file_entity)
