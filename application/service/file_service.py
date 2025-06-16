@@ -54,19 +54,6 @@ class FileService(FileCase):
             **kwargs
         )
 
-    async def get_chunk_list(
-        self,
-        content_keyword: Optional[str] = None,
-        file_id_list: Optional[List[str]] = None,
-        **kwargs
-    ) -> List[Dict[str, Any]]:
-        logger.info(f"查询文件块列表 ---> [content_keyword={content_keyword}, file_id_list={file_id_list}]")
-        return self.file_port.chunk_list(
-            content_keyword=content_keyword,
-            file_id_list=file_id_list,
-            **kwargs
-        )
-
     async def delete_files(self, file_id_list: List[str], **kwargs) -> Dict[str, Any]:
         logger.info(f"删除文件 ---> {file_id_list}")
         return self.file_port.delete(file_id_list, **kwargs)

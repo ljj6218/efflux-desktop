@@ -42,17 +42,6 @@ async def get_files(
         filename_keyword=filename_keyword
     ))
 
-@router.get("/chunks")
-async def get_file_chunks(
-    content_keyword: Optional[str] = Query(None),
-    file_id_list: Optional[List[str]] = Query(None),
-    file_service: FileCase = Depends(file_case)
-) -> BaseResponse:
-    return BaseResponse.from_success(data=await file_service.get_chunk_list(
-        content_keyword=content_keyword,
-        file_id_list=file_id_list
-    ))
-
 @router.delete("/batch")
 async def delete_files(
     vo: FileDelVo,

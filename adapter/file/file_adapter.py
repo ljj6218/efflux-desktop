@@ -74,11 +74,3 @@ class FileAdapter(FilePort):
                 writer.write(file)
 
         return {"deleted_count": deleted_count}
-
-    # chunks相关操作使用ChromaDB（由其他Adapter实现）
-    def chunk_list(self,
-                  content_keyword: str = None,
-                  file_id_list: List[str] = None,
-                  **kwargs) -> List[Dict[str, Any]]:
-        
-        raise NotImplementedError("Chunk operations should be handled by VectorDBAdapter")

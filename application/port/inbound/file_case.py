@@ -22,14 +22,5 @@ class FileCase(ABC):
         """获取文件列表"""
 
     @abstractmethod
-    async def get_chunk_list(
-        self,
-        content_keyword: Optional[str] = None,
-        file_id_list: Optional[List[str]] = None,
-        **kwargs
-    ) -> List[Dict[str, Any]]:
-        """获取文件块列表"""
-
-    @abstractmethod
     async def delete_files(self, file_id_list: List[str], **kwargs) -> Dict[str, Any]:
         """删除文件"""

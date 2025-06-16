@@ -38,19 +38,6 @@ class FilePort(ABC):
         """
 
     @abstractmethod
-    def chunk_list(self,
-             content_keyword: str = None,
-             file_id_list: list[str] = None,
-             **kwargs) -> list[dict[str, Any]]:
-        """
-        查询 文件分片列表
-        :param content_keyword: 内容关键字
-        :param file_id_list: 文件id列表
-        :param kwargs: 参数
-        :return: list[dict[str, Any]] chunk 列表
-        """
-
-    @abstractmethod
     def delete(self, file_id_list: list[str], **kwargs) -> dict[str, Any]:
         """
         删除文件
