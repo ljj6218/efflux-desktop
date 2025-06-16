@@ -39,18 +39,21 @@ class PpterAgent(AgentInstance):
         content = None
         if "json_result_data" in payload: # 模型返回json结果
             json_result_data = payload["json_result_data"]
-            content = json_result_data['response']
-            logger.info(f"ppter agent 记录自己的会话历史: {json_result_data}")
-            new_ppt = Ppt.from_init(conversation_id=self.info.conversation_id,
-                                    agent_instance_id=self.info.instance_id,
-                                    html_code=json_result_data['html_code'],
-                                    design_summary=json_result_data['design_summary'])
-            payload['confirm_data'] = new_ppt
-            payload['confirm_type'] = 'ppt'
-            # 删除agent请求的json
-            del payload['json_result_data']  # agent请求的删除json返回
-            del payload['json_result']  # 删除要求json结果返回标识
-            self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
+            if json_result_data['requires_user_clarification']:
+                logger.info("PpterAgent 需要用户继续澄清需求")
+            else:
+                content = json_result_data['response']
+                logger.info(f"ppter agent 记录自己的会话历史: {json_result_data}")
+                new_ppt = Ppt.from_init(conversation_id=self.info.conversation_id,
+                                        agent_instance_id=self.info.instance_id,
+                                        html_code=json_result_data['html_code'],
+                                        design_summary=json_result_data['design_summary'])
+                payload['confirm_data'] = new_ppt
+                payload['confirm_type'] = 'ppt'
+                # 删除agent请求的json
+                del payload['json_result_data']  # agent请求的删除json返回
+                del payload['json_result']  # 删除要求json结果返回标识
+                self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
         else:
             # 请求大模型澄清用户需求
             self._send_llm_event(client_id=client_id, context_message_list=context_message_list)
