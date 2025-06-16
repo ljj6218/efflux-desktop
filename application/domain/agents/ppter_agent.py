@@ -37,11 +37,13 @@ class PpterAgent(AgentInstance):
         # 拼接生成Clarification的提示词
         context_message_list = self._thread_to_context(history_message_list=history_message_list)
         content = None
+        json_type = None
         if "json_result_data" in payload: # 模型返回json结果
             json_result_data = payload["json_result_data"]
             if json_result_data['requires_user_clarification']:
                 logger.info("PpterAgent 需要用户继续澄清需求")
                 content = json_result_data['response']
+                json_type = 'ppt_content'
             else:
                 content = json_result_data['html_code']
                 logger.info(f"ppter agent 记录自己的会话历史: {json_result_data}")
@@ -51,6 +53,7 @@ class PpterAgent(AgentInstance):
                                         design_summary=json_result_data['design_summary'])
                 payload['confirm_data'] = new_ppt
                 payload['confirm_type'] = 'ppt'
+                json_type = 'ppt'
                 # 删除agent请求的json
                 del payload['json_result_data']  # agent请求的删除json返回
                 del payload['json_result']  # 删除要求json结果返回标识
@@ -65,7 +68,7 @@ class PpterAgent(AgentInstance):
                                                                   conversation_id=self.info.conversation_id,
                                                                   model=self.llm_generator.model,
                                                                   timestamp=create_from_second_now_to_int(),
-                                                                  payload={'agent_instance_id': self.info.instance_id},
+                                                                  payload={'agent_instance_id': self.info.instance_id, 'json_type': json_type},
                                                                   metadata=DialogSegmentMetadata(
                                                                       source=MetadataSource.AGENT,
                                                                       type=MetadataType.AGENT_RESULT))
