@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
 
-from adapter.agent.prompts.ppter import SYSTEM_MESSAGE_PPTER
+from adapter.agent.prompts.ppter_bak import SYSTEM_MESSAGE_PPTER
 from application.domain.agents.agent import AgentInstance, Agent, AgentState
 from application.domain.conversation import DialogSegmentMetadata, MetadataSource, MetadataType, DialogSegment
 from application.domain.events.event import Event, EventType, EventSubType, EventSource
@@ -41,8 +41,9 @@ class PpterAgent(AgentInstance):
             json_result_data = payload["json_result_data"]
             if json_result_data['requires_user_clarification']:
                 logger.info("PpterAgent 需要用户继续澄清需求")
-            else:
                 content = json_result_data['response']
+            else:
+                content = json_result_data['html_code']
                 logger.info(f"ppter agent 记录自己的会话历史: {json_result_data}")
                 new_ppt = Ppt.from_init(conversation_id=self.info.conversation_id,
                                         agent_instance_id=self.info.instance_id,
@@ -115,6 +116,7 @@ class PpterAgent(AgentInstance):
             payload={
                 "agent_instance_id": self.info.instance_id,
                 "json_result": True,
+                "json_type": "ppt",
                 "mcp_name_list": [],
                 "tools_group_name_list": [],
                 "context_message_list": context_message_list,
