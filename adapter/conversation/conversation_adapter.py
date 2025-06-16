@@ -78,6 +78,13 @@ class ConversationAdapter(ConversationPort):
 
         return None
 
+    def update_conversation_record(self, conversation_id: str, updated_segments: List[DialogSegment]):
+            dialog_segment_file = f'conversations/{conversation_id}.jsonl'
+            # 写入更新后的记录
+            with jsonlines.open(dialog_segment_file, mode='w') as writer:
+                for segment in updated_segments:
+                    writer.write(segment.model_dump())
+
     def load_agent_record(self, agent_instance_id: str) -> List[DialogSegment]:
         dialog_segment_list = []
         dialog_segment_file = f'conversations/agent/{agent_instance_id}.jsonl'

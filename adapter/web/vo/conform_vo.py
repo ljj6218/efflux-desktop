@@ -7,7 +7,7 @@ class ConfirmVo(BaseModel):
     generator_id: str
     query: Optional[str] = None
     conversation_id: str
-    agent_instance_id: str
+    agent_instance_id: str = None
     dialog_segment_id: str
     confirm_type: Literal["ppt", "tools_execute"]
     content: Dict[str, Any]

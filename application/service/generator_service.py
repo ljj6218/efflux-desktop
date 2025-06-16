@@ -276,44 +276,60 @@ class GeneratorService(ModelCase, GeneratorsCase):
                 logger.info(f"事件处理器[GeneratorService]发起[{TaskType.TOOL_CALL}]任务：[ID：{task.id}]")
             return dialog_segment_id
 
-        # todo 暂时只考虑ppt的逻辑
+        # ppt确认的逻辑
         if "ppt" == confirm_type:
-            # 加载该 agent 实例的全部对话记录
-            dialog_segments: List[DialogSegment] = self.conversation_port.load_agent_record(agent_instance_id)
-
-            if not dialog_segments:
-                raise ValueError(f"未找到 agent_instance_id={agent_instance_id} 的对话记录")
-
+            conversation = self.conversation_port.conversation_load(conversation_id)
+            if not conversation:
+                raise ValueError(f"未找到 conversation_id = {conversation_id} 的对话记录")
             updated = False
-
+            segments = conversation.dialog_segment_list
             # 遍历查找要修改的 DialogSegment
-            for segment in dialog_segments:
+            for segment in segments:
                 if segment.id == dialog_segment_id:
-                    try:
-                        # 将 content 字符串解析为 JSON 对象
-                        content_dict = json.loads(segment.content)
-
-                        # 修改 html_code 字段
-                        content_dict['html_code'] = content['html_code']
-
-                        # 将修改后的 dict 转回字符串并赋值给 content
-                        segment.content = json.dumps(content_dict, ensure_ascii=False)
-
-                        updated = True
-                        break
-                    except json.JSONDecodeError as e:
-                        logger.error(f"解析 content 字段失败：{e}")
-                        raise CommonException(error_code=CommonErrorCode.DIALOG_SEGMENT_CONTENT_JSON_DECODE_ERROR,
-                                              dynamics_message="segment.content: " + segment.content)
+                    # 将修改后的 html_code 赋值给 content
+                    segment.content = content['html_code']
+                    updated = True
+                    break
 
             if not updated:
                 logger.error(f"未找到 id={dialog_segment_id} 的对话片段")
                 raise CommonException(error_code=CommonErrorCode.DIALOG_SEGMENT_NOT_FOUND,
                                       dynamics_message="dialog_segment_id: " + dialog_segment_id)
-
             # 将更新后的对话记录保存回文件
-            self.conversation_port.update_agent_record(agent_instance_id, dialog_segments)
+            self.conversation_port.update_conversation_record(conversation_id=conversation_id, updated_segments=segments)
             return conversation_id
+
+    async def update_agent_log(self, agent_instance_id, content, dialog_segment_id):
+        # 加载该 agent 实例的全部对话记录
+        dialog_segments: List[DialogSegment] = self.conversation_port.load_agent_record(agent_instance_id)
+        if not dialog_segments:
+            raise ValueError(f"未找到 agent_instance_id={agent_instance_id} 的对话记录")
+        updated = False
+        # 遍历查找要修改的 DialogSegment
+        for segment in dialog_segments:
+            if segment.id == dialog_segment_id:
+                try:
+                    # 将 content 字符串解析为 JSON 对象
+                    content_dict = json.loads(segment.content)
+
+                    # 修改 html_code 字段
+                    content_dict['html_code'] = content['html_code']
+
+                    # 将修改后的 dict 转回字符串并赋值给 content
+                    segment.content = json.dumps(content_dict, ensure_ascii=False)
+
+                    updated = True
+                    break
+                except json.JSONDecodeError as e:
+                    logger.error(f"解析 content 字段失败：{e}")
+                    raise CommonException(error_code=CommonErrorCode.DIALOG_SEGMENT_CONTENT_JSON_DECODE_ERROR,
+                                          dynamics_message="segment.content: " + segment.content)
+        if not updated:
+            logger.error(f"未找到 id={dialog_segment_id} 的对话片段")
+            raise CommonException(error_code=CommonErrorCode.DIALOG_SEGMENT_NOT_FOUND,
+                                  dynamics_message="dialog_segment_id: " + dialog_segment_id)
+        # 将更新后的对话记录保存回文件
+        self.conversation_port.update_agent_record(agent_instance_id, dialog_segments)
 
     def _conversation_check(self, conversation_id: str, query_str: str) -> str:
         # 创建会话
