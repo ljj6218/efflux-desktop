@@ -74,23 +74,21 @@ class LangchainFileVectorAdapter(FileVectorPort):
             }
             now_chunks.append(chunk)
             if len(now_chunks) == 10:  # 每100个分块打印一次进度
-                vectordb = Chroma.from_documents(
+                Chroma.from_documents(
                     documents=now_chunks,
                     embedding=embedding,  # 使用领域端口替代具体实现
                     persist_directory=self.persist_dir
                 )
-                vectordb.persist()
                 now_chunks = []
                 print(f"已处理 {i + 1} 个分块")
 
         # 5. 存储到Chroma（同步操作，实际项目建议用异步包装）
         if len(now_chunks) > 0:
-            vectordb = Chroma.from_documents(
+            Chroma.from_documents(
                 documents=now_chunks,
                 embedding=embedding,
                 persist_directory=self.persist_dir
             )
-            vectordb.persist()
 
         return {
             "file_id": file.id,
