@@ -25,7 +25,8 @@ async def chat(generators_vo: GeneratorsVo, generators_service: GeneratorsCase =
         mcp_name_list=generators_vo.mcp_name_list,
         agent_name=generators_vo.agent_name,
         tools_group_name_list=generators_vo.tools_group_name_list,
-        task_confirm=generators_vo.task_confirm
+        task_confirm=generators_vo.task_confirm,
+        artifacts=generators_vo.artifacts,
     )
 
     return BaseResponse.from_success(data={"conversation_id": conversation_id, "dialog_segment_id": uuid})

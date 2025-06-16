@@ -15,6 +15,7 @@ class GeneratorsCase(ABC):
         agent_name: Optional[str] = None,
         tools_group_name_list: Optional[List[str]] = None,
         task_confirm: Optional[Dict[str, Any]] = None,
+        artifacts: Optional[bool] = False
     ) -> tuple[str | None, str]:
         """
         ppt生成交互

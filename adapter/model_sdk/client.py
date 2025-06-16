@@ -28,3 +28,10 @@ class ModelClient(ABC):
                 **generation_kwargs,
                 ) -> Generator[ChatStreamingChunk, None, None]:
         pass
+
+    @abstractmethod
+    def model_list(
+                self,
+                api_key: str = None,
+                base_url: str = None):
+        pass

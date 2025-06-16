@@ -175,6 +175,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
             agent_name: Optional[str] = None,
             tools_group_name_list: Optional[List[str]] = None,
             task_confirm: Optional[Dict[str, Any]] = None,
+            artifacts: Optional[bool] = False
     ) -> tuple[str | None, str]:
         query_str = None
         if isinstance(query, List):
@@ -203,6 +204,8 @@ class GeneratorService(ModelCase, GeneratorsCase):
                              generator_id=generator_id,
                              payload={"json_type": "ppt"})
         else:
+            if artifacts:
+                system = read("artifacts_prompt.md")
             event = Event.from_init(
                 event_type=EventType.USER_MESSAGE,
                 event_sub_type=EventSubType.MESSAGE,
@@ -216,7 +219,8 @@ class GeneratorService(ModelCase, GeneratorsCase):
                 },
                 payload={
                     "system": system,
-                    "json_result": False,
+                    "json_result": artifacts,
+                    "json_type": "artifacts" if artifacts else None,
                     "mcp_name_list": mcp_name_list,
                     "tools_group_name_list": tools_group_name_list,
                 }

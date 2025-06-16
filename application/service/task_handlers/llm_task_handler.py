@@ -83,6 +83,7 @@ class LLMTaskHandler(TaskHandler):
         tools_group_name_list = task.payload['tools_group_name_list'] if 'tools_group_name_list' in task.payload else []
         agent_instance_id = task.payload['agent_instance_id'] if 'agent_instance_id' in task.payload else None
         json_result = task.payload['json_result'] if 'json_result' in task.payload else None
+        json_type = task.payload['json_type'] if 'json_type' in task.payload else None
         message_list = task.payload['context_message_list']
 
         # 获取LLMGenerator
@@ -144,7 +145,9 @@ class LLMTaskHandler(TaskHandler):
                     payload={
                         "agent_instance_id": agent_instance_id,
                         "mcp_name_list": mcp_name_list,
-                        "tools_group_name_list": tools_group_name_list
+                        "tools_group_name_list": tools_group_name_list,
+                        "json_result": json_result,
+                        "json_type": json_type
                     }
                 )
                 logger.info(f"任务处理器[{self.type()}]发起[{event.type} - {event.sub_type}]事件：[ID：{event.id}]")
@@ -163,6 +166,7 @@ class LLMTaskHandler(TaskHandler):
                     "mcp_name_list": mcp_name_list,
                     "tools_group_name_list": tools_group_name_list,
                     "json_result": json_result,
+                    "json_type": json_type
                 }
             )
             EventPort.get_event_port().emit_event(event)

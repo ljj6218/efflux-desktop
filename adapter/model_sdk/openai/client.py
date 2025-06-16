@@ -24,6 +24,14 @@ class OpenAIClient(ModelClient):
 
         self.default_tool_choice: str = "auto" # 默认工具调用模式
 
+    def model_list(self, api_key: str = None, base_url: str = None):
+        # openAI client 构建
+        client: OpenAI = self._get_client(api_key=api_key,
+                                          api_base_url=base_url)
+        for model in client.models.list():
+            print(model.id)
+
+
     def generate(
             self,
             model: str = None,
