@@ -19,6 +19,7 @@ from application.port.outbound.file_vector_port import FileVectorPort
 from application.port.outbound.vector_model_port import VectorModelPort
 from application.port.outbound.embedding_port import EmbeddingPort
 from application.domain.generators.tools import Tool, ToolInstance, ToolType
+from application.service.base_service.embedding_service import EmbeddingService
 from common.utils.markdown_util import read
 from common.utils.file_util import open_and_base64
 import injector
@@ -35,15 +36,14 @@ class GeneratorService(ModelCase, GeneratorsCase):
 
     @injector.inject
     def __init__(self,
-                 generators_port: GeneratorsPort,
-                 event_port: EventPort,
-                 tools_port: ToolsPort,
-                 user_setting_port: UserSettingPort,
-                 conversation_port: ConversationPort,
-                 cache_port: CachePort,
-                 file_vector_port: FileVectorPort,
-                 vector_model_port: VectorModelPort,
-                 embedding_port: EmbeddingPort,
+            generators_port: GeneratorsPort,
+            event_port: EventPort,
+            tools_port: ToolsPort,
+            user_setting_port: UserSettingPort,
+            conversation_port: ConversationPort,
+            cache_port: CachePort,
+            file_vector_port: FileVectorPort,
+            embedding_service: EmbeddingService,
         ):
         self.generators_port = generators_port
         self.event_port = event_port
@@ -52,8 +52,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
         self.conversation_port = conversation_port
         self.cache_port = cache_port
         self.file_vector_port = file_vector_port
-        self.vector_model_port = vector_model_port
-        self.embedding_port = embedding_port
+        self.embedding_service = embedding_service
 
     async def firm_list(self) -> List[GeneratorFirm]:
         return self.generators_port.load_firm()
@@ -183,18 +182,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
             if isinstance(query, List):
                 if 'file' in [item.type for item in query]:
                     all_query_str = ''.join([item.content for item in query])
-                    llm_generator = self.generators_port.load_generate(generator_id)
-                    embeddings_model_settings = None
-                    embeddings_model_settings_list = await self.vector_model_port.list()
-                    if not embeddings_model_settings_list:
-                        raise ValueError("未找到向量模型设置")
-                    # 取 最新的 向量模型 设置
-                    for i in embeddings_model_settings_list:
-                        if i.firm == llm_generator.firm:
-                            embeddings_model_settings = i
-                    if not embeddings_model_settings:
-                        raise ValueError(f"未找到对应的向量模型设置: {llm_generator.firm}")
-                    embeddings = self.embedding_port.get_embeddings(embeddings_model_settings)
+                    embeddings = await self.embedding_service.get_embeddings(generator_id)
                     # history_conversation = self.conversation_port.conversation_load(conversation_id=conversation_id)
                 for item in query:
                     if item.type == 'text':
