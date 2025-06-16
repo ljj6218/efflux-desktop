@@ -201,7 +201,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
                              conversation_id=conversation_id,
                              dialog_segment_id=dialog_segment_id,
                              generator_id=generator_id,
-                             payload={})
+                             payload={"json_type": "ppt"})
         else:
             event = Event.from_init(
                 event_type=EventType.USER_MESSAGE,
