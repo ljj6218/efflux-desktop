@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 from dotenv import load_dotenv
+from pathlib import Path
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
@@ -22,42 +23,93 @@ logger = logging.getLogger(__name__)
 # 加载环境变量
 load_dotenv()
 
-# 读取文件为二进制数据
-file_path = "/home/liang/projects/efflux-desktop/README.md"
-with open(file_path, "rb") as f:
-    file_bytes = f.read()
+FILE_TYPE_MAP = {
+    ".pdf": ("application/pdf", "PDF"),
+    ".html": ("text/html", "HTML"),
+    ".js": ("text/javascript", "JavaScript"),
+    ".py": ("text/x-python", "Python"),
+    ".txt": ("text/plain", "文本"),
+    ".css": ("text/css", "CSS"),
+    ".md": ("text/md", "Markdown"),
+    ".csv": ("text/csv", "CSV"),
+    ".xml": ("text/xml", "XML"),
+    ".rtf": ("text/rtf", "RTF")
+}
 
-client = genai.Client(
-    api_key=os.getenv("AIHUBMIX_API_KEY"), # 🔑 换成你在 AiHubMix 生成的密钥
-    http_options={"base_url": "https://aihubmix.com/gemini"}
-)
+def handle_file(file_path: str) -> types.Part:
+    """处理文件路径，返回模型可识别的Part对象"""
+    path = Path(file_path)
+    if not path.exists():
+        raise FileNotFoundError(f"文件不存在: {file_path}")
 
-response = client.models.generate_content(
-    model="gemini-2.0-flash",
-    contents=types.Content(
-        parts=[
-            types.Part(
-                inline_data=types.Blob(
-                    data=file_bytes,
-                    mime_type="text/md"
-                )
-            ),
-            types.Part(
-                text="请分析上面的 Markdown 文件内容，并总结成20字左右的简介。"
-            )
-        ]
-    ),
-    config=types.GenerateContentConfig(
-        tools=[types.Tool(
-            code_execution=types.ToolCodeExecution
-        )]
+    suffix = path.suffix.lower()
+    if suffix not in FILE_TYPE_MAP:
+        supported = ", ".join(ft[1] for ft in FILE_TYPE_MAP.values())
+        raise ValueError(f"不支持的文件格式: {suffix}（仅支持{supported}）")
+
+    mime_type, _ = FILE_TYPE_MAP[suffix]
+    logger.info(f"处理文件: {file_path} ({mime_type})")
+    return types.Part(
+        inline_data=types.Blob(
+            data=path.read_bytes(),
+            mime_type=mime_type
+        )
     )
-)
 
-for part in response.candidates[0].content.parts:
-    if part.text is not None:
-        print(part.text)
-    if getattr(part, "executable_code", None) is not None:
-        print("Generated code:\n", part.executable_code.code)
-    if getattr(part, "code_execution_result", None) is not None:
-        print("Execution result:\n", part.code_execution_result.output)
+def process_inputs(inputs: list) -> list[types.Part]:
+    """处理输入列表，生成模型需要的Part列表"""
+    parts = []
+    for item in inputs:
+        if item["type"] == "file":
+            parts.append(handle_file(item["content"]))
+        elif item["type"] == "txt":
+            parts.append(types.Part(text=item["content"]))
+        else:
+            raise ValueError(f"不支持的输入类型: {item['type']}（仅支持file/txt）")
+    return parts
+
+# 核心功能封装函数
+def generate_response(inputs: list) -> str:
+    """
+    生成模型响应并返回处理后的结果
+    :param inputs: 输入列表（格式同process_inputs要求）
+    :return: 处理后的文本结果
+    """
+    client = genai.Client(
+        api_key=os.getenv("AIHUBMIX_API_KEY"),
+        http_options={"base_url": "https://aihubmix.com/gemini"}
+    )
+
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=types.Content(parts=process_inputs(inputs)),
+        config=types.GenerateContentConfig(
+            tools=[types.Tool(code_execution=types.ToolCodeExecution)]
+        )
+    )
+
+    result = []
+    for part in response.candidates[0].content.parts:
+        if part.text is not None:
+            result.append(part.text)
+        if getattr(part, "executable_code", None) is not None:
+            result.append(f"Generated code:\n{part.executable_code.code}")
+        if getattr(part, "code_execution_result", None) is not None:
+            result.append(f"Execution result:\n{part.code_execution_result.output}")
+
+    return "\n\n".join(result)  # 将各部分结果合并为字符串返回
+
+if __name__ == '__main__':
+    demo_inputs = [
+        {"type": "file", "content": "/home/liang/projects/efflux-desktop/README.md"},
+        {"type": "txt", "content": "请分析上面的 Markdown 文件内容，并总结成20字左右的简介。"}
+    ]
+
+    try:
+        # 调用封装函数获取结果
+        final_result = generate_response(demo_inputs)
+        # 统一打印结果
+        print(final_result)
+    except Exception as e:
+        logger.error(f"执行失败: {str(e)}")
+        sys.exit(1)
