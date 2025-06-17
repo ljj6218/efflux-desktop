@@ -86,6 +86,7 @@ class SvgerAgent(AgentInstance):
             payload={
                 "agent_instance_id": self.info.instance_id,
                 "json_result": False,
+                "json_type": "svger",
                 "mcp_name_list": [],
                 "tools_group_name_list": [],
                 "context_message_list": context_message_list,
