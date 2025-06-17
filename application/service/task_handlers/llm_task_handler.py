@@ -5,6 +5,7 @@ from common.core.container.annotate import component
 from common.core.errors.business_error_code import GeneratorErrorCode
 from common.core.errors.business_exception import BusinessException
 from common.utils.common_utils import create_uuid, CONVERSATION_STOP_FLAG_KEY
+from common.utils.json_file_util import JSONFileUtil
 from common.utils.time_utils import create_from_second_now_to_int
 from application.port.outbound.event_port import EventPort
 from application.domain.generators.firm import GeneratorFirm
@@ -116,8 +117,12 @@ class LLMTaskHandler(TaskHandler):
         started_event_sent = False
         # 停止标记
         stop_flag = False
-        # # 完整结果
-        # full_content = ""
+        # json 开始标识
+        json_start_flag = False
+        # json 结束标识
+        json_end_flag = False
+        # json 内容
+        json_content = ""
         for chunk in self.generators_port.generate_event(llm_generator=llm_generator, messages=messages, tools=tools, json_object=json_result):
             if chunk.usage: # 跳过用量chunk消息
                 continue
@@ -153,6 +158,33 @@ class LLMTaskHandler(TaskHandler):
                 logger.info(f"任务处理器[{self.type()}]发起[{event.type} - {event.sub_type}]事件：[ID：{event.id}]")
                 EventPort.get_event_port().emit_event(event)
                 continue
+            # json 开始标识记录并截取字段
+            if json_result and not json_start_flag:
+                if chunk.content:
+                    text = JSONFileUtil.process_string(chunk.content)
+                    if text:
+                        json_start_flag = True
+                        chunk.content = text
+                        group_status = EventGroupStatus.STARTED
+            if json_result and not json_start_flag:
+                logger.info(f"json结果，跳过开始chunk：{chunk.content}")
+                continue
+            # json 结束标记
+            if json_result and json_start_flag:
+                # 拼接json结果
+                json_content += chunk.content
+                if JSONFileUtil.find_json_end(json_content):
+                    text = JSONFileUtil.process_string_reverse(chunk.content)
+                    if text:
+                        json_end_flag = True
+                        chunk.content = text
+                        group_status = EventGroupStatus.ENDED
+
+            if json_result and json_start_flag and json_end_flag:
+                if not JSONFileUtil.process_string_reverse(chunk.content):
+                    logger.info(f"json结果，跳过结束chunk：{chunk.content}")
+                    continue
+
             # 消息返回
             event = chunk.to_assistant_message_event(
                 id=uuid,

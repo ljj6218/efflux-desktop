@@ -132,6 +132,7 @@ class OpenAIClient(ModelClient):
                     response_format=response_format,
                     tools=openai_tools,
                     tool_choice=tool_choice,
+                    max_tokens=4096,
                     stream=True,
                 )
             else:
@@ -139,6 +140,7 @@ class OpenAIClient(ModelClient):
                     model=model,
                     messages=self._convert_openai_stream_chunk(message_list),
                     response_format=response_format,
+                    max_tokens=4096,
                     stream=True,
                 )
         except Exception as exc:
