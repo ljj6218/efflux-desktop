@@ -16,7 +16,7 @@ class MCPServer(BaseModel):
     # 授权自动执行
     execute_authorization: Optional[bool] = False
     # mcp server 配置 env list
-    env: Optional[Dict[str, str]] = None
+    env: Optional[Dict[str, Optional[str]]] = None
     # mcp server 配置 arg list
     args: Optional[List[str]] = None
     # mcp server 配置 command

@@ -16,7 +16,7 @@ class MCPServerVo(BaseModel):
     # 授权自动执行
     execute_authorization: Optional[bool] = False
     # mcp server 配置 env list
-    env: Optional[Dict[str, str]] = None
+    env: Optional[Dict[str, Optional[str]]] = None
     # mcp server 配置 arg list
     args: Optional[List[str]] = None
     # mcp server 配置 command
@@ -24,8 +24,8 @@ class MCPServerVo(BaseModel):
 
     def convert_mcp_server(self) -> MCPServer:
         vo_dict = self.model_dump()
-        if "env" in vo_dict.keys() and not vo_dict["env"]:
-            vo_dict["env"] = {}
+        if "env" in vo_dict.keys() and not vo_dict['env']:
+            vo_dict['env'] = {}
         if "args" in vo_dict.keys() and not vo_dict["args"]:
             vo_dict["args"] = []
         return MCPServer.model_validate(vo_dict)
@@ -42,11 +42,11 @@ class MCPServerResultVo(BaseModel):
     # 授权自动执行
     execute_authorization: bool = False
     # mcp server 配置 env list
-    env: Dict[str, str] = None
+    env: Dict[str, Optional[str]] = None
     # mcp server 配置 arg list
-    args: List[str] = None
+    args: Optional[List[str]] = None
     # mcp server 配置 command
-    command: str = None
+    command: Optional[str] = None
 
     @classmethod
     def from_mcp_server(cls, mcp_server: MCPServer):
@@ -64,7 +64,7 @@ class MCPServerAppliedResultVo(BaseModel):
     # mcp server 配置 arg list
     args: List[str] = None
     # mcp server 配置 command
-    command: str = None
+    command: Optional[str] = None
 
     @classmethod
     def from_mcp_server(cls, mcp_server: MCPServer):

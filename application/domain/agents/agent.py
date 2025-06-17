@@ -8,9 +8,8 @@ from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.generators_port import GeneratorsPort
 from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.tools_port import ToolsPort
-from common.utils.common_utils import create_uuid
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Literal
 
 from application.port.outbound.ws_message_port import WsMessagePort
 
@@ -24,9 +23,10 @@ class Agent(BaseModel):
 
     id: str
     name: str
-    tools_group_list: List[Dict[str, Any]]
+    tools_group_list: Optional[List[Dict[str, Any]]] = None
     description: str
     agent_prompts: Optional[Dict[str, str]] = None
+    result_type: Optional[Literal["text", "html", "svg", "code"]] = None
 
     def info(
         self,

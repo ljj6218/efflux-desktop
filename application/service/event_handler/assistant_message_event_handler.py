@@ -51,9 +51,9 @@ class AssistantMessageEventHandler(EventHandler):
                         self._handle_message_group
                     )
                 # # 组事件结尾是工具调用，手动处理为组事件结束
-                # if event.sub_type == EventSubType.TOOL_CALL:
-                # # if hasattr(event.data, 'type') and event.data.type == MessageEventDataType.TOOL_CALL:
-                #     event.group.status = EventGroupStatus.ENDED
+                if event.sub_type == EventSubType.TOOL_CALL:
+                # if hasattr(event.data, 'type') and event.data.type == MessageEventDataType.TOOL_CALL:
+                    event.group.status = EventGroupStatus.ENDED
                 # 收集事件
                 EventCollector.collect_event(event)
 

@@ -1,4 +1,7 @@
 from abc import ABC, abstractmethod
+
+from openai.types.chat import ChatCompletionMessageParam
+
 from common.utils.auth import Secret
 from typing import Any, Dict, Iterable, Optional, List, Generator
 from application.domain.generators.tools import Tool
@@ -27,6 +30,17 @@ class ModelClient(ABC):
                 tools: Optional[List[Tool]] = None,
                 **generation_kwargs,
                 ) -> Generator[ChatStreamingChunk, None, None]:
+        pass
+
+    @abstractmethod
+    def generate_test(self,
+                model: str = None,
+                message_list: Iterable[ChatCompletionMessageParam] = None,
+                api_secret: Secret = None,
+                base_url: str = None,
+                tools: Optional[List[Tool]] = None,
+                **generation_kwargs,
+                ):
         pass
 
     @abstractmethod

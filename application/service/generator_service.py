@@ -83,26 +83,27 @@ class GeneratorService(ModelCase, GeneratorsCase):
         # 获取LLMGenerator
         llm_generator: LLMGenerator = self._llm_generator(generator_id)
 
-        message_list = []
-        # Path to your image
-        image_path = "uploads/123.jpeg"
+        # message_list = []
+        # # Path to your image
+        # image_path = "uploads/123.jpeg"
+        #
+        # # Getting the base64 string
+        # base64_image = open_and_base64(image_path)
 
-        # Getting the base64 string
-        base64_image = open_and_base64(image_path)
-
-        user_msg = [
-            {
-                "text": query,
-                "type": "text"
-            },
-            {
-                "type": "image_url",
-                "image_url": {
-                    "url": f"data:image/jpeg;base64,{base64_image}"
-                }
-            }
-        ]
-        message_list.append(ChatStreamingChunk.from_user(message=user_msg))
+        # user_msg = [
+        #     {
+        #         "text": query,
+        #         "type": "text"
+        #     },
+        #     {
+        #         "type": "image_url",
+        #         "image_url": {
+        #             "url": f"data:image/jpeg;base64,{base64_image}"
+        #         }
+        #     }
+        # ]
+        message_list = [{'role': 'user', 'content': '从北京到新疆乌鲁木齐，自驾怎么走'}, {'role': 'assistant', 'content': '你想要从北京驾车前往乌鲁木齐啊！这可是一段壮观的旅程，跨越大半个中国！让我为你查询一下自驾路线信息。\n\n首先，我需要获取北京和乌鲁木齐的地理坐标来规划路线。'}, {'role': 'assistant', 'tool_calls': [{'function': {'arguments': '{"address": "\\u5317\\u4eac\\u5e02", "city": "\\u5317\\u4eac"}', 'name': 'maps_geo'}, 'id': 'toolu_bdrk_01DEB8hyC1bzHo4xdBvuChXu', 'type': 'function'}]}, {'role': 'tool', 'tool_call_id': 'toolu_bdrk_01DEB8hyC1bzHo4xdBvuChXu', 'content': '[\'{"type":"text","text":"{\\\\n  \\\\"return\\\\": [\\\\n    {\\\\n      \\\\"country\\\\": \\\\"中国\\\\",\\\\n      \\\\"province\\\\": \\\\"北京市\\\\",\\\\n      \\\\"city\\\\": \\\\"北京市\\\\",\\\\n      \\\\"citycode\\\\": \\\\"010\\\\",\\\\n      \\\\"district\\\\": [],\\\\n      \\\\"street\\\\": [],\\\\n      \\\\"number\\\\": [],\\\\n      \\\\"adcode\\\\": \\\\"110000\\\\",\\\\n      \\\\"location\\\\": \\\\"116.407387,39.904179\\\\",\\\\n      \\\\"level\\\\": \\\\"省\\\\"\\\\n    }\\\\n  ]\\\\n}","annotations":null}\']'}, {'role': 'assistant', 'tool_calls': [{'function': {'arguments': '{"address": "\\u4e4c\\u9c81\\u6728\\u9f50\\u5e02", "city": "\\u4e4c\\u9c81\\u6728\\u9f50"}', 'name': 'maps_geo'}, 'id': 'toolu_bdrk_01LS7yoGSEzWg9ngQwMSyZ87', 'type': 'function'}]}, {'role': 'tool', 'tool_call_id': 'toolu_bdrk_01LS7yoGSEzWg9ngQwMSyZ87', 'content': '[\'{"type":"text","text":"{\\\\n  \\\\"return\\\\": [\\\\n    {\\\\n      \\\\"country\\\\": \\\\"中国\\\\",\\\\n      \\\\"province\\\\": \\\\"新疆维吾尔自治区\\\\",\\\\n      \\\\"city\\\\": \\\\"乌鲁木齐市\\\\",\\\\n      \\\\"citycode\\\\": \\\\"0991\\\\",\\\\n      \\\\"district\\\\": [],\\\\n      \\\\"street\\\\": [],\\\\n      \\\\"number\\\\": [],\\\\n      \\\\"adcode\\\\": \\\\"650100\\\\",\\\\n      \\\\"location\\\\": \\\\"87.616824,43.825377\\\\",\\\\n      \\\\"level\\\\": \\\\"市\\\\"\\\\n    }\\\\n  ]\\\\n}","annotations":null}\']'}, {'role': 'assistant', 'content': ''}]
+        # message_list.append(ChatStreamingChunk.from_user(message=user_msg))
         # ws = WebSurfer(generators_port=self.generators_port, name="test")
         #
         # await ws.on_messages_stream(chunk_list=message_list, generator=llm_generator)
@@ -110,7 +111,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
         # for a in self.generators_port.generate_event(llm_generator=llm_generator, messages=message_list, tools=[]):
         #     print(a)
 
-        di = self.generators_port.generate_json(llm_generator=llm_generator, messages=message_list, json_object=True)
+        di = self.generators_port.generate_test(llm_generator=llm_generator, messages=message_list, json_object=False)
         print(di)
 
         return "ok"
@@ -190,7 +191,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
         dialog_segment_id = create_uuid()
         # 保存用户输入
         user_dialog_segment = DialogSegment.make_user_message(
-            content=query_str, conversation_id=conversation_id, id=create_uuid())
+            content=query, conversation_id=conversation_id, id=create_uuid())
         self.conversation_port.conversation_add(dialog_segment=user_dialog_segment)
         logger.info(f"保存用户对话片段：[ID：{user_dialog_segment.id} - 内容：{user_dialog_segment.content}]")
         # 清除会话的停止状态

@@ -125,13 +125,22 @@ class DialogSegment(BaseModel):
                 if dialog_segment_content_item.type == 'text':
                     content_list.append({'type': "text", 'text': dialog_segment_content_item.content})
                 if dialog_segment_content_item.type == 'image':
-                    base64_image = open_and_base64(dialog_segment_content_item.content)
-                    content_list.append({
-                    "type": "image_url",
-                    "image_url":{
-                        "url": f"data:image/jpeg;base64,{base64_image}"
-                    }
-                })
+                    if dialog_segment_content_item.content.startswith("data:image/jpeg;"):
+                        content_list.append({
+                            "type": "image_url",
+                            "image_url": {
+                                "url": dialog_segment_content_item.content
+                            }
+                        })
+                    else:
+                        base64_image = open_and_base64(dialog_segment_content_item.content)
+                        # print(base64_image)
+                        content_list.append({
+                            "type": "image_url",
+                            "image_url":{
+                                "url": f"data:image/jpeg;base64,{base64_image}"
+                            }
+                        })
             dialog_segment_content_copy = content_list
         return ChatStreamingChunk(
             id=self.id,

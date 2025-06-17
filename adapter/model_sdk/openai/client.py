@@ -83,6 +83,28 @@ class OpenAIClient(ModelClient):
                                                  role=completion.choices[0].message.role,
                                                  tool_calls=tool_calls)
 
+    def generate_test(self,
+                      model: str = None,
+                      message_list: Iterable[ChatCompletionMessageParam] = None,
+                      api_secret: Secret = None,
+                      base_url: str = None,
+                      tools: Optional[List[Tool]] = None,
+                      **generation_kwargs,
+                      ):
+        # openAI client 构建
+        client: OpenAI = self._get_client(api_key=api_secret.resolve_value(),
+                                          api_base_url=base_url)
+        stream = client.chat.completions.create(
+            model=model,
+            messages=message_list,
+            stream=False,
+        )
+        logger.debug(stream)
+        # for event in stream:
+        #     logger.debug("============================================================================================")
+        #     logger.debug(f"原始chunk返回：{event}")
+        #     logger.debug("============================================================================================")
+
     def generate_stream(
             self,
             model: str = None,
@@ -131,9 +153,9 @@ class OpenAIClient(ModelClient):
         for event in stream:
             if not started_event:
                 started_event = True
-            # logger.debug("============================================================================================")
-            # logger.debug(f"原始chunk返回：{event}")
-            # logger.debug("============================================================================================")
+            logger.debug("============================================================================================")
+            logger.debug(f"原始chunk返回：{event}")
+            logger.debug("============================================================================================")
             if hasattr(event, "type") and event.type == 'ping': # claude sse ping 兼容
                 logger.debug("LLM API SSE Pong")
             else:
@@ -270,7 +292,8 @@ class OpenAIClient(ModelClient):
                         content=completion.choices[0].delta.content, finish_reason=completion.choices[0].finish_reason,
                         reasoning_content=None if not hasattr(completion.choices[0].delta, "reasoning_content")
                             else completion.choices[0].delta.reasoning_content,
-                        role=completion.choices[0].delta.role, tool_calls=completion.choices[0].delta.tool_calls)
+                        role=completion.choices[0].delta.role if completion.choices[0].delta.role else 'assistant',
+                        tool_calls=completion.choices[0].delta.tool_calls)
         else:
             return None
 

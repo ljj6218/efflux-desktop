@@ -3,14 +3,14 @@
         "server_name": "amap-maps",
         "server_description": "高德地图mcp",
         "server_tag": "aaa",
-        "command": "npx",
+        "env": {
+            "AMAP_MAPS_API_KEY": "35d26c1a67336ce108a6df5fccbd5e0b"
+        },
         "args": [
             "-y",
             "@amap/amap-maps-mcp-server"
         ],
-        "env": {
-            "AMAP_MAPS_API_KEY": ""
-        }
+        "command": "npx"
     },
     "google-search": {
         "server_name": "google-search",

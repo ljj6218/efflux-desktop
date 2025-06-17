@@ -80,4 +80,6 @@ async def test_prompt(prompts_vo: PromptsVo, task_service: TestCase = Depends(te
             messages.append(ChatStreamingChunk.from_system(e.content))
         if e.role == "user":
             messages.append(ChatStreamingChunk.from_user(e.content))
+        if e.role == "assistant":
+            messages.append(ChatStreamingChunk.from_assistant(e.content))
     return BaseResponse.from_success(data=await task_service.test_prompts(chunks=messages, generator_id=prompts_vo.generator_id))

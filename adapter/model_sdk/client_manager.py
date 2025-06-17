@@ -43,11 +43,11 @@ class ClientManager(GeneratorsPort):
         return firm_list
 
     def load_model_by_firm(self, firm_name: str) -> List[LLMGenerator]:
-        firm_dict = self.user_setting.read_key(firm_name)
-        base_url = firm_dict['base_url']
-        api_key = firm_dict['api_key']
-        client: ModelClient = OpenAIClient()
-        client.model_list(base_url=base_url, api_key=api_key)
+        # firm_dict = self.user_setting.read_key(firm_name)
+        # base_url = firm_dict['base_url']
+        # api_key = firm_dict['api_key']
+        # client: ModelClient = OpenAIClient()
+        # client.model_list(base_url=base_url, api_key=api_key)
 
         model_list: List[str] = self.config[firm_name]['model_list']
         firm_model_config_url = f"adapter/model_sdk/setting/openai/{firm_name}_model.json"
@@ -105,6 +105,26 @@ class ClientManager(GeneratorsPort):
             generation_kwargs=generation_kwargs
         )
         return rs
+
+    def generate_test(
+        self,
+        llm_generator: LLMGenerator,
+        validate_json: Optional[Callable[[Dict[str, Any]], bool]] = None,
+        messages: Iterable[ChatStreamingChunk] = None,
+        **generation_kwargs,
+    )-> Dict[str, Any] | None:
+        client: ModelClient = OpenAIClient()
+        firm_setting = self.user_setting.read_key(llm_generator.firm)
+        url = firm_setting["base_url"]
+        client.generate_test(
+            model=llm_generator.model,
+            api_secret=llm_generator.api_key_secret,
+            base_url=url,
+            message_list=messages,
+            tools=[],
+            generation_kwargs=generation_kwargs
+        )
+        return {}
 
     def generate_json(
         self,
