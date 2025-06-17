@@ -125,7 +125,7 @@ class DialogSegment(BaseModel):
                 if dialog_segment_content_item.type == 'text':
                     content_list.append({'type': "text", 'text': dialog_segment_content_item.content})
                 if dialog_segment_content_item.type == 'image':
-                    if dialog_segment_content_item.content.startswith("data:image/jpeg;"):
+                    if dialog_segment_content_item.content.startswith("data:image"):
                         content_list.append({
                             "type": "image_url",
                             "image_url": {
@@ -138,7 +138,7 @@ class DialogSegment(BaseModel):
                         content_list.append({
                             "type": "image_url",
                             "image_url":{
-                                "url": f"data:image/jpeg;base64,{base64_image}"
+                                "url": f"data:image/png;base64,{base64_image}"
                             }
                         })
             dialog_segment_content_copy = content_list

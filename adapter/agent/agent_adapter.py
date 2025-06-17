@@ -101,7 +101,7 @@ class AgentAdapter(AgentPort):
                 agent_dict = agent_config.read_key(agent_id)
                 agent = Agent.model_validate(agent_dict)
                 # 加载所有提示词 TODO 后面可能会持久化，统一返回
-                agent.agent_prompts = self._load_prompt_list(agent.info(conversation_id="", dialog_segment_id="", generator_id=""))
+                agent.agent_prompts = self._load_prompt_list(agent.info(conversation_id="1", dialog_segment_id="1", generator_id="1"))
                 return agent
         return None
 
@@ -113,7 +113,7 @@ class AgentAdapter(AgentPort):
             if agent_dict['name'] == agent_name:
                 agent = Agent.model_validate(agent_dict)
                 # 加载所有提示词 TODO 后面可能会持久化，统一返回
-                agent.agent_prompts = self._load_prompt_list(agent.info(conversation_id="", dialog_segment_id="", generator_id=""))
+                agent.agent_prompts = self._load_prompt_list(agent.info(conversation_id="1", dialog_segment_id="1", generator_id="1"))
                 return agent
         return None
 
