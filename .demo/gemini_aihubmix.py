@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 # 加载环境变量
 load_dotenv()
 
+# 更新文件类型映射
 FILE_TYPE_MAP = {
     ".pdf": ("application/pdf", "PDF"),
     ".html": ("text/html", "HTML"),
@@ -33,7 +34,14 @@ FILE_TYPE_MAP = {
     ".md": ("text/md", "Markdown"),
     ".csv": ("text/csv", "CSV"),
     ".xml": ("text/xml", "XML"),
-    ".rtf": ("text/rtf", "RTF")
+    ".rtf": ("text/rtf", "RTF"),
+    # 添加图片格式支持
+    ".png": ("image/png", "PNG"),
+    ".jpeg": ("image/jpeg", "JPEG"),
+    ".jpg": ("image/jpeg", "JPEG"),  # 补充常见的 .jpg 扩展名
+    ".webp": ("image/webp", "WEBP"),
+    ".heic": ("image/heic", "HEIC"),
+    ".heif": ("image/heif", "HEIF")
 }
 
 def handle_file(file_path: str) -> types.Part:
@@ -101,8 +109,10 @@ def generate_response(inputs: list) -> str:
 
 if __name__ == '__main__':
     demo_inputs = [
-        {"type": "file", "content": "/home/liang/projects/efflux-desktop/README.md"},
-        {"type": "txt", "content": "请分析上面的 Markdown 文件内容，并总结成20字左右的简介。"}
+        # {"type": "file", "content": "/home/liang/projects/efflux-desktop/README.md"},
+        # {"type": "txt", "content": "请分析上面的 Markdown 文件内容，并总结成20字左右的简介。"}
+        {"type": "file", "content": "/home/liang/screenshot.png"},
+        {"type": "txt", "content": "请分析上面的 图片内容，并推测出处。"}
     ]
 
     try:
