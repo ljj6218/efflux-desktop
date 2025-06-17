@@ -1,11 +1,13 @@
 from adapter.agent.prompts.clarification import SYSTEM_MESSAGE_CLARIFICATION
 from adapter.agent.prompts.ppter_bak import SYSTEM_MESSAGE_PPTER
+from adapter.agent.prompts.svger import SYSTEM_MESSAGE_SVGER
 from application.domain.agents.agent import Agent, AgentInstance, AgentInfo
 from application.domain.agents.browser_agent import BrowserAgent
 from application.domain.agents.clarification_agent import ClarificationAgent
 from application.domain.agents.plan_agent import PlanAgent
 from application.domain.agents.ppter_agent import PpterAgent
 from application.domain.agents.text_agent import TextAgent
+from application.domain.agents.svger_agent import SvgerAgent
 from application.domain.conversation import DialogSegment
 from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.agent_port import AgentPort
@@ -62,6 +64,8 @@ class AgentAdapter(AgentPort):
             prompts['SYSTEM_MESSAGE_PPTER'] = SYSTEM_MESSAGE_PPTER
         if agent_info.name == "text":
             prompts = agent_info.agent_prompts
+        if agent_info.name == "svger":
+            prompts['SYSTEM_MESSAGE_SVGER'] = SYSTEM_MESSAGE_SVGER
         return prompts
 
     agent_file_url = "adapter/agent/agent.json"
@@ -171,6 +175,15 @@ class AgentAdapter(AgentPort):
             return agent_instance
         if agent_info.name == 'text':
             agent_instance = TextAgent(
+                generators_port=generators_port,
+                llm_generator=llm_generator,
+                ws_message_port=ws_message_port,
+                conversation_port=conversation_port,
+                tools_port=tools_port,
+            )
+            return agent_instance
+        if agent_info.name == 'svger':
+            agent_instance = SvgerAgent(
                 generators_port=generators_port,
                 llm_generator=llm_generator,
                 ws_message_port=ws_message_port,

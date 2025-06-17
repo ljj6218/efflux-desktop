@@ -108,14 +108,13 @@ class AssistantMessageEventHandler(EventHandler):
                     if agent_instance_id:
                         assistant_dialog_segment.payload = {"agent_instance_id": agent_instance_id}
                         self.conversation_port.add_agent_record(dialog_segment=assistant_dialog_segment)
-                        if copy_last_event.payload['json_result']:
-                            # 创建agent call任务
-                            task = Task.from_singleton(task_type=TaskType.AGENT_CALL, data=copy_last_event.data,
-                                                       payload=copy_last_event.payload,
-                                                       client_id=copy_last_event.client_id)
-                            TaskPort.get_task_port().execute_task(task)
-                            logger.info(
-                                f"组事件[{group_id}]JSON结果发送->Agent[{agent_instance_id}]")
+                        # 创建agent call任务
+                        task = Task.from_singleton(task_type=TaskType.AGENT_CALL, data=copy_last_event.data,
+                                                   payload=copy_last_event.payload,
+                                                   client_id=copy_last_event.client_id)
+                        TaskPort.get_task_port().execute_task(task)
+                        logger.info(
+                            f"组事件[{group_id}]JSON结果发送->Agent[{agent_instance_id}]")
                     else:
                         self.conversation_port.conversation_add(dialog_segment=assistant_dialog_segment)
 

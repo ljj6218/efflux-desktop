@@ -9,5 +9,16 @@
             }
         ],
         "description": "PPT Agent"
+    },
+    "f83b0799-366c-4b1b-8983-050ef0ebcf50": {
+        "id": "f83b0799-366c-4b1b-8983-050ef0ebcf50",
+        "name": "svger",
+        "tools_group_list": [
+            {
+                "group_name": "browser",
+                "type": "LOCAL"
+            }
+        ],
+        "description": "SVG Agent"
     }
 }

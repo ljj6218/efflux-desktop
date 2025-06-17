@@ -203,7 +203,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
                              conversation_id=conversation_id,
                              dialog_segment_id=dialog_segment_id,
                              generator_id=generator_id,
-                             payload={"json_type": "ppt"})
+                             payload={"json_type": agent_name})
         else:
             if artifacts:
                 system = read("artifacts_prompt.md")

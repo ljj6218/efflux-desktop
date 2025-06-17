@@ -155,9 +155,9 @@ class OpenAIClient(ModelClient):
         for event in stream:
             if not started_event:
                 started_event = True
-            logger.debug("============================================================================================")
-            logger.debug(f"原始chunk返回：{event}")
-            logger.debug("============================================================================================")
+            # logger.debug("============================================================================================")
+            # logger.debug(f"原始chunk返回：{event}")
+            # logger.debug("============================================================================================")
             if hasattr(event, "type") and event.type == 'ping': # claude sse ping 兼容
                 logger.debug("LLM API SSE Pong")
             else:

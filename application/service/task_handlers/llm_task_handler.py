@@ -170,7 +170,7 @@ class LLMTaskHandler(TaskHandler):
                 logger.info(f"json结果，跳过开始chunk：{chunk.content}")
                 continue
             # json 结束标记
-            if json_result and json_start_flag:
+            if json_result and json_start_flag and chunk.content:
                 # 拼接json结果
                 json_content += chunk.content
                 if JSONFileUtil.find_json_end(json_content):
@@ -180,7 +180,7 @@ class LLMTaskHandler(TaskHandler):
                         chunk.content = text
                         group_status = EventGroupStatus.ENDED
 
-            if json_result and json_start_flag and json_end_flag:
+            if json_result and json_start_flag and json_end_flag and chunk.content:
                 if not JSONFileUtil.process_string_reverse(chunk.content):
                     logger.info(f"json结果，跳过结束chunk：{chunk.content}")
                     continue
@@ -198,7 +198,7 @@ class LLMTaskHandler(TaskHandler):
                     "mcp_name_list": mcp_name_list,
                     "tools_group_name_list": tools_group_name_list,
                     "json_result": json_result,
-                    "json_type": json_type
+                    "json_type": json_type,
                 }
             )
             EventPort.get_event_port().emit_event(event)

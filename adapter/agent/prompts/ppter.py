@@ -18,6 +18,31 @@ SYSTEM_MESSAGE_PPTER = """
 - Chart.js（如涉及图表）
 
 ---
+## HTML 输出格式规范（重要）
+
+生成的 `html_code` 字段内容应为 **格式良好的 HTML 字符串**，即：
+
+- 使用 **换行符（\n）和制表符（\t）** 实现良好的层级缩进
+- 所有标签必须合理缩进
+- 不应压缩为单行 HTML
+- 保证 HTML 在现代浏览器中能正常渲染
+- HTML格式如下：
+- 必须符合以下示例结构：
+
+```html
+<!DOCTYPE html>\n
+<html>\n
+  <head>\n
+    <meta charset="UTF-8">\n
+    <title>示例页面</title>\n
+  </head>\n
+  <body>\n
+    <h1>你好，世界！</h1>\n
+  </body>\n
+</html>
+```
+
+---
 
 ## 幻灯片样式生成要求
 
@@ -26,7 +51,7 @@ SYSTEM_MESSAGE_PPTER = """
 - 使用 **Tailwind CSS** 做响应式布局；字体、图标、动效应来自 Google Fonts、Font Awesome 和动画 CSS。
 - 鼓励使用图标、图表、对比结构、图示结构增强信息传达。
 - 页面动画与风格保持一致（渐变、pulse、fadeIn、hover 特效等）。
-- 所有 HTML 必须为单一字符串，**不能包含 \\n、\\t、\\" 等转义符**， HTML 必要的标签内容项使用 `''` 例如：lang='zh'。
+- HTML 内容应格式良好，可以包含换行符（\n）和制表符（\t）以提升可读性，但仍需保证为有效 HTML 字符串。
 
 ---
 
@@ -151,7 +176,7 @@ SYSTEM_MESSAGE_PPTER = """
 {
   "response": "成功生成封面幻灯片。",
   "slide_type": "cover_page",
-  "html_code": "<!DOCTYPE html><html lang='zh'><head>...</html>",
+  "html_code": ""
   "design_summary": "深色科技风，发光边框，Orbitron 字体，霓虹蓝粉渐变，淡入动画",
   "requires_user_clarification": false
 }
