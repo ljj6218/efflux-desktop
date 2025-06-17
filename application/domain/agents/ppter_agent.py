@@ -59,7 +59,7 @@ class PpterAgent(AgentInstance):
                 self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
         else:
             # 请求大模型澄清用户需求
-            self._send_llm_event(client_id=client_id, context_message_list=context_message_list)
+            self._send_llm_event(client_id=client_id, context_message_list=context_message_list, json_type= json_type)
 
         if content:
             # 保存agent结果
