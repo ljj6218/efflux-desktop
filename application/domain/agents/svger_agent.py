@@ -2,6 +2,7 @@ from typing import List, Dict, Any
 
 from adapter.agent.prompts.svger import SYSTEM_MESSAGE_SVGER
 from application.domain.agents.agent import AgentInstance, AgentState
+from application.domain.conversation import DialogSegment, DialogSegmentMetadata, MetadataSource, MetadataType
 from application.domain.events.event import Event, EventType, EventSubType, EventSource
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from application.domain.generators.generator import LLMGenerator
@@ -12,6 +13,7 @@ from application.port.outbound.tools_port import ToolsPort
 from application.port.outbound.ws_message_port import WsMessagePort
 from common.core.logger import get_logger
 from common.utils.common_utils import create_uuid
+from common.utils.time_utils import create_from_second_now_to_int
 
 logger = get_logger(__name__)
 
@@ -33,13 +35,28 @@ class SvgerAgent(AgentInstance):
     def execute(self, history_message_list: List[ChatStreamingChunk], payload: Dict[str, Any], client_id: str) -> None:
         # 拼接生成Clarification的提示词
         context_message_list = self._thread_to_context(history_message_list=history_message_list)
+        content = None
+        json_type = 'svger'
         if "content" in payload:
+            content = payload['content']
+            logger.info(f"svger agent 记录自己的会话历史: {content}")
             del payload['json_result']  # 删除要求json结果返回标识
             self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
             # 请求大模型澄清用户需求
         else:
-            self._send_llm_event(client_id=client_id, context_message_list=context_message_list)
+            self._send_llm_event(client_id=client_id, context_message_list=context_message_list, json_type= json_type)
 
+        if content:
+            # 保存agent结果
+            dialog_segment = DialogSegment.make_assistant_message(content=content, id=self.info.dialog_segment_id,
+                                                                  conversation_id=self.info.conversation_id,
+                                                                  model=self.llm_generator.model,
+                                                                  timestamp=create_from_second_now_to_int(),
+                                                                  payload={'agent_instance_id': self.info.instance_id, 'json_type': json_type},
+                                                                  metadata=DialogSegmentMetadata(
+                                                                      source=MetadataSource.AGENT,
+                                                                      type=MetadataType.AGENT_RESULT))
+            self.conversation_port.conversation_add(dialog_segment=dialog_segment)
 
 
     def _thread_to_context(self, history_message_list: List[ChatStreamingChunk]) -> List[ChatStreamingChunk]:
@@ -70,7 +87,7 @@ class SvgerAgent(AgentInstance):
         )
         EventPort.get_event_port().emit_event(event)
 
-    def _send_llm_event(self, client_id: str, context_message_list: List[ChatStreamingChunk]):
+    def _send_llm_event(self, client_id: str, context_message_list: List[ChatStreamingChunk], json_type: str) -> None:
         """发送大模型请求事件"""
         event = Event.from_init(
             event_type=EventType.USER_MESSAGE,
@@ -86,7 +103,7 @@ class SvgerAgent(AgentInstance):
             payload={
                 "agent_instance_id": self.info.instance_id,
                 "json_result": False,
-                "json_type": "svger",
+                "json_type": json_type,
                 "mcp_name_list": [],
                 "tools_group_name_list": [],
                 "context_message_list": context_message_list,

@@ -37,7 +37,7 @@ class PpterAgent(AgentInstance):
         # 拼接生成Clarification的提示词
         context_message_list = self._thread_to_context(history_message_list=history_message_list)
         content = None
-        json_type = None
+        json_type = 'ppt'
         if "json_result_data" in payload: # 模型返回json结果
             json_result_data = payload["json_result_data"]
             if json_result_data['requires_user_clarification']:
@@ -53,7 +53,6 @@ class PpterAgent(AgentInstance):
                                         design_summary=json_result_data['design_summary'])
                 payload['confirm_data'] = new_ppt
                 payload['confirm_type'] = 'ppt'
-                json_type = 'ppt'
                 # 删除agent请求的json
                 del payload['json_result_data']  # agent请求的删除json返回
                 del payload['json_result']  # 删除要求json结果返回标识
@@ -103,7 +102,7 @@ class PpterAgent(AgentInstance):
         )
         EventPort.get_event_port().emit_event(event)
 
-    def _send_llm_event(self, client_id: str, context_message_list: List[ChatStreamingChunk]):
+    def _send_llm_event(self, client_id: str, context_message_list: List[ChatStreamingChunk], json_type: str):
         """发送大模型请求事件"""
         event = Event.from_init(
             event_type=EventType.USER_MESSAGE,
@@ -119,7 +118,7 @@ class PpterAgent(AgentInstance):
             payload={
                 "agent_instance_id": self.info.instance_id,
                 "json_result": True,
-                "json_type": "ppt",
+                "json_type": json_type,
                 "mcp_name_list": [],
                 "tools_group_name_list": [],
                 "context_message_list": context_message_list,
