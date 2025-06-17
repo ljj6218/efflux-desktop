@@ -5,6 +5,7 @@ from application.domain.agents.browser_agent import BrowserAgent
 from application.domain.agents.clarification_agent import ClarificationAgent
 from application.domain.agents.plan_agent import PlanAgent
 from application.domain.agents.ppter_agent import PpterAgent
+from application.domain.agents.text_agent import TextAgent
 from application.domain.conversation import DialogSegment
 from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.agent_port import AgentPort
@@ -41,24 +42,26 @@ from adapter.agent.prompts.plan import (
 class AgentAdapter(AgentPort):
 
     @staticmethod
-    def _load_prompt_list(type: str) -> Dict[str, str]:
+    def _load_prompt_list(agent_info: AgentInfo) -> Dict[str, str]:
         prompts = {}
-        if type == "websurfer":
+        if agent_info.name == "websurfer":
             prompts['WEB_SURFER_OCR_PROMPT'] = WEB_SURFER_OCR_PROMPT
             # prompts['WEB_SURFER_QA_PROMPT'] = WEB_SURFER_QA_PROMPT
             prompts['WEB_SURFER_QA_SYSTEM_MESSAGE'] = WEB_SURFER_QA_SYSTEM_MESSAGE
             prompts['WEB_SURFER_TOOL_PROMPT'] = WEB_SURFER_TOOL_PROMPT
             prompts['WEB_SURFER_SYSTEM_MESSAGE'] = WEB_SURFER_SYSTEM_MESSAGE
             prompts['WEB_SURFER_NO_TOOLS_PROMPT'] = WEB_SURFER_NO_TOOLS_PROMPT
-        if type == "plan":
+        if agent_info.name == "plan":
             prompts['ORCHESTRATOR_SYSTEM_MESSAGE_PLANNING'] = ORCHESTRATOR_SYSTEM_MESSAGE_PLANNING
             prompts['ORCHESTRATOR_SYSTEM_MESSAGE_EXECUTION'] = ORCHESTRATOR_SYSTEM_MESSAGE_EXECUTION
             prompts['ORCHESTRATOR_PLAN_PROMPT_JSON'] = ORCHESTRATOR_PLAN_PROMPT_JSON
             prompts['ORCHESTRATOR_PLAN_REPLAN_JSON'] = ORCHESTRATOR_PLAN_REPLAN_JSON
-        if type == "clarification":
+        if agent_info.name == "clarification":
             prompts['SYSTEM_MESSAGE_CLARIFICATION'] = SYSTEM_MESSAGE_CLARIFICATION
-        if type == "ppter":
+        if agent_info.name == "ppter":
             prompts['SYSTEM_MESSAGE_PPTER'] = SYSTEM_MESSAGE_PPTER
+        if agent_info.name == "text":
+            prompts = agent_info.agent_prompts
         return prompts
 
     agent_file_url = "adapter/agent/agent.json"
@@ -73,7 +76,7 @@ class AgentAdapter(AgentPort):
             if agent_instance_dict_id == instance_id:
                 agent_instance_dict = agent_instance_config.read_key(instance_id)
                 agent_info = AgentInfo.model_validate(agent_instance_dict)
-                agent_info.agent_prompts = self._load_prompt_list(agent_info.name)
+                agent_info.agent_prompts = self._load_prompt_list(agent_info)
                 return agent_info
         return None
 
@@ -98,7 +101,7 @@ class AgentAdapter(AgentPort):
                 agent_dict = agent_config.read_key(agent_id)
                 agent = Agent.model_validate(agent_dict)
                 # 加载所有提示词 TODO 后面可能会持久化，统一返回
-                agent.agent_prompts = self._load_prompt_list(agent.name)
+                agent.agent_prompts = self._load_prompt_list(agent.info(conversation_id="", dialog_segment_id="", generator_id=""))
                 return agent
         return None
 
@@ -110,7 +113,7 @@ class AgentAdapter(AgentPort):
             if agent_dict['name'] == agent_name:
                 agent = Agent.model_validate(agent_dict)
                 # 加载所有提示词 TODO 后面可能会持久化，统一返回
-                agent.agent_prompts = self._load_prompt_list(agent.name)
+                agent.agent_prompts = self._load_prompt_list(agent.info(conversation_id="", dialog_segment_id="", generator_id=""))
                 return agent
         return None
 
@@ -159,6 +162,15 @@ class AgentAdapter(AgentPort):
             return agent_instance
         if agent_info.name == 'ppter':
             agent_instance = PpterAgent(
+                generators_port=generators_port,
+                llm_generator=llm_generator,
+                ws_message_port=ws_message_port,
+                conversation_port=conversation_port,
+                tools_port=tools_port,
+            )
+            return agent_instance
+        if agent_info.name == 'text':
+            agent_instance = TextAgent(
                 generators_port=generators_port,
                 llm_generator=llm_generator,
                 ws_message_port=ws_message_port,
