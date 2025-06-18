@@ -2,6 +2,8 @@ from application.domain.agents.agent import Agent
 from application.port.inbound.agent_case import AgentCase
 from application.port.outbound.agent_port import AgentPort
 from common.core.container.annotate import component
+from common.core.errors.business_exception import BusinessException
+from common.core.errors.business_error_code import AgentErrorCode
 from common.utils.common_utils import create_uuid
 from application.port.outbound.tools_port import ToolsPort
 from typing import Optional, Dict, Any, List
@@ -19,9 +21,14 @@ class AgentService(AgentCase):
         self.agent_port = agent_port
         self.tools_port = tools_port
 
-    async def save(self, agent_dict: Dict[str, Any]) -> str:
-        if 'id' not in agent_dict:
-            agent_dict['id'] = create_uuid()
+    async def save(self, agent: Agent) -> str:
+        if agent.id is None:
+            agent.id = create_uuid()
+        agent.result_type = "text"
+        agent.tools_group_list = []
+        if self.agent_port.load_by_name(agent.name):
+            raise BusinessException(error_code=AgentErrorCode.HAS_SAME_NAME,
+                                  dynamics_message="extention: " + agent.name)
         # tool_list: List[Tool] = []
         # if 'tools_group' in agent_dict:
         #     for tools_group in agent_dict.pop('tools_group'):
@@ -32,7 +39,19 @@ class AgentService(AgentCase):
         #     agent = Agent(id=agent_dict['id'], name=agent_dict['name'], description=agent_dict['description'],tools=tool_list)
         # else:
         #     agent = Agent.from_init(name=agent_dict['name'], description=agent_dict['description'],tools=tool_list)
-        return self.agent_port.save(Agent.model_validate(agent_dict))
+        return self.agent_port.save(agent)
 
     async def load(self, agent_id: str) -> Optional[Agent]:
         return self.agent_port.load(agent_id)
+
+    async def remove(self, agent_id: str) -> str:
+        return self.agent_port.remove(agent_id)
+
+    async def load_extension(self) -> List[Agent]:
+        return self.agent_port.load_extension()
+
+    async def load_all(self) -> List[Agent]:
+        return self.agent_port.load_all()
+
+    async def load_by_name(self, agent_name: str) -> Optional[Agent]:
+        return self.agent_port.load_by_name(agent_name)

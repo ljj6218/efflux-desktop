@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, Iterable, List, Generator
+from typing import Optional, Dict, Any, Iterable, List, Generator, Literal
 import os
 
 from openai import OpenAI
@@ -19,10 +19,18 @@ logger = get_logger(__name__)
 class OpenAIClient(ModelClient):
 
     def __init__(self):
-        self.timeout = float(os.environ.get("OPENAI_TIMEOUT", 120.0)) # 接口超时时间
+        self.timeout = float(os.environ.get("OPENAI_TIMEOUT", 180.0)) # 接口超时时间
         self.max_retries = int(os.environ.get("OPENAI_MAX_RETRIES", 3)) # 接口最啊重试次数
 
         self.default_tool_choice: str = "auto" # 默认工具调用模式
+
+    def model_list(self, api_key: str = None, base_url: str = None):
+        # openAI client 构建
+        client: OpenAI = self._get_client(api_key=api_key,
+                                          api_base_url=base_url)
+        for model in client.models.list():
+            print(model.id)
+
 
     def generate(
             self,
@@ -39,15 +47,21 @@ class OpenAIClient(ModelClient):
         # 转换为 openAI 接口风格的工具
         openai_tools: List[ChatCompletionToolParam] = self._convert_openai_tools(tools)
 
-        tool_choice: str = self._tool_choice(openai_tools=openai_tools, generation_kwargs=generation_kwargs)
-
         try:
-            stream = client.chat.completions.create(
-                model=model,
-                messages=self._convert_openai_stream_chunk(message_list),
-                tools=None if len(openai_tools) == 0 else openai_tools,
-                tool_choice=tool_choice,
-            )
+            if len(openai_tools) > 0:
+                tool_choice: Literal["none", "auto", "required"] = self._tool_choice(
+                    generation_kwargs=generation_kwargs)
+                stream = client.chat.completions.create(
+                    model=model,
+                    messages=self._convert_openai_stream_chunk(message_list),
+                    tools=openai_tools,
+                    tool_choice=tool_choice,
+                )
+            else:
+                stream = client.chat.completions.create(
+                    model=model,
+                    messages=self._convert_openai_stream_chunk(message_list),
+                )
             return self._convert_chunk(stream)
         except Exception as exc:
             # 抛出三方调用异常
@@ -69,6 +83,28 @@ class OpenAIClient(ModelClient):
                                                  role=completion.choices[0].message.role,
                                                  tool_calls=tool_calls)
 
+    def generate_test(self,
+                      model: str = None,
+                      message_list: Iterable[ChatCompletionMessageParam] = None,
+                      api_secret: Secret = None,
+                      base_url: str = None,
+                      tools: Optional[List[Tool]] = None,
+                      **generation_kwargs,
+                      ):
+        # openAI client 构建
+        client: OpenAI = self._get_client(api_key=api_secret.resolve_value(),
+                                          api_base_url=base_url)
+        stream = client.chat.completions.create(
+            model=model,
+            messages=message_list,
+            stream=False,
+        )
+        logger.debug(stream)
+        # for event in stream:
+        #     logger.debug("============================================================================================")
+        #     logger.debug(f"原始chunk返回：{event}")
+        #     logger.debug("============================================================================================")
+
     def generate_stream(
             self,
             model: str = None,
@@ -84,20 +120,29 @@ class OpenAIClient(ModelClient):
         # 转换为 openAI 接口风格的工具
         openai_tools: List[ChatCompletionToolParam] = self._convert_openai_tools(tools)
 
-        tool_choice: str = self._tool_choice(openai_tools=openai_tools, generation_kwargs=generation_kwargs)
-
         response_format = ResponseFormatText(type="text")
         if "json_object" in generation_kwargs.keys() and generation_kwargs["json_object"]:
             response_format = ResponseFormatJSONObject(type="json_object")
         try:
-            stream = client.chat.completions.create(
-                model=model,
-                messages=self._convert_openai_stream_chunk(message_list),
-                tools=None if len(openai_tools) == 0 else openai_tools,
-                response_format=response_format,
-                tool_choice=tool_choice,
-                stream=True,
-            )
+            if len(openai_tools) > 0:
+                tool_choice: Literal["none", "auto", "required"] = self._tool_choice(generation_kwargs=generation_kwargs)
+                stream = client.chat.completions.create(
+                    model=model,
+                    messages=self._convert_openai_stream_chunk(message_list),
+                    response_format=response_format,
+                    tools=openai_tools,
+                    tool_choice=tool_choice,
+                    max_tokens=16384,
+                    stream=True,
+                )
+            else:
+                stream = client.chat.completions.create(
+                    model=model,
+                    messages=self._convert_openai_stream_chunk(message_list),
+                    response_format=response_format,
+                    max_tokens=16384,
+                    stream=True,
+                )
         except Exception as exc:
             # 抛出三方调用异常
             raise ThirdPartyServiceException(error_code=ThirdPartyServiceApiCode.LLM_SERVICE_API_ERROR, dynamics_message=f"model:{model} - exception:{str(exc)}")
@@ -249,7 +294,8 @@ class OpenAIClient(ModelClient):
                         content=completion.choices[0].delta.content, finish_reason=completion.choices[0].finish_reason,
                         reasoning_content=None if not hasattr(completion.choices[0].delta, "reasoning_content")
                             else completion.choices[0].delta.reasoning_content,
-                        role=completion.choices[0].delta.role, tool_calls=completion.choices[0].delta.tool_calls)
+                        role=completion.choices[0].delta.role if completion.choices[0].delta.role else 'assistant',
+                        tool_calls=completion.choices[0].delta.tool_calls)
         else:
             return None
 
@@ -306,10 +352,8 @@ class OpenAIClient(ModelClient):
         return openai_tools
 
     @staticmethod
-    def _tool_choice(openai_tools: List[ChatCompletionToolParam], **generation_kwargs) -> str:
-        tool_choice: str = None
-        if len(openai_tools) > 0:
-            tool_choice = "auto"
+    def _tool_choice(**generation_kwargs) -> Literal["none", "auto", "required"]:
+        tool_choice: Literal["none", "auto", "required"] = "auto"
         if "tool_choice" in generation_kwargs.keys():
             tool_choice = generation_kwargs["tool_choice"]
         return tool_choice

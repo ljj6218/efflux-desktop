@@ -27,8 +27,17 @@ class ConversationPort(ABC):
         :param dialog_segment_id:
         :return:
         """
+
+    @abstractmethod
+    def update_conversation_record(self, conversation_id: str, updated_segments: List[DialogSegment]):
+        pass
+
     @abstractmethod
     def load_agent_record(self, agent_instance_id: str) -> List[DialogSegment]:
+        pass
+
+    @abstractmethod
+    def update_agent_record(self, agent_instance_id: str, updated_segments: List[DialogSegment]):
         pass
 
     @abstractmethod

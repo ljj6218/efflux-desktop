@@ -1,12 +1,11 @@
 from typing import List, Dict, Any
 
-from adapter.agent.prompts.ppter import SYSTEM_MESSAGE_PPTER
-from application.domain.agents.agent import AgentInstance, Agent, AgentState
-from application.domain.conversation import DialogSegmentMetadata, MetadataSource, MetadataType, DialogSegment
+from adapter.agent.prompts.svger import SYSTEM_MESSAGE_SVGER
+from application.domain.agents.agent import AgentInstance, AgentState
+from application.domain.conversation import DialogSegment, DialogSegmentMetadata, MetadataSource, MetadataType
 from application.domain.events.event import Event, EventType, EventSubType, EventSource
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk
 from application.domain.generators.generator import LLMGenerator
-from application.domain.ppt import Ppt
 from application.port.outbound.conversation_port import ConversationPort
 from application.port.outbound.event_port import EventPort
 from application.port.outbound.generators_port import GeneratorsPort
@@ -18,7 +17,7 @@ from common.utils.time_utils import create_from_second_now_to_int
 
 logger = get_logger(__name__)
 
-class PpterAgent(AgentInstance):
+class SvgerAgent(AgentInstance):
 
     def __init__(
         self,
@@ -37,27 +36,14 @@ class PpterAgent(AgentInstance):
         # 拼接生成Clarification的提示词
         context_message_list = self._thread_to_context(history_message_list=history_message_list)
         content = None
-        json_type = 'ppt'
-        if "json_result_data" in payload: # 模型返回json结果
-            json_result_data = payload["json_result_data"]
-            if not json_result_data['html_code']:
-                logger.info("PpterAgent 需要用户继续澄清需求")
-                content = json_result_data['response']
-                json_type = 'ppt_content'
-            else:
-                content = json_result_data['html_code']
-                logger.info(f"ppter agent 记录自己的会话历史: {json_result_data}")
-                new_ppt = Ppt.from_init(conversation_id=self.info.conversation_id,
-                                        agent_instance_id=self.info.instance_id,
-                                        html_code=json_result_data['html_code'])
-                payload['confirm_data'] = new_ppt
-                payload['confirm_type'] = 'ppt'
-                # 删除agent请求的json
-                del payload['json_result_data']  # agent请求的删除json返回
-                del payload['json_result']  # 删除要求json结果返回标识
-                self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
-        else:
+        json_type = 'svger'
+        if "content" in payload:
+            content = payload['content']
+            logger.info(f"svger agent 记录自己的会话历史: {content}")
+            del payload['json_result']  # 删除要求json结果返回标识
+            self._send_agent_result_event(client_id=client_id, payload=payload, agent_state=AgentState.DONE)
             # 请求大模型澄清用户需求
+        else:
             self._send_llm_event(client_id=client_id, context_message_list=context_message_list, json_type= json_type)
 
         if content:
@@ -77,7 +63,7 @@ class PpterAgent(AgentInstance):
         """拼装基础system提示词和会话历史信息"""
         # 拼装系统提示词
         messages: List[ChatStreamingChunk] = [ChatStreamingChunk.from_system(
-            message=SYSTEM_MESSAGE_PPTER
+            message=SYSTEM_MESSAGE_SVGER
         )]
         # 拼装对话上下文
         messages.extend(history_message_list)
@@ -101,7 +87,7 @@ class PpterAgent(AgentInstance):
         )
         EventPort.get_event_port().emit_event(event)
 
-    def _send_llm_event(self, client_id: str, context_message_list: List[ChatStreamingChunk], json_type: str):
+    def _send_llm_event(self, client_id: str, context_message_list: List[ChatStreamingChunk], json_type: str) -> None:
         """发送大模型请求事件"""
         event = Event.from_init(
             event_type=EventType.USER_MESSAGE,
@@ -116,7 +102,7 @@ class PpterAgent(AgentInstance):
             },
             payload={
                 "agent_instance_id": self.info.instance_id,
-                "json_result": True,
+                "json_result": False,
                 "json_type": json_type,
                 "mcp_name_list": [],
                 "tools_group_name_list": [],

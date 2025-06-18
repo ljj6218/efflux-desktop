@@ -42,6 +42,23 @@ class GeneratorsPort(ABC):
         pass
 
     @abstractmethod
+    def generate_test(
+        self,
+        llm_generator: LLMGenerator,
+        validate_json: Optional[Callable[[Dict[str, Any]], bool]] = None,
+        messages: Iterable[ChatStreamingChunk] = None,
+        **generation_kwargs,
+    )-> Dict[str, Any] | None:
+        """
+        流式大模型消息返回json方法
+        :param llm_generator: 生成模型对象
+        :param validate_json: 验证json格式的回调方法
+        :param messages: 消息集合
+        :return:
+        """
+        pass
+
+    @abstractmethod
     def generate_event(
         self,
         llm_generator: LLMGenerator,

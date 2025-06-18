@@ -49,20 +49,43 @@ app.add_middleware(
 )
 
 
-def include_routers_from_package(package: str):
-    """扫描指定包，动态导入所有模块，并注册路由"""
-    # 动态导入包
-    package = import_module(package)
-    package_path = os.path.dirname(package.__file__)
-
-    # 遍历包中的所有模块
-    for _, module_name, _ in pkgutil.iter_modules([package_path]):
-        module = import_module(f"{package.__name__}.{module_name}")
-
-        # 检查该模块是否包含 router，并注册
-        if hasattr(module, 'router'):
-            app.include_router(module.router)
-
+def include_routers_from_package(package_name: str):
+    """扫描指定包，动态导入所有模块，并注册路由
+    
+    Args:
+        package_name: 包名，例如 'adapter.web.controller'
+    """
+    try:
+        # 尝试直接导入包
+        package = import_module(package_name)
+        package_path = os.path.dirname(os.path.abspath(package.__file__))
+        
+        # 获取包中所有模块
+        modules = []
+        for item in os.listdir(package_path):
+            full_path = os.path.join(package_path, item)
+            # 跳过 __pycache__ 目录和非 .py 文件
+            if item == '__pycache__' or not item.endswith('.py') or item.startswith('__'):
+                continue
+            module_name = item[:-3]  # 移除 .py 后缀
+            modules.append(module_name)
+        
+        # 导入模块并注册路由
+        for module_name in modules:
+            try:
+                full_module_name = f"{package_name}.{module_name}"
+                module = import_module(full_module_name)
+                if hasattr(module, 'router'):
+                    app.include_router(module.router)
+                    print(f"Successfully registered router from {full_module_name}")
+            except Exception as e:
+                print(f"Error importing {module_name}: {str(e)}")
+                continue
+                
+    except Exception as e:
+        print(f"Error in include_routers_from_package: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 # 扫描指定包下的所有controller
 include_routers_from_package('adapter.web.controller')
@@ -89,6 +112,18 @@ include_routers_from_package('adapter.web.controller')
 #                 reload=False,
 #                 log_level="info",
 #                 log_config=uvicorn_log_config)
+
+# # 停止服务的接口
+# @app.post("/shutdown")
+# async def shutdown_service():
+#     logger.info("即将关闭服务...")
+#     # 停止 WebSocket 服务器和 Uvicorn 服务器
+#     stop_event.set()  # 停止事件
+#
+#     return {"message": "服务正在关闭"}
+#
+# # 在主程序中管理这些服务
+# stop_event = asyncio.Event()
 
 from websockets import serve
 
@@ -149,6 +184,12 @@ async def main():
         server.serve(),
         ws_server.wait_closed(),  # 保持 WebSocket 运行
     )
+
+    # # 等待停止事件，终止应用
+    # await stop_event.wait()  # 当停止事件被触发，进程将结束
+    #
+    # # 执行 shutdown 操作
+    # await shutdown()
 
 if __name__ == "__main__":
     asyncio.run(main())

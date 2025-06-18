@@ -15,8 +15,12 @@ def user_settings_case() -> UserSettingsCase:
 
 @router.get("/llm_firm")
 async def get_llm_firm(firm: str, user_settings_service: UserSettingsCase = Depends(user_settings_case)) -> BaseResponse:
-    generator_firm_result_vo: GeneratorFirmResultVo = GeneratorFirmResultVo.from_generator_firm(await user_settings_service.load_firm_setting(firm))
-    return BaseResponse.from_success(data=generator_firm_result_vo)
+    generator_firm: GeneratorFirm = await user_settings_service.load_firm_setting(firm)
+    if generator_firm:
+        generator_firm_result_vo: GeneratorFirmResultVo = GeneratorFirmResultVo.from_generator_firm(generator_firm)
+        return BaseResponse.from_success(data=generator_firm_result_vo)
+    else:
+        return BaseResponse.from_success()
 
 
 @router.put("/llm_firm")

@@ -27,15 +27,16 @@ class InteractiveEventHandler(EventHandler):
         dialog_segment_id = event.data['dialog_segment_id']
         print('InteractiveEventHandler')
         # 记录用户确认消息
-        dialog_segment = DialogSegment.make_assistant_message(content="", id=dialog_segment_id,
-                                                              conversation_id=conversation_id,
-                                                              model="",
-                                                              timestamp=create_from_second_now_to_int(),
-                                                              payload=event.payload,
-                                                              metadata=DialogSegmentMetadata(
-                                                                  source=MetadataSource.AGENT,
-                                                                  type=MetadataType.USER_CONFIRMATION))
-        self.conversation_port.add_agent_record(dialog_segment)
+        if 'agent_instance_id' in event.payload:
+            dialog_segment = DialogSegment.make_assistant_message(content="", id=dialog_segment_id,
+                                                                  conversation_id=conversation_id,
+                                                                  model="",
+                                                                  timestamp=create_from_second_now_to_int(),
+                                                                  payload=event.payload,
+                                                                  metadata=DialogSegmentMetadata(
+                                                                      source=MetadataSource.AGENT,
+                                                                      type=MetadataType.USER_CONFIRMATION))
+            self.conversation_port.add_agent_record(dialog_segment)
         # 发送ws消息
         self.ws_message_port.send(event)
 

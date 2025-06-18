@@ -37,6 +37,23 @@ class MCPServerAdapter(MCPServerPort):
             mcp_server.applied = True
         return mcp_server
 
+    def add(self, mcp_server: MCPServer) -> MCPServer:
+        mcp_servers_hub = JSONFileUtil(self.mcp_servers_hub_file_url)
+        mcp_server_dict = mcp_server.model_dump()
+        if "applied" in mcp_server_dict:
+            del mcp_server_dict["applied"]
+        if "enabled" in mcp_server_dict:
+            del mcp_server_dict["enabled"]
+        if "execute_authorization" in mcp_server_dict:
+            del mcp_server_dict["execute_authorization"]
+        mcp_servers_hub.update_key(mcp_server.server_name, mcp_server_dict)
+        return mcp_server
+
+    def remove(self, server_name: str) -> str:
+        mcp_servers_hub = JSONFileUtil(self.mcp_servers_hub_file_url)
+        mcp_servers_hub.delete(server_name)
+        return server_name
+
     def load_applied(self, server_name: str) -> Optional[MCPServer]:
         user_mcp_servers = JSONFileUtil(self.user_mcp_servers_file_url)
         mcp_server_dict = user_mcp_servers.read_key(server_name)

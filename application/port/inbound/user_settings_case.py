@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
 from application.domain.generators.firm import GeneratorFirm
-from typing import List
+from typing import List, Optional
+
 
 class UserSettingsCase(ABC):
 
     @abstractmethod
-    async def load_firm_setting(self, firm_name: str) -> GeneratorFirm:
+    async def load_firm_setting(self, firm_name: str) -> Optional[GeneratorFirm]:
         """
         获取模型厂商配置
         :param firm_name: 模型厂商名

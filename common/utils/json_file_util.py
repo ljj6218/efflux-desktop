@@ -4,6 +4,8 @@ import re
 from common.core.logger import get_logger
 from typing import Optional, Dict, Any
 
+from common.utils.file_util import current_directory
+
 # 获取logger实例
 logger = get_logger(__name__)
 
@@ -14,6 +16,11 @@ class JSONFileUtil:
         self.file_path = file_path
         # 确保文件存在，如果不存在则创建空的 JSON 文件
         if not os.path.exists(self.file_path):
+            # 获取文件夹路径
+            folder_path = os.path.dirname(self.file_path)
+            if not folder_path:
+                # 获取当前工作目录
+                self.file_path = current_directory() + "/" + self.file_path
             # 确保文件所在的目录存在
             os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
             logger.debug(f"文件 {self.file_path} 不存在，创建一个空的 JSON 文件.")
@@ -136,3 +143,41 @@ class JSONFileUtil:
             except json.JSONDecodeError:
                 return None
         return None
+
+    @staticmethod
+    def process_string(s: str) -> Optional[str]:
+        if '{' in s:
+            # 找到 '{' 的位置，并返回从该位置到字符串结束的部分
+            return s[s.find('{'):]  # 或者 s.split('{', 1)[1] 也可以达到同样效果
+        else:
+            return None
+
+    @staticmethod
+    def process_string_reverse(s: str) -> Optional[str]:
+        if '}' in s:
+            # 找到 '}' 的位置，并返回从字符串开始到该位置的部分
+            return s[:s.find('}') + 1]  # 包括 '}' 本身
+        else:
+            return None  # 如果不包含 '}'，则返回原字符串
+
+    @staticmethod
+    def find_json_end(stream: str) -> Optional[str]:
+        brace_count = 0  # 用于计数花括号的配对情况
+        json_start = None  # 保存开始的索引
+        json_end = None  # 保存结束的索引
+
+        for idx, char in enumerate(stream):
+            if char == '{':
+                if brace_count == 0:  # 找到 JSON 开始
+                    json_start = idx
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+                if brace_count == 0:  # 找到 JSON 结束
+                    json_end = idx + 1  # 包括当前 `}`，所以是 idx + 1
+                    break
+
+        if json_start is not None and json_end is not None:
+            return stream[json_start:json_end]
+        else:
+            return None  # 如果没有找到完整的 JSON，返回 None

@@ -9,17 +9,26 @@ class MCPServerVo(BaseModel):
     server_description: Optional[str] = None
     # mcp server 是否启用
     applied: Optional[bool] = False
+    # mcp server 是否启用
+    enabled: Optional[bool] = True
+    # tag
+    server_tag: Optional[str] = None
     # 授权自动执行
-    execute_authorization: bool = False
+    execute_authorization: Optional[bool] = False
     # mcp server 配置 env list
-    env: Dict[str, str] = None
+    env: Optional[Dict[str, Optional[str]]] = None
     # mcp server 配置 arg list
-    args: List[str] = None
+    args: Optional[List[str]] = None
     # mcp server 配置 command
-    command: str = None
+    command: Optional[str] = None
 
     def convert_mcp_server(self) -> MCPServer:
-        return MCPServer.model_validate(self.model_dump())
+        vo_dict = self.model_dump()
+        if "env" in vo_dict.keys() and not vo_dict['env']:
+            vo_dict['env'] = {}
+        if "args" in vo_dict.keys() and not vo_dict["args"]:
+            vo_dict["args"] = []
+        return MCPServer.model_validate(vo_dict)
 
 class MCPServerResultVo(BaseModel):
     # mcp server 名字
@@ -33,11 +42,11 @@ class MCPServerResultVo(BaseModel):
     # 授权自动执行
     execute_authorization: bool = False
     # mcp server 配置 env list
-    env: Dict[str, str] = None
+    env: Dict[str, Optional[str]] = None
     # mcp server 配置 arg list
-    args: List[str] = None
+    args: Optional[List[str]] = None
     # mcp server 配置 command
-    command: str = None
+    command: Optional[str] = None
 
     @classmethod
     def from_mcp_server(cls, mcp_server: MCPServer):
@@ -51,11 +60,11 @@ class MCPServerAppliedResultVo(BaseModel):
     # mcp server 是否启用
     enabled: bool = True
     # mcp server 配置 env list
-    env: Dict[str, str] = None
+    env: Dict[str, Optional[str]] = None
     # mcp server 配置 arg list
-    args: List[str] = None
+    args: Optional[List[str]] = None
     # mcp server 配置 command
-    command: str = None
+    command: Optional[str] = None
 
     @classmethod
     def from_mcp_server(cls, mcp_server: MCPServer):

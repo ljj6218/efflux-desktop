@@ -1,7 +1,7 @@
 from application.domain.generators.firm import GeneratorFirm
 from application.port.outbound.user_setting_port import UserSettingPort
 from common.core.container.annotate import component
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from common.utils.json_file_util import JSONFileUtil
 from common.utils.yaml_util import load_yaml
 
@@ -13,10 +13,11 @@ class UserSettingAdapter(UserSettingPort):
     def __init__(self, ):
         self.config: Dict[str, Any] = load_yaml('adapter/model_sdk/setting/openai/model.yaml')
 
-    def load_firm_setting(self, firm_name: str) -> GeneratorFirm:
+    def load_firm_setting(self, firm_name: str) -> Optional[GeneratorFirm]:
         user_setting = JSONFileUtil(self.user_setting_file_url)
         firm_setting = user_setting.read_key(firm_name)
-        return GeneratorFirm.model_validate(firm_setting)
+        if firm_setting:
+            return GeneratorFirm.model_validate(firm_setting)
 
     def set_firm_setting(self, generator_firm: GeneratorFirm) -> bool:
         user_setting = JSONFileUtil(self.user_setting_file_url)

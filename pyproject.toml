@@ -23,6 +23,7 @@ dependencies = [
     "pdfminer-six>=20250327",
     "pillow>=11.2.1",
     "playwright>=1.52.0",
+    "pyinstaller>=6.14.1",
     "python-multipart>=0.0.20",
     "pyyaml>=6.0.2",
     "socksio>=1.0.0",

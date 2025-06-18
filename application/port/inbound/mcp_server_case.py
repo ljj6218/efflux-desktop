@@ -21,6 +21,22 @@ class McpServerCase(ABC):
         """
 
     @abstractmethod
+    async def add(self, mcp_server: MCPServer) -> MCPServer:
+        """
+        添加mcp-server定义
+        :param mcp_server:
+        :return:
+        """
+
+    @abstractmethod
+    async def remove(self, server_name: str) -> str:
+        """
+        删除mcp-server定义
+        :param server_name:
+        :return:
+        """
+
+    @abstractmethod
     async def load_applied(self, server_name: str) -> MCPServer:
         """
         获取已应用的mcp

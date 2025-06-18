@@ -19,6 +19,12 @@ class McpServerService(McpServerCase):
     async def load(self, server_name: str) -> MCPServer:
         return self.mcp_server_port.load(server_name)
 
+    async def add(self, mcp_server: MCPServer) -> MCPServer:
+        return self.mcp_server_port.add(mcp_server)
+
+    async def remove(self, server_name: str) -> str:
+        return self.mcp_server_port.remove(server_name)
+
     async def load_applied(self, server_name: str) -> MCPServer:
         return self.mcp_server_port.load_applied(server_name)
 

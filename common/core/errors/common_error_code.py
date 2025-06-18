@@ -23,5 +23,6 @@ class CommonErrorCode(BaseErrorCode):
     # ===== 数据错误 (520-599)=====
     CACHE_NOT_FOUND = (520, "缓存不存在")
     CACHE_RECORD_NOT_FOUND = (521, "缓存记录不存在")
-
+    DIALOG_SEGMENT_CONTENT_JSON_DECODE_ERROR = (522, "对话片段content json解析失败")
+    DIALOG_SEGMENT_NOT_FOUND = (523, "对话片段不存在")
     # ===== 业务错误 (1000-9999) =====

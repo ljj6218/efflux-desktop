@@ -2,7 +2,10 @@ from application.domain.tasks.task import TaskType, Task, TaskState
 from application.domain.events.event import Event, EventType, EventGroupStatus, EventSubType, EventGroup, EventSource
 from application.port.inbound.task_handler import TaskHandler
 from common.core.container.annotate import component
+from common.core.errors.business_error_code import GeneratorErrorCode
+from common.core.errors.business_exception import BusinessException
 from common.utils.common_utils import create_uuid, CONVERSATION_STOP_FLAG_KEY
+from common.utils.json_file_util import JSONFileUtil
 from common.utils.time_utils import create_from_second_now_to_int
 from application.port.outbound.event_port import EventPort
 from application.domain.generators.firm import GeneratorFirm
@@ -77,10 +80,11 @@ class LLMTaskHandler(TaskHandler):
         dialog_segment_id = task.data['dialog_segment_id']
         generator_id = task.data['generator_id']
 
-        mcp_name_list = task.payload['mcp_name_list']
-        tools_group_name_list = task.payload['tools_group_name_list']
+        mcp_name_list = task.payload['mcp_name_list'] if 'mcp_name_list' in task.payload else []
+        tools_group_name_list = task.payload['tools_group_name_list'] if 'tools_group_name_list' in task.payload else []
         agent_instance_id = task.payload['agent_instance_id'] if 'agent_instance_id' in task.payload else None
         json_result = task.payload['json_result'] if 'json_result' in task.payload else None
+        json_type = task.payload['json_type'] if 'json_type' in task.payload else None
         message_list = task.payload['context_message_list']
 
         # 获取LLMGenerator
@@ -113,8 +117,12 @@ class LLMTaskHandler(TaskHandler):
         started_event_sent = False
         # 停止标记
         stop_flag = False
-        # # 完整结果
-        # full_content = ""
+        # json 开始标识
+        json_start_flag = False
+        # json 结束标识
+        json_end_flag = False
+        # json 内容
+        json_content = ""
         for chunk in self.generators_port.generate_event(llm_generator=llm_generator, messages=messages, tools=tools, json_object=json_result):
             if chunk.usage: # 跳过用量chunk消息
                 continue
@@ -142,12 +150,41 @@ class LLMTaskHandler(TaskHandler):
                     payload={
                         "agent_instance_id": agent_instance_id,
                         "mcp_name_list": mcp_name_list,
-                        "tools_group_name_list": tools_group_name_list
+                        "tools_group_name_list": tools_group_name_list,
+                        "json_result": json_result,
+                        "json_type": json_type
                     }
                 )
                 logger.info(f"任务处理器[{self.type()}]发起[{event.type} - {event.sub_type}]事件：[ID：{event.id}]")
                 EventPort.get_event_port().emit_event(event)
                 continue
+            # json 开始标识记录并截取字段
+            if json_result and not json_start_flag:
+                if chunk.content:
+                    text = JSONFileUtil.process_string(chunk.content)
+                    if text:
+                        json_start_flag = True
+                        chunk.content = text
+                        group_status = EventGroupStatus.STARTED
+            if json_result and not json_start_flag:
+                logger.info(f"json结果，跳过开始chunk：{chunk.content}")
+                continue
+            # json 结束标记
+            if json_result and json_start_flag and chunk.content:
+                # 拼接json结果
+                json_content += chunk.content
+                if JSONFileUtil.find_json_end(json_content):
+                    text = JSONFileUtil.process_string_reverse(chunk.content)
+                    if text:
+                        json_end_flag = True
+                        chunk.content = text
+                        group_status = EventGroupStatus.ENDED
+
+            if json_result and json_start_flag and json_end_flag and chunk.content:
+                if not JSONFileUtil.process_string_reverse(chunk.content): # 判断最后“}”
+                    logger.info(f"json结果，跳过结束chunk：{chunk.content}")
+                    continue
+
             # 消息返回
             event = chunk.to_assistant_message_event(
                 id=uuid,
@@ -161,36 +198,13 @@ class LLMTaskHandler(TaskHandler):
                     "mcp_name_list": mcp_name_list,
                     "tools_group_name_list": tools_group_name_list,
                     "json_result": json_result,
+                    "json_type": json_type,
                 }
             )
             EventPort.get_event_port().emit_event(event)
-            # if chunk.content and json_result:
-            #     full_content += chunk.content
             if stop_flag:
                 self._send_system_stop_event(uuid=uuid, agent_id=agent_instance_id, conversation_id=conversation_id, client_id=client_id)
                 break
-
-        # if json_result:
-        #     # 发送返回json结果事件
-        #     event = Event.from_init(
-        #         client_id=client_id,
-        #         event_type=EventType.ASSISTANT_MESSAGE,
-        #         event_sub_type=EventSubType.MESSAGE,
-        #         payload=task.payload,
-        #         source=EventSource.LLM_HANDLER,
-        #         data={
-        #             "id": uuid,
-        #             "conversation_id": conversation_id,
-        #             "dialog_segment_id": dialog_segment_id,
-        #             "generator_id": generator_id,
-        #             "model": llm_generator.model,
-        #             "content": full_content,
-        #             "created": create_from_second_now_to_int(),
-        #             "finish_reason": 'stop',
-        #         }
-        #     )
-        #     EventPort.get_event_port().emit_event(event)
-
 
     def _send_system_stop_event(self, uuid: str, conversation_id: str, agent_id: str, client_id: str):
         """
@@ -228,6 +242,8 @@ class LLMTaskHandler(TaskHandler):
     def _llm_generator(self, generator_id: str) -> LLMGenerator:
         # 获取厂商api key
         llm_generator: LLMGenerator = self.generators_port.load_generate(generator_id)
+        if llm_generator is None:
+            raise BusinessException(error_code=GeneratorErrorCode.GENERATOR_NOT_FOUND, dynamics_message=generator_id)
         firm: GeneratorFirm = self.user_setting_port.load_firm_setting(llm_generator.firm)
         llm_generator.set_api_key_secret(firm.api_key)
         llm_generator.check_firm_api_key()
