@@ -62,7 +62,7 @@ class AgentAdapter(AgentPort):
             prompts['SYSTEM_MESSAGE_CLARIFICATION'] = SYSTEM_MESSAGE_CLARIFICATION
         if agent_info.name == "ppter":
             prompts['SYSTEM_MESSAGE_PPTER'] = SYSTEM_MESSAGE_PPTER
-        if agent_info.name == "text":
+        if agent_info.result_type == "text":
             prompts = agent_info.agent_prompts
         if agent_info.name == "svger":
             prompts['SYSTEM_MESSAGE_SVGER'] = SYSTEM_MESSAGE_SVGER
@@ -108,6 +108,11 @@ class AgentAdapter(AgentPort):
                 agent.agent_prompts = self._load_prompt_list(agent.info(conversation_id="1", dialog_segment_id="1", generator_id="1", instance_id="1"))
                 return agent
         return None
+
+    def remove(self, agent_id: str) -> str:
+        agent_config = JSONFileUtil(self.agent_file_url)
+        agent_config.delete(agent_id)
+        return agent_id
 
     def load_by_name(self, agent_name: str) -> Optional[Agent]:
         agent_config = JSONFileUtil(self.agent_file_url)
@@ -173,7 +178,7 @@ class AgentAdapter(AgentPort):
                 tools_port=tools_port,
             )
             return agent_instance
-        if agent_info.name == 'text':
+        if agent_info.result_type and agent_info.result_type == 'text':
             agent_instance = TextAgent(
                 generators_port=generators_port,
                 llm_generator=llm_generator,
@@ -222,4 +227,16 @@ class AgentAdapter(AgentPort):
             agent = Agent.model_validate(agent_dict)
             res.append(agent)
 
+        return res
+
+
+    def load_extension(self) -> List[Agent]:
+        agent_config = JSONFileUtil(self.agent_file_url)
+        res: List[Agent] = []
+        # 遍历所有agent
+        for agent_dict_id in agent_config.read().keys():
+            agent_dict = agent_config.read_key(agent_dict_id)
+            agent = Agent.model_validate(agent_dict)
+            if agent.result_type and agent.result_type == 'text':
+                res.append(agent)
         return res

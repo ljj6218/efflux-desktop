@@ -19,7 +19,7 @@ logger = get_logger(__name__)
 class OpenAIClient(ModelClient):
 
     def __init__(self):
-        self.timeout = float(os.environ.get("OPENAI_TIMEOUT", 120.0)) # 接口超时时间
+        self.timeout = float(os.environ.get("OPENAI_TIMEOUT", 180.0)) # 接口超时时间
         self.max_retries = int(os.environ.get("OPENAI_MAX_RETRIES", 3)) # 接口最啊重试次数
 
         self.default_tool_choice: str = "auto" # 默认工具调用模式
@@ -132,7 +132,7 @@ class OpenAIClient(ModelClient):
                     response_format=response_format,
                     tools=openai_tools,
                     tool_choice=tool_choice,
-                    max_tokens=4096,
+                    max_tokens=16384,
                     stream=True,
                 )
             else:
@@ -140,7 +140,7 @@ class OpenAIClient(ModelClient):
                     model=model,
                     messages=self._convert_openai_stream_chunk(message_list),
                     response_format=response_format,
-                    max_tokens=4096,
+                    max_tokens=16384,
                     stream=True,
                 )
         except Exception as exc:

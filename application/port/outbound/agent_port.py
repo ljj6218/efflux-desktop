@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from application.domain.agents.agent import Agent, AgentInstance, AgentInfo
-from application.domain.conversation import DialogSegment
 from typing import Optional, List
 from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.conversation_port import ConversationPort
@@ -17,6 +16,10 @@ class AgentPort(ABC):
 
     @abstractmethod
     def load(self, agent_id: str) -> Optional[Agent]:
+        pass
+
+    @abstractmethod
+    def remove(self, agent_id: str) -> str:
         pass
 
     @abstractmethod
@@ -53,4 +56,8 @@ class AgentPort(ABC):
 
     @abstractmethod
     def load_all(self):
+        pass
+
+    @abstractmethod
+    def load_extension(self) -> List[Agent]:
         pass
