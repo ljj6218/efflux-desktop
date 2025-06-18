@@ -20,5 +20,16 @@
             }
         ],
         "description": "SVG Agent"
+    },
+    "627392f3-2c64-44f1-9534-f123dc1d7b67": {
+        "id": "627392f3-2c64-44f1-9534-f123dc1d7b67",
+        "name": "test",
+        "generator_id": "627392f3-2c64-44f1-9534-f123dc1d7b67",
+        "tools_group_list": [],
+        "description": "这是个测试agent",
+        "agent_prompts": {
+            "SYSTEM_PROMPT": "123123123"
+        },
+        "result_type": "text"
     }
 }

@@ -13,3 +13,6 @@ class ToolsErrorCode(BaseErrorCode):
 
 class MCPServerErrorCode(BaseErrorCode):
     NO_APIKEY_FOUND = (1001, "未找到指定厂商的apikey")
+
+class AgentErrorCode(BaseErrorCode):
+    HAS_SAME_NAME = (1101, "extension name 相同")

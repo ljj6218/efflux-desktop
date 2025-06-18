@@ -55,11 +55,10 @@ class AgentTaskHandler(TaskHandler):
         if not history_conversation:
             raise BusinessException(error_code=GeneratorErrorCode.NO_CONVERSATION_FOUND,
                                     dynamics_message=conversation_id)
-
-        # 获取agent实例
-        generator = self._llm_generator(generator_id=generator_id)
         # 获取 agent 实例，并保存调用记录
         agent_info: AgentInfo = self.agent_port.load_instance_info(instance_id=agent_instance_id, conversation_id=conversation_id)
+        # 获取agent实例
+        generator = self._llm_generator(generator_id=agent_info.generator_id if agent_info.generator_id else generator_id)
         # 创建可执行Agent实例
         agent_instance = self.agent_port.make_instance(
             agent_info=agent_info,

@@ -21,10 +21,11 @@ class AgentState(Enum):
 
 class Agent(BaseModel):
 
-    id: str
-    name: str
+    id: Optional[str] = None
+    name: Optional[str] = None
+    generator_id: Optional[str] = None
     tools_group_list: Optional[List[Dict[str, Any]]] = None
-    description: str
+    description: Optional[str] = None
     agent_prompts: Optional[Dict[str, str]] = None
     result_type: Optional[Literal["text", "html", "svg", "code"]] = None
 
@@ -43,18 +44,21 @@ class Agent(BaseModel):
             agent_prompts = self.agent_prompts,
             conversation_id = conversation_id,
             dialog_segment_id = dialog_segment_id,
-            generator_id = generator_id,
+            result_type = self.result_type,
+            generator_id = self.generator_id if self.generator_id else generator_id,
             instance_id=instance_id,
             state=AgentState.INIT,
         )
 
 class AgentInfo(BaseModel):
     # 持久化
-    id: str
-    name: str
-    tools_group_list: List[Dict[str, Any]]
-    description: str
-    agent_prompts:  Optional[Dict[str, str]] =None
+    id: Optional[str] = None
+    name: Optional[str] = None
+    generator_id: Optional[str] = None
+    tools_group_list: Optional[List[Dict[str, Any]]] = None
+    description: Optional[str] = None
+    agent_prompts: Optional[Dict[str, str]] = None
+    result_type: Optional[Literal["text", "html", "svg", "code"]] = None
 
     # 运行状态
     state: Optional[AgentState] = None
@@ -72,8 +76,8 @@ class AgentInfo(BaseModel):
         data = super().model_dump()
         # 转换 为字符串
         data['state'] = self.state.value if self.state else None
-        if 'agent_prompts' in data:
-            del data['agent_prompts']
+        # if 'agent_prompts' in data:
+        #     del data['agent_prompts']
         return data
 
     @classmethod
