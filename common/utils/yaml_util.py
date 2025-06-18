@@ -1,10 +1,10 @@
 import yaml
 from typing import Dict
-
+from common.utils.file_util import get_resource_path
 
 # 读取 YAML 文件并解析为字典
 def load_yaml(filename: str) -> Dict:
-    with open(filename, 'r') as file:
+    with open(get_resource_path(filename), 'r') as file:
         return yaml.safe_load(file)
 
 

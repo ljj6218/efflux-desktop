@@ -2,13 +2,12 @@ from adapter.agent.prompts.clarification import SYSTEM_MESSAGE_CLARIFICATION
 from adapter.agent.prompts.ppter import SYSTEM_MESSAGE_PPTER
 from adapter.agent.prompts.svger import SYSTEM_MESSAGE_SVGER
 from application.domain.agents.agent import Agent, AgentInstance, AgentInfo
-from application.domain.agents.browser_agent import BrowserAgent
+# from application.domain.agents.browser_agent import BrowserAgent
 from application.domain.agents.clarification_agent import ClarificationAgent
 from application.domain.agents.plan_agent import PlanAgent
 from application.domain.agents.ppter_agent import PpterAgent
 from application.domain.agents.text_agent import TextAgent
 from application.domain.agents.svger_agent import SvgerAgent
-from application.domain.conversation import DialogSegment
 from application.domain.generators.generator import LLMGenerator
 from application.port.outbound.agent_port import AgentPort
 from application.port.outbound.conversation_port import ConversationPort
@@ -16,16 +15,13 @@ from application.port.outbound.generators_port import GeneratorsPort
 from application.port.outbound.tools_port import ToolsPort
 from application.port.outbound.ws_message_port import WsMessagePort
 from common.core.container.annotate import component
-from common.utils.file_util import check_file_and_create, check_file
 from common.utils.json_file_util import JSONFileUtil
 from typing import Optional, Dict, List
 
-import jsonlines
 import asyncio
 
 from adapter.agent.prompts.browser import (
     WEB_SURFER_OCR_PROMPT,
-    WEB_SURFER_QA_PROMPT,
     WEB_SURFER_QA_SYSTEM_MESSAGE,
     WEB_SURFER_TOOL_PROMPT,
     WEB_SURFER_SYSTEM_MESSAGE,
@@ -128,20 +124,20 @@ class AgentAdapter(AgentPort):
 
     def make_instance(self, agent_info: AgentInfo, llm_generator: LLMGenerator, generators_port: GeneratorsPort,
                       conversation_port: ConversationPort, ws_message_port: WsMessagePort, tools_port: ToolsPort) -> Optional[AgentInstance]:
-        if agent_info.name == 'websurfer':
-            agent_instance = BrowserAgent(
-                generators_port=generators_port,
-                llm_generator=llm_generator,
-                ws_message_port=ws_message_port,
-                conversation_port=conversation_port,
-                tools_port=tools_port,
-            )
-            asyncio.run(
-                agent_instance.lazy_init(
-                    config={}
-                )
-            )
-            return agent_instance
+        # if agent_info.name == 'websurfer':
+        #     agent_instance = BrowserAgent(
+        #         generators_port=generators_port,
+        #         llm_generator=llm_generator,
+        #         ws_message_port=ws_message_port,
+        #         conversation_port=conversation_port,
+        #         tools_port=tools_port,
+        #     )
+        #     asyncio.run(
+        #         agent_instance.lazy_init(
+        #             config={}
+        #         )
+        #     )
+        #     return agent_instance
         if agent_info.name == 'plan':
             agent_instance = PlanAgent(
                 generators_port=generators_port,

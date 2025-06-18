@@ -1,17 +1,4 @@
 {
-    "amap-maps": {
-        "server_name": "amap-maps",
-        "server_description": "高德地图mcp",
-        "server_tag": "aaa",
-        "env": {
-            "AMAP_MAPS_API_KEY": "35d26c1a67336ce108a6df5fccbd5e0b"
-        },
-        "args": [
-            "-y",
-            "@amap/amap-maps-mcp-server"
-        ],
-        "command": "npx"
-    },
     "google-search": {
         "server_name": "google-search",
         "server_description": "谷歌搜索mcp",
@@ -26,17 +13,28 @@
             "GOOGLE_SEARCH_ENGINE_ID": ""
         }
     },
-    "playwright": {
-        "server_name": "playwright",
-        "server_description": "",
+    "amap-maps": {
+        "server_name": "amap-maps",
+        "server_description": "Description for amap-maps",
+        "server_tag": null,
+        "env": {
+            "AMAP_MAPS_API_KEY": "api_key"
+        },
+        "args": [
+            "-y",
+            "@amap/amap-maps-mcp-server"
+        ],
+        "command": "npx"
+    },
+    "time": {
+        "server_name": "time",
+        "server_description": "Description for time",
         "server_tag": null,
         "env": {},
         "args": [
-            "--directory",
-            "/Users/siyong/PycharmProjects/mcp_servers/mcp-playwright",
-            "run",
-            "@modelcontextprotocol/playwright-mcp-server"
+            "mcp-server-time",
+            "--local-timezone=America/New_York"
         ],
-        "command": "npx"
+        "command": "uvx"
     }
 }

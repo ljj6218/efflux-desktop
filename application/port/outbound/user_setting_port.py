@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
 from application.domain.generators.firm import GeneratorFirm
-from typing import List
+from typing import List, Optional
+
 
 class UserSettingPort(ABC):
 
     @abstractmethod
-    def load_firm_setting(self, firm_name: str) -> GeneratorFirm:
+    def load_firm_setting(self, firm_name: str) -> Optional[GeneratorFirm]:
         """
         获取指定模型厂商的api key
         :param firm_name: 厂商名
