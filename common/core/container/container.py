@@ -5,6 +5,7 @@ import importlib
 import injector
 from injector import Injector
 import sys
+from typing import Type, get_args
 from common.core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -57,13 +58,36 @@ class Container(injector.Module):
                     # 如果是抽象基类，绑定抽象基类到这个实现
                     logger.info(f"Binding abstract class {base.__name__} to implementation {cls.__name__}")
                     binder.bind(base, to=cls, scope=injector.singleton)
+        # 处理集合类型注入（如 List[TaskHandler]）
+        for cls in component_classes:
+            # 检查是否有构造函数，获取参数类型
+            if hasattr(cls, '__init__'):
+                signature = inspect.signature(cls.__init__)
+                for param in signature.parameters.values():
+                    param_type = param.annotation
+                    # 如果参数类型是 List[TaskHandler]
+                    if hasattr(param_type, "__origin__") and param_type.__origin__ is list:
+                        item_type = param_type.__args__[0]  # 获取 List 中的类型
+                        task_handlers = []
+                        # 收集所有 TaskHandler 实现类
+                        for component_class in component_classes:
+                            cc = extract_type(item_type)
+                            if issubclass(component_class, cc):
+                                task_handlers.append(component_class)
+                        binder.multibind(param_type, to=task_handlers, scope=injector.singleton)
 
-def convert_path_to_module(path):
+def extract_type(annotated_type):
+    # 如果是 Type[SomeClass]，返回 SomeClass
+    if hasattr(annotated_type, '__origin__') and annotated_type.__origin__ is type:
+        return get_args(annotated_type)[0]
+    return annotated_type
+
+def convert_path_to_module(path) -> str:
     """将文件路径转换为模块路径"""
     rel_path = os.path.relpath(path, PROJECT_ROOT)
     # 将路径分隔符替换为点，并移除.py扩展名
     module_path = rel_path.replace('/', '.').replace('\\', '.').replace('.py', '')
-    return module_path
+    return str(module_path)
 
 def scan_for_components(package_name, component_classes):
     """
@@ -102,9 +126,11 @@ def scan_for_components(package_name, component_classes):
                     processed_modules.add(item_path)
                     try:
                         # 将文件路径转换为模块路径
-                        module_name = convert_path_to_module(item_path)
+                        module_name: str = convert_path_to_module(item_path)
+                        # print(module_name)
                         # 使用常规导入方式，这样可以正确处理相对导入
-                        module = importlib.import_module(module_name)
+                        module = importlib.import_module(name=module_name)
+                        # print(f"导入--》{module_name}")
                         # 查找所有标记为组件的类
                         for name, obj in inspect.getmembers(module, inspect.isclass):
                             if hasattr(obj, '__component__'):
@@ -119,7 +145,7 @@ def get_container() -> Injector:
     # 确保项目根目录在 Python 路径中，以支持模块导入
     if PROJECT_ROOT not in sys.path:
         sys.path.insert(0, PROJECT_ROOT)
-    
+
     if not hasattr(get_container, "container_instance"):
         get_container.container_instance = injector.Injector(Container())
     return get_container.container_instance

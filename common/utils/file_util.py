@@ -1,4 +1,43 @@
 import base64
+import os
+import sys
+from typing import Optional
+
+def check_file_and_create(file_url: str, init_str:Optional[str] = None):
+    # 获取文件夹路径
+    folder_path = os.path.dirname(file_url)
+    if not folder_path:
+        # 获取当前工作目录
+        folder_path = current_directory()
+        print("当前目录是:", current_directory)
+    # 如果文件夹不存在，则创建文件夹
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)  # 创建多级目录
+        print(f"Folder {folder_path} has been created.")
+    # 如果文件不存在，则创建该文件
+    if not os.path.exists(file_url):
+        with open(file_url, 'w') as file:  # 打开文件并自动创建
+            print(f"File {file_url} has been created.")
+            if init_str:
+                file.write(init_str)
+            pass  # 不需要写入任何内容，仅用于创建文件
+
+def current_directory():
+    # 获取当前工作目录
+    return os.getcwd()
+
+def check_file(file_url: str):
+    # 判断文件是否存在
+    if os.path.exists(file_url):
+        return True
+    return False
+
+def del_file(file_url: str):
+    if os.path.exists(file_url):
+        os.remove(file_url)
+        print(f"File {file_url} has been removed.")
+    else:
+        print(f"File {file_url} does not exist.")
 
 def open_and_base64(file_path: str) -> str:
     with open(file_path, "rb") as f:
@@ -6,6 +45,17 @@ def open_and_base64(file_path: str) -> str:
         base64_encoded = base64.b64encode(file_content).decode("utf-8")
         return base64_encoded
 
+
+def get_resource_path(relative_path):
+    # PyInstaller 包装后的文件会有 _MEIPASS 属性
+    if hasattr(sys, '_MEIPASS'):
+        # 打包后的路径
+        base_path = sys._MEIPASS
+    else:
+        # 非打包环境
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 from pdfminer.high_level import extract_text
 

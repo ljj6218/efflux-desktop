@@ -17,13 +17,12 @@ class CommonErrorCode(BaseErrorCode):
     INVALID_TOKEN = (434, "无效令牌")
     PERMISSION_DENIED = (435, "权限不足")
 
-    # ===== 通用错误 (500-599) =====
+    # ===== 通用错误 (500-519) =====
     INTERNAL_SERVER_ERROR = (500, "未知错误")
 
-    # ===== 数据错误 (500-599)=====
-    DB_CONNECTION_FAILED = (519, "数据库连接失败")
-    RECORD_NOT_FOUND = (520, "数据库记录不存在")
-    DUPLICATE_ENTRY = (521, "数据重复插入")
-    TRANSACTION_FAILED = (522, "事务执行失败")
-
+    # ===== 数据错误 (520-599)=====
+    CACHE_NOT_FOUND = (520, "缓存不存在")
+    CACHE_RECORD_NOT_FOUND = (521, "缓存记录不存在")
+    DIALOG_SEGMENT_CONTENT_JSON_DECODE_ERROR = (522, "对话片段content json解析失败")
+    DIALOG_SEGMENT_NOT_FOUND = (523, "对话片段不存在")
     # ===== 业务错误 (1000-9999) =====

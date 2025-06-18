@@ -1,0 +1,40 @@
+{
+    "google-search": {
+        "server_name": "google-search",
+        "server_description": "谷歌搜索mcp",
+        "server_tag": "bbb",
+        "command": "npx",
+        "args": [
+            "-y",
+            "@adenot/mcp-google-search"
+        ],
+        "env": {
+            "GOOGLE_API_KEY": "",
+            "GOOGLE_SEARCH_ENGINE_ID": ""
+        }
+    },
+    "amap-maps": {
+        "server_name": "amap-maps",
+        "server_description": "Description for amap-maps",
+        "server_tag": null,
+        "env": {
+            "AMAP_MAPS_API_KEY": "api_key"
+        },
+        "args": [
+            "-y",
+            "@amap/amap-maps-mcp-server"
+        ],
+        "command": "npx"
+    },
+    "time": {
+        "server_name": "time",
+        "server_description": "Description for time",
+        "server_tag": null,
+        "env": {},
+        "args": [
+            "mcp-server-time",
+            "--local-timezone=America/New_York"
+        ],
+        "command": "uvx"
+    }
+}

@@ -1,0 +1,35 @@
+{
+    "f83b0799-366c-4b1b-8983-050ef0ebcf49": {
+        "id": "f83b0799-366c-4b1b-8983-050ef0ebcf49",
+        "name": "ppter",
+        "tools_group_list": [
+            {
+                "group_name": "browser",
+                "type": "LOCAL"
+            }
+        ],
+        "description": "PPT Agent"
+    },
+    "f83b0799-366c-4b1b-8983-050ef0ebcf50": {
+        "id": "f83b0799-366c-4b1b-8983-050ef0ebcf50",
+        "name": "汉语新解",
+        "tools_group_list": [
+            {
+                "group_name": "browser",
+                "type": "LOCAL"
+            }
+        ],
+        "description": "SVG Agent"
+    },
+    "627392f3-2c64-44f1-9534-f123dc1d7b67": {
+        "id": "627392f3-2c64-44f1-9534-f123dc1d7b67",
+        "name": "test",
+        "generator_id": "627392f3-2c64-44f1-9534-f123dc1d7b67",
+        "tools_group_list": [],
+        "description": "这是个测试agent",
+        "agent_prompts": {
+            "SYSTEM_PROMPT": "123123123"
+        },
+        "result_type": "text"
+    }
+}
