@@ -60,7 +60,7 @@ class AgentAdapter(AgentPort):
             prompts['SYSTEM_MESSAGE_PPTER'] = SYSTEM_MESSAGE_PPTER
         if agent_info.result_type == "text":
             prompts = agent_info.agent_prompts
-        if agent_info.name == "svger":
+        if agent_info.name == "汉语新解":
             prompts['SYSTEM_MESSAGE_SVGER'] = SYSTEM_MESSAGE_SVGER
         return prompts
 
@@ -183,7 +183,7 @@ class AgentAdapter(AgentPort):
                 tools_port=tools_port,
             )
             return agent_instance
-        if agent_info.name == 'svger':
+        if agent_info.name == '汉语新解':
             agent_instance = SvgerAgent(
                 generators_port=generators_port,
                 llm_generator=llm_generator,
