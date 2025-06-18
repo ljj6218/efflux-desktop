@@ -7,6 +7,7 @@ openai:
   base_url:
     https://api.openai.com/v1
   model_list:
+    - claude-3-7-sonnet-20250219
     - gpt-4
     - gpt-4o
     - gpt-4o-2024-05-13

@@ -1,5 +1,6 @@
 import base64
 import os
+import sys
 from typing import Optional
 
 def check_file_and_create(file_url: str, init_str:Optional[str] = None):
@@ -44,6 +45,17 @@ def open_and_base64(file_path: str) -> str:
         base64_encoded = base64.b64encode(file_content).decode("utf-8")
         return base64_encoded
 
+
+def get_resource_path(relative_path):
+    # PyInstaller 包装后的文件会有 _MEIPASS 属性
+    if hasattr(sys, '_MEIPASS'):
+        # 打包后的路径
+        base_path = sys._MEIPASS
+    else:
+        # 非打包环境
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 from pdfminer.high_level import extract_text
 
