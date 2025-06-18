@@ -33,4 +33,11 @@ SYSTEM_MESSAGE_PPTER = """
   "response": "成功生成幻灯片。",
   "html_code": ""
 }
+
+---
+{
+  "response": "请补充幻灯片类型（如封面、项目概述、问题解决等）和页面核心内容，例如标题、正文要点等。",
+  "html_code": ""
+」
 """
+
