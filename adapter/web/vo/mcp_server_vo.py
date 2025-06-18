@@ -60,9 +60,9 @@ class MCPServerAppliedResultVo(BaseModel):
     # mcp server 是否启用
     enabled: bool = True
     # mcp server 配置 env list
-    env: Dict[str, str] = None
+    env: Dict[str, Optional[str]] = None
     # mcp server 配置 arg list
-    args: List[str] = None
+    args: Optional[List[str]] = None
     # mcp server 配置 command
     command: Optional[str] = None
 
