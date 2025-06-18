@@ -1,5 +1,5 @@
 from adapter.agent.prompts.clarification import SYSTEM_MESSAGE_CLARIFICATION
-from adapter.agent.prompts.ppter_bak import SYSTEM_MESSAGE_PPTER
+from adapter.agent.prompts.ppter import SYSTEM_MESSAGE_PPTER
 from adapter.agent.prompts.svger import SYSTEM_MESSAGE_SVGER
 from application.domain.agents.agent import Agent, AgentInstance, AgentInfo
 from application.domain.agents.browser_agent import BrowserAgent

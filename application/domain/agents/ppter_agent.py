@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
 
-from adapter.agent.prompts.ppter_bak import SYSTEM_MESSAGE_PPTER
+from adapter.agent.prompts.ppter import SYSTEM_MESSAGE_PPTER
 from application.domain.agents.agent import AgentInstance, Agent, AgentState
 from application.domain.conversation import DialogSegmentMetadata, MetadataSource, MetadataType, DialogSegment
 from application.domain.events.event import Event, EventType, EventSubType, EventSource
@@ -40,7 +40,7 @@ class PpterAgent(AgentInstance):
         json_type = 'ppt'
         if "json_result_data" in payload: # 模型返回json结果
             json_result_data = payload["json_result_data"]
-            if json_result_data['requires_user_clarification']:
+            if not json_result_data['html_code']:
                 logger.info("PpterAgent 需要用户继续澄清需求")
                 content = json_result_data['response']
                 json_type = 'ppt_content'
