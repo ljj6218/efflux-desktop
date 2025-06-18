@@ -49,8 +49,7 @@ class PpterAgent(AgentInstance):
                 logger.info(f"ppter agent 记录自己的会话历史: {json_result_data}")
                 new_ppt = Ppt.from_init(conversation_id=self.info.conversation_id,
                                         agent_instance_id=self.info.instance_id,
-                                        html_code=json_result_data['html_code'],
-                                        design_summary=json_result_data['design_summary'])
+                                        html_code=json_result_data['html_code'])
                 payload['confirm_data'] = new_ppt
                 payload['confirm_type'] = 'ppt'
                 # 删除agent请求的json
