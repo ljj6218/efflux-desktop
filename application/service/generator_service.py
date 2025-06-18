@@ -206,7 +206,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
                              payload={"json_type": agent_name})
         else:
             if artifacts:
-                system = read("artifacts_prompt.md")
+                system = read("adapter/setting/artifacts_prompt.md")
             event = Event.from_init(
                 event_type=EventType.USER_MESSAGE,
                 event_sub_type=EventSubType.MESSAGE,
