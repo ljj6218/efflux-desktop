@@ -67,7 +67,6 @@ If you want to use existing MCP servers to complete your task, do t
     2.  if you've already got a JSON string, select JSON Mode and paste it.
         
 
-:::
 **Tip**
 
 Leverage the following resources of MCP server to unlock more automation capabilities.
@@ -77,7 +76,6 @@ Leverage the following resources of MCP server to unlock more automati
 [https://mcpmarket.cn/](https://mcpmarket.cn/)
 
 [https://mcp-servers-hub-website.pages.dev/](https://mcp-servers-hub-website.pages.dev/)
-:::
 
 ### Start Your Conversation
 
@@ -143,9 +141,6 @@ source .venv/bin/activate   # MacOS/Linux
 
 # Deactivate when needed
 deactivate
-
-# Copy environment variable template
-cp .env.sample .env
 ```
 
 ### 4. Start the Service
