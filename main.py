@@ -39,11 +39,27 @@ app.add_event_handler("shutdown", shutdown)
 # 注册异常控制器
 register_exception_handlers(app)
 
+# origins = [
+#     "http://127.0.0.1:3003",
+#     "http://127.0.0.1:3000",
+#     "http://127.0.0.1",
+#     "http://47.236.204.213:3003",
+#     "http://47.236.204.213:3000",
+#     "http://47.236.204.213",
+#     "http://47.236.204.213:3003",
+#     "http://localhost:3000",
+#     "http://localhost",
+# ]
+
+origins = [
+    "*"
+]
+
 # 添加CORS中间件
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 允许所有源，或者指定特定源
-    allow_credentials=True,
+    allow_origins=origins,  # 允许所有源，或者指定特定源
+    allow_credentials=False,
     allow_methods=["*"],  # 允许所有方法
     allow_headers=["*"],  # 允许所有头
 )
