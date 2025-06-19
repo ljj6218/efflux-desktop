@@ -62,20 +62,20 @@ If you want to use existing MCP servers to complete your task, do t
     
 3.  In the pop-up dialog, do either of the following and click **Add**.
     
-    1.  enter the plugin name, command, environment variables, and arguments (if any), or 
+    1.  Enter the plugin name, command, environment variables, and arguments (if any), or 
         
-    2.  if you've already got a JSON string, select JSON Mode and paste it.
+    2.  If you've already got a JSON string, select JSON Mode and paste it.
         
 
 **Tip**
 
-Leverage the following resources of MCP server to unlock more automation capabilities.
+Leverage the following resources of MCP servers to unlock more automation capabilities.
 
-[https://mcp.so/](https://mcp.so/)
+- [https://mcp.so/](https://mcp.so/)
 
-[https://mcpmarket.cn/](https://mcpmarket.cn/)
+- [https://mcpmarket.cn/](https://mcpmarket.cn/)
 
-[https://mcp-servers-hub-website.pages.dev/](https://mcp-servers-hub-website.pages.dev/)
+- [https://mcp-servers-hub-website.pages.dev/](https://mcp-servers-hub-website.pages.dev/)
 
 ### Start Your Conversation
 
@@ -131,7 +131,7 @@ pip install uv
 uv sync --reinstall
 ```
 
-### 3. Activate virtual environment
+### 3. Activate the virtual environment
 
 Activate a virtual environment and configure environment variables.
 
