@@ -1,75 +1,75 @@
-## 🚀 Project Overview
+## 🚀 Project Overview
 
-**Efflux — An AI Copilot built for super-individuals.**
+**Efflux — An AI Copilot built for super-individuals.**
 
-Efflux Desktop integrates multi-vendor models and tool invocation capabilities, supporting command-based tool access and plugin extensions. Designed for real-world tasks, Efflux brings human-AI collaboration back under your control — amplifying the judgment and execution power of super-individuals.
+Efflux Desktop integrates multi-vendor models and tool invocation capabilities, supporting command-based tool access and plugin extensions. Designed for real-world tasks, Efflux brings human-AI collaboration back under your control — amplifying the judgment and execution power of super-individuals.
 
-It doesn’t decide for you — it helps you stay in control.
+It doesn’t decide for you — it helps you stay in control.
 
-## ✨ Core Features
+## ✨ Core Features
 
-### LLM-powered Conversations
+### LLM-powered Conversations
 
-*   Multi-vendor AI model integration (OpenAI, Anthropic, DeepSeek, etc.)
+*   Multi-vendor AI model integration (OpenAI, Anthropic, DeepSeek, etc.)
     
-*   Natural-language-based conversations
+*   Natural-language-based conversations
     
-*   Text-to-artifact capabilities
+*   Text-to-artifact capabilities
     
-*   Real-time streaming chat responses
+*   Real-time streaming chat responses
     
-*   Chat history management
-    
-
-###  Tool Integration and Calling
-
-*   Dynamic discovery and loading of MCP servers
-    
-*   Tool configuration management support
-    
-*   Exception handling and timeout control
-    
-*   Standardized tool calling interface
+*   Chat history management
     
 
-### Supported OS
+###  Tool Integration and Calling
+
+*   Dynamic discovery and loading of MCP servers
+    
+*   Tool configuration management support
+    
+*   Exception handling and timeout control
+    
+*   Standardized tool calling interface
+    
+
+### Supported OS
 
 *   Windows
     
 *   macOS
     
 
-## 🚀 Quick Start
+## 🚀 Quick Start
 
-After installing the executable file and launching Efflux Desktop, you can start your AI journey by following the following steps.
+After installing the executable file and launching Efflux Desktop, you can start your AI journey by following the following steps.
 
-### Configure Your Models
+### Configure Your Models
 
-1.  In the navigation pane of Efflux Desktop, select **Models**.
+1.  In the navigation pane of Efflux Desktop, select **Models**.
     
-2.  In the **Model Providers** page, find your desired vendor card, and click **API-KEY**.
+2.  In the **Model Providers** page, find your desired vendor card, and click **API-KEY**.
     
-3.  In the pop-up dialog, enter your endpoint and API key, and click **Save**.
+3.  In the pop-up dialog, enter your endpoint and API key, and click **Save**.
     
 
-### Install Plugins
+### Install Plugins
 
-If you want to use existing MCP servers to complete your task, do the following:
+If you want to use existing MCP servers to complete your task, do the following:
 
-1.  In the navigation pane, select **Plugins**.
+1.  In the navigation pane, select **Plugins**.
     
-2.  In the **Discover Plugins** tab, click **Add Custom Plugin**.
+2.  In the **Discover Plugins** tab, click **Add Custom Plugin**.
     
-3.  In the pop-up dialog, do either of the following and click **Add**.
+3.  In the pop-up dialog, do either of the following and click **Add**.
     
-    1.  enter the plugin name, command, environment variables, and arguments (if any), or 
+    1.  enter the plugin name, command, environment variables, and arguments (if any), or 
         
-    2.  if you've already got a JSON string, select JSON Mode and paste it.
+    2.  if you've already got a JSON string, select JSON Mode and paste it.
         
 
 **Tip**
 
-Leverage the following resources of MCP server to unlock more automation capabilities.
+Leverage the following resources of MCP server to unlock more automation capabilities.
 
 [https://mcp.so/](https://mcp.so/)
 
@@ -77,24 +77,24 @@ Leverage the following resources of MCP server to unlock more automati
 
 [https://mcp-servers-hub-website.pages.dev/](https://mcp-servers-hub-website.pages.dev/)
 
-### Start Your Conversation
+### Start Your Conversation
 
-1.  In the navigation pane, select **Chat**.
+1.  In the navigation pane, select **Chat**.
     
-2.  In the chatbox, select the model you've configured, and:
+2.  In the chatbox, select the model you've configured, and:
     
-    1.  tell Efflux your question, or
+    1.  tell Efflux your question, or
         
-    2.  switch to the Build mode and describe what you want Efflux to build.
+    2.  switch to the Build mode and describe what you want Efflux to build.
         
-3.  To use the installed plugin, enter the **@** sign and select the target one.
+3.  To use the installed plugin, enter the **@** sign and select the target one.
     
-4.  Press the **Enter** key to start your conversation.
+4.  Press the **Enter** key to start your conversation.
     
 
-## 🏗️ Project Architecture
+## 🏗️ Project Architecture
 
-### Directory Structure
+### Directory Structure
 
 ```plaintext
 efflux-desktop/
@@ -113,27 +113,27 @@ efflux-desktop/
 └── main.py           # Application entry point
 ```
 
-## 🔧 Development Guide
+## 🔧 Development Guide
 
-### 1. Clone the Project
+### 1. Clone the Project
 
 ```bash
 git clone https://github.com/isoftstone-data-intelligence-ai/efflux-desktop.git
 cd efflux-desktop
 ```
 
-### 2. Install Dependencies
+### 2. Install Dependencies
 
-Install dependencies using uv package manager:
+Install dependencies using uv package manager:
 
 ```bash
 pip install uv
 uv sync --reinstall
 ```
 
-### 3. Activate virtual environment
+### 3. Activate virtual environment
 
-Activate a virtual environment and configure environment variables.
+Activate a virtual environment and configure environment variables.
 
 ```shell
 # Activate virtual environment
@@ -143,15 +143,15 @@ source .venv/bin/activate   # MacOS/Linux
 deactivate
 ```
 
-### 4. Start the Service
+### 4. Start the Service
 
 ```bash
 uv run
 ```
 
-The service will start at `http://127.0.0.1:8000`.
+The service will start at `http://127.0.0.1:8000`.
 
-### API Usage Examples
+### API Usage Examples
 
 ```bash
 POST /api/agent/chat/default_chat
@@ -166,28 +166,28 @@ Content-Type: application/json
 }
 ```
 
-## 🤝 Contributing
+## 🤝 Contributing
 
-1.  Fork this project.
+1.  Fork this project.
     
-2.  Create a feature branch (`git checkout -b feature/AmazingFeature`).
+2.  Create a feature branch (`git checkout -b feature/AmazingFeature`).
     
-3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
     
-4.  Push to the branch (`git push origin feature/AmazingFeature`).
+4.  Push to the branch (`git push origin feature/AmazingFeature`).
     
-5.  Submit a Pull Request.
+5.  Submit a Pull Request.
     
 
-## 📄 License
+## 📄 License
 
-This project follows the appropriate open source license. Please refer to the LICENSE file for details.
+This project follows the appropriate open source license. Please refer to the LICENSE file for details.
 
-## 🆘 Support & Help
+## 🆘 Support & Help
 
-For questions or suggestions, please contact us through:
+For questions or suggestions, please contact us through:
 
-*   Submit Issues
+*   Submit Issues
     
-*   Start Discussions
+*   Start Discussions
     
