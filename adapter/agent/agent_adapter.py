@@ -16,6 +16,7 @@ from application.port.outbound.tools_port import ToolsPort
 from application.port.outbound.ws_message_port import WsMessagePort
 from common.core.container.annotate import component
 from common.utils.json_file_util import JSONFileUtil
+from common.utils.file_util import get_resource_path
 from typing import Optional, Dict, List
 
 import asyncio
@@ -64,7 +65,7 @@ class AgentAdapter(AgentPort):
             prompts['SYSTEM_MESSAGE_SVGER'] = SYSTEM_MESSAGE_SVGER
         return prompts
 
-    agent_file_url = "adapter/agent/agent.json"
+    agent_file_url = get_resource_path("adapter/agent/agent.json")
     agent_instance_file_pre_url = "conversations/agent_instance/"
 
     def load_instance_info(self, instance_id: str, conversation_id: str) -> Optional[AgentInfo]:
