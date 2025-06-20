@@ -1,4 +1,29 @@
 import logging.config
+import os
+import platform
+
+print(f"================{os.getcwd()}")
+
+def get_app_data_dir():
+    # 获取操作系统类型
+    system = platform.system().lower()
+    if system == 'darwin':  # macOS
+        app_data_dir = os.path.join(os.path.expanduser("~"), 'Library', 'Application Support', 'efflux-desktop')
+    elif system == 'windows':  # Windows
+        app_data_dir = os.getenv('APPDATA')  # Roaming
+        if not app_data_dir:
+            app_data_dir = os.getenv('LOCALAPPDATA')  # Local
+        app_data_dir = os.path.join(app_data_dir, 'efflux-desktop')
+    else:  # Linux or other Unix-like systems
+        app_data_dir = os.path.join(os.path.expanduser("~"), '.config', 'efflux-desktop')
+
+    # 如果目录不存在，则创建它
+    os.makedirs(app_data_dir, exist_ok=True)
+    return app_data_dir
+
+log_file_path = os.path.join(get_app_data_dir(), 'app.log')
+
+print(f"================{log_file_path}")
 
 # 高级日志配置
 LOGGING_CONFIG = {
@@ -34,7 +59,7 @@ LOGGING_CONFIG = {
             "level": "INFO",
             "class": "logging.FileHandler",
             "formatter": "detailed",
-            "filename": "app.log",
+            "filename": log_file_path,
         },
     },
     "loggers": {
