@@ -181,9 +181,16 @@ class LLMTaskHandler(TaskHandler):
                         group_status = EventGroupStatus.ENDED
 
             if json_result and json_start_flag and json_end_flag and chunk.content:
-                if not JSONFileUtil.process_string_reverse(chunk.content): # 判断最后“}”
+                if JSONFileUtil.process_string_reverse(chunk.content): # 判断最后“}”
+                    logger.info(f"json结果，结束chunk拼接{chunk.content}")
+                else:
                     logger.info(f"json结果，跳过结束chunk：{chunk.content}")
                     continue
+
+
+            if json_result and json_start_flag and json_end_flag and not chunk.content:
+                logger.info(f"json结果，跳过结束chunk：{chunk.content} - {chunk.finish_reason}")
+                continue
 
             # 消息返回
             event = chunk.to_assistant_message_event(

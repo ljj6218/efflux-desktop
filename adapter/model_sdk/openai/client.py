@@ -100,10 +100,10 @@ class OpenAIClient(ModelClient):
             stream=False,
         )
         logger.debug(stream)
-        # for event in stream:
-        #     logger.debug("============================================================================================")
-        #     logger.debug(f"原始chunk返回：{event}")
-        #     logger.debug("============================================================================================")
+        for event in stream:
+            logger.debug("============================================================================================")
+            logger.debug(f"原始chunk返回：{event}")
+            logger.debug("============================================================================================")
 
     def generate_stream(
             self,
@@ -270,6 +270,8 @@ class OpenAIClient(ModelClient):
         #     usage = CompletionUsage(prompt_tokens=completion_chunk.usage.prompt_tokens,
         #                             completion_tokens=completion_chunk.usage.completion_tokens,
         #                             total_tokens=completion_chunk.usage.total_tokens)
+        if completion_chunk.usage:
+            logger.debug(f"跳过用量统计-->{completion_chunk.usage}")
         # 工具，持续拼接tools_call的请求参数直到参数完整
         if len(completion_chunk.choices) > 0 and completion_chunk.choices[0].delta.tool_calls:
 
