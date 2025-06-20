@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 import os
-import pkgutil
+import tempfile
+import platform
 from importlib import import_module
 from fastapi.middleware.cors import CORSMiddleware
 from common.core.logger import get_logger, LOGGING_CONFIG
@@ -10,11 +11,16 @@ from adapter.web.core.exception_registry import register_exception_handlers
 from application.port.outbound.task_port import TaskPort
 from application.port.outbound.event_port import EventPort
 from application.port.outbound.cache_port import CachePort
+from common.utils.file_util import get_resource_path
 from common.utils.common_utils import CONVERSATION_STOP_FLAG_KEY, SINGLETON_WEBSOCKET_CLIENT_ID, create_uuid, \
     CURRENT_CONVERSATION_AGENT_INSTANCE_ID
 import uvicorn
 import copy
 import asyncio
+
+from common.utils.json_file_util import JSONFileUtil
+from common.utils.yaml_util import save_yaml
+from common.utils.markdown_util import write
 
 logger = get_logger(__name__)
 app = FastAPI()
@@ -40,15 +46,22 @@ app.add_event_handler("shutdown", shutdown)
 register_exception_handlers(app)
 
 # origins = [
-#     "http://127.0.0.1:3003",
-#     "http://127.0.0.1:3000",
+#     "https://www.runoob.com:80",
+#     "https://www.runoob.com",
+#     "127.0.0.1",
+#     "127.0.0.1:80",
+#     "https://127.0.0.1",
 #     "http://127.0.0.1",
-#     "http://47.236.204.213:3003",
-#     "http://47.236.204.213:3000",
-#     "http://47.236.204.213",
-#     "http://47.236.204.213:3003",
-#     "http://localhost:3000",
-#     "http://localhost",
+#     "http://127.0.0.1:80",
+#     # "http://127.0.0.1:3003",
+#     # "http://127.0.0.1:3000",
+#     # "http://127.0.0.1",
+#     # "http://47.236.204.213:3003",
+#     # "http://47.236.204.213:3000",
+#     # "http://47.236.204.213",
+#     # "http://localhost:3003",
+#     # "http://localhost:3000",
+#     # "http://localhost",
 # ]
 
 origins = [
@@ -59,7 +72,7 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,  # 允许所有源，或者指定特定源
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["*"],  # 允许所有方法
     allow_headers=["*"],  # 允许所有头
 )
@@ -166,7 +179,7 @@ async def main():
     # 1. 自定义 WebSocket server（关闭压缩）
     # ws_server = await serve(ws_handler, "0.0.0.0", 8765, compression=None, ping_interval=None)
 
-    ws_server = await serve(ws_handler, "0.0.0.0", 8765, ping_interval=None)
+    ws_server = await serve(ws_handler, "0.0.0.0", 38765, ping_interval=None)
 
     # 获取当前事件循环
     loop = asyncio.get_running_loop()
@@ -180,18 +193,20 @@ async def main():
         if logger_name not in uvicorn_log_config['loggers']:
             uvicorn_log_config['loggers'][logger_name] = {
                 'handlers': ['console'],
-                'level': 'INFO',
+                'level': 'DEBUG',
                 'propagate': False,
             }
 
     config = uvicorn.Config(
         app=app,
         host="0.0.0.0",
-        port=8000,
+        port=38080,
         workers=1,
         reload=True,
         log_level="info",
-        log_config=uvicorn_log_config
+        log_config=uvicorn_log_config,
+        # ssl_keyfile="server.key",  # 私钥文件
+        # ssl_certfile="server.crt",  # 证书文件
     )
     server = uvicorn.Server(config)
 
@@ -207,5 +222,111 @@ async def main():
     # # 执行 shutdown 操作
     # await shutdown()
 
+
+def get_app_data_dir():
+    # 获取操作系统类型
+    system = platform.system().lower()
+    if system == 'darwin':  # macOS
+        app_data_dir = os.path.join(os.path.expanduser("~"), 'Library', 'Application Support', 'efflux-desktop')
+    elif system == 'windows':  # Windows
+        app_data_dir = os.getenv('APPDATA')  # Roaming
+        if not app_data_dir:
+            app_data_dir = os.getenv('LOCALAPPDATA')  # Local
+        app_data_dir = os.path.join(app_data_dir, 'efflux-desktop')
+    else:  # Linux or other Unix-like systems
+        app_data_dir = os.path.join(os.path.expanduser("~"), '.config', 'efflux-desktop')
+
+    # 如果目录不存在，则创建它
+    os.makedirs(app_data_dir, exist_ok=True)
+    return app_data_dir
+
+def default_setting():
+    print("加载默认配置")
+    agent_file_url = get_resource_path("adapter/agent/agent.json")
+    agent_config = JSONFileUtil(agent_file_url)
+    agent_ppt = {
+        "id": "f83b0799-366c-4b1b-8983-050ef0ebcf49",
+        "name": "ppter",
+        "tools_group_list": [
+            {
+                "group_name": "browser",
+                "type": "LOCAL"
+            }
+        ],
+        "description": "PPT Agent"
+    }
+    agent_config.update_key(agent_ppt['id'], agent_ppt)
+    agent_svg = {
+        "id": "f83b0799-366c-4b1b-8983-050ef0ebcf50",
+        "name": "汉语新解",
+        "tools_group_list": [
+            {
+                "group_name": "browser",
+                "type": "LOCAL"
+            }
+        ],
+        "description": "SVG Agent"
+    }
+    agent_config.update_key(agent_svg['id'], agent_svg)
+    model_dist = {
+        "openai":{
+            "base_url": "https://api.openai.com/v1",
+            "model_list": ["claude-3-7-sonnet-20250219","gpt-4o"]
+        },
+        "anthropic": {
+            "base_url": "https://api.anthropic.com/v1",
+            "model_list": ["claude-3-7-sonnet-20250219", "claude-3-5-sonnet-20241022"]
+        },
+        "tongyi": {
+            "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+            "model_list": ["qwq-max", "qwq-plus", "deepseek-r1", "deepseek-v3", "qwen-max", "qwen-plus"]
+        }
+    }
+    save_yaml("adapter/model_sdk/setting/openai/model.yaml", model_dist)
+    artifacts_prompt = """
+You are a skilled software engineer.
+You do not make mistakes.
+Generate an fragment.
+You can install additional dependencies.
+Do not touch project dependencies files like package.json, package-lock.json, requirements.txt, etc.
+You can use one of the following templates:
+
+1. Python data analyst: "Runs code as a Jupyter notebook cell. Strong data analysis angle. Can use complex visualisation to explain results." File: script.py. Dependencies installed: python, jupyter, numpy, pandas, matplotlib, seaborn, plotly. Port: none.
+2. Next.js developer: "A Next.js 13+ app that reloads automatically. Using the pages router." File: pages/index.tsx. Dependencies installed: nextjs@14.2.5, typescript, @types/node, @types/react, @types/react-dom, postcss, tailwindcss, shadcn. Port: 3000.
+3. Vue.js developer: "A Vue.js 3+ app that reloads automatically. Only when asked specifically for a Vue app." File: app.vue. Dependencies installed: vue@latest, nuxt@3.13.0, tailwindcss. Port: 3000.
+4. Streamlit developer: "A streamlit app that reloads automatically." File: app.py. Dependencies installed: streamlit, pandas, numpy, matplotlib, request, seaborn, plotly. Port: 8501.
+5. Gradio developer: "A gradio app. Gradio Blocks/Interface should be called demo." File: app.py. Dependencies installed: gradio, pandas, numpy, matplotlib, request, seaborn, plotly. Port: 7860.
+
+And please provide your response in JSON format without any additional explanations or comments.
+The response must follow this schema structure, with the code placed in the code field.
+Use the same language matching the user's language when filling the commentary section.
+
+schema:{
+    "commentary": "I will generate a simple 'Hello World' application using the Next.js template. This will include a basic page that displays 'Hello World' when accessed.",
+    "template": "nextjs-developer",
+    "title": "Hello World",
+    "description": "A simple Next.js app that displays 'Hello World'.",
+    "additional_dependencies": [],
+    "has_additional_dependencies": false,
+    "install_dependencies_command": "",
+    "port": 3000,
+    "file_path": "pages/index.tsx",
+    "code": ""
+}
+    """
+    write(md_url="adapter/setting/artifacts_prompt.md", content=artifacts_prompt)
+
+
 if __name__ == "__main__":
+    # 获取系统临时目录
+    data_dir = get_app_data_dir()
+
+    # 更改当前工作目录为临时目录
+    os.chdir(data_dir)
+
+    # 打印当前工作目录，确认更改成功
+    print("Current Working Directory:", os.getcwd())
+
+    default_setting()
+
     asyncio.run(main())
