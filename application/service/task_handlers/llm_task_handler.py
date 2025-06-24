@@ -261,13 +261,15 @@ class LLMTaskHandler(TaskHandler):
         chunk_list: List[ChatStreamingChunk] = []
         # 拼装方法调用请求
         for tool_instance in tool_instance_list:
-            chunk_list.append(ChatStreamingChunk.from_tool_calls(tool_calls=[ChatCompletionMessageToolCall(
+            tool_calls = [ChatCompletionMessageToolCall(
                 id=tool_instance.tool_call_id, mcp_server_name=tool_instance.mcp_server_name, name=tool_instance.name,
-                description=tool_instance.description, arguments=json.dumps(tool_instance.arguments))]))
+                description=tool_instance.description, arguments=json.dumps(tool_instance.arguments))]
+            chunk_list.append(ChatStreamingChunk.from_tool_calls(tool_calls=tool_calls))
             # 拼装方法调用结果
             chunk_list.append(
                 ChatStreamingChunk.from_tool_calls_result(content=str(tool_instance.result),
-                                                          tool_call_id=tool_instance.tool_call_id))
+                                                          tool_call_id=tool_instance.tool_call_id,
+                                                          tool_calls=tool_calls))
         return chunk_list
 
     # @staticmethod

@@ -26,7 +26,8 @@ class AgentService(AgentCase):
             agent.id = create_uuid()
         agent.result_type = "text"
         agent.tools_group_list = []
-        if self.agent_port.load_by_name(agent.name):
+        old_agent = self.agent_port.load_by_name(agent.name)
+        if old_agent and old_agent.id != agent.id:
             raise BusinessException(error_code=AgentErrorCode.HAS_SAME_NAME,
                                   dynamics_message="extention: " + agent.name)
         # tool_list: List[Tool] = []

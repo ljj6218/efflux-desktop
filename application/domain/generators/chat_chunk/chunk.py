@@ -73,9 +73,9 @@ class ChatStreamingChunk(BaseModel):
         return cls(id=id, model=model, created=created, finish_reason=finish_reason,
                                   content=content, reasoning_content= reasoning_content, role=role, tool_calls=tool_calls)
     @classmethod
-    def from_tool_calls_result(cls, content: str, tool_call_id: str) -> "ChatStreamingChunk":
+    def from_tool_calls_result(cls, content: str, tool_call_id: str, tool_calls: List[ChatCompletionMessageToolCall]) -> "ChatStreamingChunk":
         return cls(id=create_uuid(), model=None, created=create_from_second_now_to_int(), usage=None, finish_reason="stop",
-                                  content=content, tool_call_id=tool_call_id, reasoning_content=None, role='tool', tool_calls=[])
+                                  content=content, tool_call_id=tool_call_id, reasoning_content=None, role='tool', tool_calls=tool_calls)
     @classmethod
     def from_tool_calls(cls, tool_calls: List[ChatCompletionMessageToolCall]) -> "ChatStreamingChunk":
         return cls(id=create_uuid(), model=None, created=create_from_second_now_to_int(), usage=None,
