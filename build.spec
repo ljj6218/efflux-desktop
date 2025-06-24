@@ -20,7 +20,7 @@ a = Analysis(
         'colorlog',
         'docker',
         'fastapi',
-        'google-genai',
+        'google.genai',
         'ijson',
         'injector',
         'jsonlines',
