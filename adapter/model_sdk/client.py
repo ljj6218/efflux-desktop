@@ -35,7 +35,7 @@ class ModelClient(ABC):
     @abstractmethod
     def generate_test(self,
                 model: str = None,
-                message_list: Iterable[ChatCompletionMessageParam] = None,
+                message_list: Iterable[ChatStreamingChunk] = None,
                 api_secret: Secret = None,
                 base_url: str = None,
                 tools: Optional[List[Tool]] = None,

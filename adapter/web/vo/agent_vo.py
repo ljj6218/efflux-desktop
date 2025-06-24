@@ -14,4 +14,12 @@ class AgentVo(BaseModel):
     result_type: Optional[Literal["text", "html", "svg", "code"]] = None
 
     def convert_agent(self):
-        return Agent(id=self.id, name=self.name, tools_group_list=self.tools_group_list, description=self.description, agent_prompts=self.agent_prompts, result_type=self.result_type)
+        return Agent(
+            id=self.id,
+            name=self.name,
+            generator_id=self.generator_id,
+            tools_group_list=self.tools_group_list,
+            description=self.description,
+            agent_prompts=self.agent_prompts,
+            result_type=self.result_type
+        )

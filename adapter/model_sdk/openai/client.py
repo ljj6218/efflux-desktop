@@ -85,7 +85,7 @@ class OpenAIClient(ModelClient):
 
     def generate_test(self,
                       model: str = None,
-                      message_list: Iterable[ChatCompletionMessageParam] = None,
+                      message_list: Iterable[ChatStreamingChunk] = None,
                       api_secret: Secret = None,
                       base_url: str = None,
                       tools: Optional[List[Tool]] = None,
@@ -96,7 +96,7 @@ class OpenAIClient(ModelClient):
                                           api_base_url=base_url)
         stream = client.chat.completions.create(
             model=model,
-            messages=message_list,
+            messages=self._convert_openai_stream_chunk(message_list),
             stream=False,
         )
         logger.debug(stream)
