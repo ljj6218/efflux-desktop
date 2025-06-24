@@ -1,5 +1,6 @@
 from openai import api_key
 
+from adapter.model_sdk.gemini.client import GeminiClient
 from application.port.outbound.generators_port import GeneratorsPort
 from application.domain.generators.tools import Tool
 from application.domain.generators.generator import LLMGenerator
@@ -93,7 +94,7 @@ class ClientManager(GeneratorsPort):
         messages: Iterable[ChatStreamingChunk] = None,
         **generation_kwargs,
     ) -> ChatStreamingChunk:
-        client: ModelClient = OpenAIClient()
+        client: ModelClient = self._get_model_client(firm=llm_generator.firm)
         firm_setting = self.user_setting.read_key(llm_generator.firm)
         url = firm_setting["base_url"]
         rs = client.generate(
@@ -111,9 +112,10 @@ class ClientManager(GeneratorsPort):
         llm_generator: LLMGenerator,
         validate_json: Optional[Callable[[Dict[str, Any]], bool]] = None,
         messages: Iterable[ChatStreamingChunk] = None,
+        tools: Iterable[Tool] = None,
         **generation_kwargs,
     )-> Dict[str, Any] | None:
-        client: ModelClient = OpenAIClient()
+        client: ModelClient = self._get_model_client(firm=llm_generator.firm)
         firm_setting = self.user_setting.read_key(llm_generator.firm)
         url = firm_setting["base_url"]
         client.generate_test(
@@ -121,7 +123,7 @@ class ClientManager(GeneratorsPort):
             api_secret=llm_generator.api_key_secret,
             base_url=url,
             message_list=messages,
-            tools=[],
+            tools=tools,
             generation_kwargs=generation_kwargs
         )
         return {}
@@ -172,7 +174,7 @@ class ClientManager(GeneratorsPort):
         tools: Iterable[Tool] = None,
         **generation_kwargs,
     ) -> Generator[ChatStreamingChunk, None, None]:
-        client: ModelClient = OpenAIClient()
+        client: ModelClient = self._get_model_client(firm=llm_generator.firm)
         firm_setting = self.user_setting.read_key(llm_generator.firm)
         url = firm_setting["base_url"]
         return client.generate_stream(
@@ -183,3 +185,9 @@ class ClientManager(GeneratorsPort):
             tools=tools,
             generation_kwargs=generation_kwargs
         )
+
+    def _get_model_client(self, firm: str) -> ModelClient:
+        if firm == "openai":
+            return OpenAIClient()
+        if firm == "gemini":
+            return GeminiClient()

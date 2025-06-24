@@ -13,6 +13,7 @@ dependencies = [
     "colorlog>=6.9.0",
     "docker>=7.1.0",
     "fastapi>=0.115.12",
+    "google-genai>=1.21.1",
     "ijson>=3.4.0",
     "injector>=0.22.0",
     "jsonlines>=4.0.0",

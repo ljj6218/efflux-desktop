@@ -47,6 +47,7 @@ class GeneratorsPort(ABC):
         llm_generator: LLMGenerator,
         validate_json: Optional[Callable[[Dict[str, Any]], bool]] = None,
         messages: Iterable[ChatStreamingChunk] = None,
+        tools: Iterable[Tool] = None,
         **generation_kwargs,
     )-> Dict[str, Any] | None:
         """

@@ -1,5 +1,8 @@
 import asyncio
 import threading
+from common.core.logger import get_logger
+
+logger = get_logger(__name__)
 # connection_manager.py
 class ConnectionManager:
     def __init__(self, loop):
@@ -22,6 +25,7 @@ class ConnectionManager:
     async def send_to(self, client_id: str, message: str):
         websocket = self.active_connections.get(client_id)
         if websocket:
+            logger.warning(f"发送ws消息：{message}")
             await websocket.send(message)
 
     async def broadcast(self, message: str):

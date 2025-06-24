@@ -44,7 +44,7 @@ class ToolsManager(ToolsPort):
                         tool_calls_list.append(ToolInstance.model_validate(obj))
                     if obj['dialog_segment_id'] == dialog_segment_id:
                         tool_calls_list.append(ToolInstance.model_validate(obj))
-                    if obj['tool_call_id'] == tool_call_id:
+                    if tool_call_id and obj['tool_call_id'] == tool_call_id:
                         tool_calls_list.append(ToolInstance.model_validate(obj))
         return tool_calls_list
 

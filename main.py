@@ -277,6 +277,10 @@ def default_setting():
             "base_url": "https://api.anthropic.com/v1",
             "model_list": ["claude-3-7-sonnet-20250219", "claude-3-5-sonnet-20241022"]
         },
+        "gemini": {
+            "base_url": "https://generativelanguage.googleapis.com/v1beta",
+            "model_list": ["gemini-2.5-flash", "gemini-2.5-flash-preview-05-20"]
+        },
         "tongyi": {
             "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
             "model_list": ["qwq-max", "qwq-plus", "deepseek-r1", "deepseek-v3", "qwen-max", "qwen-plus"]
