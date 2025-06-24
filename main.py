@@ -271,7 +271,7 @@ def default_setting():
     model_dist = {
         "openai":{
             "base_url": "https://api.openai.com/v1",
-            "model_list": ["claude-3-7-sonnet-20250219","gpt-4o"]
+            "model_list": ["o3-pro", "o4-mini", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano", "gpt-4.5-preview", "o3", "gpt-4o-search-preview", "gpt-4o-mini-search-preview", "o3-mini", "o1", "o1-pro", "o1-preview", "o1-mini", "gpt-4o", "chatgpt-4o-latest", "gpt-4o-mini"]
         },
         "anthropic": {
             "base_url": "https://api.anthropic.com/v1",
@@ -279,7 +279,10 @@ def default_setting():
         },
         "gemini": {
             "base_url": "https://generativelanguage.googleapis.com/v1beta",
-            "model_list": ["gemini-2.5-flash", "gemini-2.5-flash-preview-05-20"]
+            "model_list": [
+                "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite-preview-06-17", "gemini-2.5-flash-preview-05-20",
+                "gemini-2.0-flash", "gemini-2.0-flash-lite"
+            ]
         },
         "tongyi": {
             "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
