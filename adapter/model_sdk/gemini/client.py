@@ -49,12 +49,16 @@ class GeminiClient(ModelClient):
         if tools:
             gemini_tools = self._convert_gemini_tools(tools=tools)
 
+        response_mime_type = "text/plain"
+        if "json_object" in generation_kwargs.keys() and generation_kwargs["json_object"]:
+            response_mime_type = "application/json"
+
         generate_content_config = types.GenerateContentConfig(
             thinking_config=types.ThinkingConfig(
                 include_thoughts=True,
                 thinking_budget=2048,  # 范围 0-16384。默认 1024，最佳边际效果 16000
             ),
-            response_mime_type="text/plain",
+            response_mime_type=response_mime_type,
             system_instruction=system_instruction if system_instruction else None,
             tools=[gemini_tools] if gemini_tools else None,
         )
