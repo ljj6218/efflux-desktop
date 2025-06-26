@@ -1,5 +1,8 @@
 from openai import api_key
 
+from adapter.model_sdk import NON_STANDARD_FIRM_SUPPORT_LIST
+from adapter.model_sdk.aws.client import AmazonClient
+from adapter.model_sdk.azure.client import AzureClient
 from adapter.model_sdk.gemini.client import GeminiClient
 from application.port.outbound.generators_port import GeneratorsPort
 from application.domain.generators.tools import Tool
@@ -40,16 +43,16 @@ class ClientManager(GeneratorsPort):
     def load_firm(self) -> List[GeneratorFirm]:
         firm_list: List[GeneratorFirm] = []
         for firm in self.config.keys():
-            firm_list.append(GeneratorFirm.from_init(name=firm, base_url=self.config[firm]['base_url'], model_list=self.config[firm]['model_list']))
+            if 'model_list' not in self.config[firm]:
+                firm_list.append(GeneratorFirm.from_other(name=firm, **self.config[firm]))
+            else:
+                firm_list.append(GeneratorFirm.from_init(name=firm, base_url=self.config[firm]['base_url'], model_list=self.config[firm]['model_list']))
         return firm_list
 
-    def load_model_by_firm(self, firm_name: str) -> List[LLMGenerator]:
-        # firm_dict = self.user_setting.read_key(firm_name)
-        # base_url = firm_dict['base_url']
-        # api_key = firm_dict['api_key']
-        # client: ModelClient = OpenAIClient()
-        # client.model_list(base_url=base_url, api_key=api_key)
+    def is_non_standard(self, firm_name: str) -> bool:
+        return firm_name in NON_STANDARD_FIRM_SUPPORT_LIST
 
+    def load_model_by_firm(self, firm_name: str) -> List[LLMGenerator]:
         model_list: List[str] = self.config[firm_name]['model_list']
         firm_model_config_url = f"adapter/model_sdk/setting/openai/{firm_name}_model.json"
         firm_model_config = JSONFileUtil(firm_model_config_url)
@@ -60,6 +63,17 @@ class ClientManager(GeneratorsPort):
                 generator_list.append(LLMGenerator.model_validate(firm_model_dict))
             else:
                 generator_list.append(LLMGenerator.from_disabled(firm=firm_name, model=model))
+        return generator_list
+
+    def load_model_by_other_firm(self, firm_name: str, model_id: str) -> List[LLMGenerator]:
+        firm_model_config_url = f"adapter/model_sdk/setting/openai/{firm_name}_model.json"
+        firm_model_config = JSONFileUtil(firm_model_config_url)
+        generator_list: List[LLMGenerator] = []
+        if not firm_model_config.read():
+            generator_list.append(LLMGenerator.from_disabled(firm=firm_name, model=model_id))
+            return generator_list
+        for model_id, LLM_generator_info in firm_model_config.read().items():
+            generator_list.append(LLMGenerator.model_validate(LLM_generator_info))
         return generator_list
 
     def load_enabled_model_by_firm(self, firm_name: str) -> List[LLMGenerator]:
@@ -191,3 +205,7 @@ class ClientManager(GeneratorsPort):
             return OpenAIClient()
         if firm == "gemini":
             return GeminiClient()
+        if firm == "Amazon Bedrock":
+            return AmazonClient()
+        if firm == "Azure OpenAI":
+            return AzureClient()

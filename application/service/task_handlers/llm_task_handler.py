@@ -123,7 +123,12 @@ class LLMTaskHandler(TaskHandler):
         json_end_flag = False
         # json 内容
         json_content = ""
-        for chunk in self.generators_port.generate_event(llm_generator=llm_generator, messages=messages, tools=tools, json_object=json_result):
+        for chunk in self.generators_port.generate_event(
+            llm_generator=llm_generator,
+            messages=messages,
+            tools=tools,
+            json_object=json_result
+        ):
             if chunk.usage: # 跳过用量chunk消息
                 continue
             # 确定当前事件的组状态
@@ -252,7 +257,10 @@ class LLMTaskHandler(TaskHandler):
         if llm_generator is None:
             raise BusinessException(error_code=GeneratorErrorCode.GENERATOR_NOT_FOUND, dynamics_message=generator_id)
         firm: GeneratorFirm = self.user_setting_port.load_firm_setting(llm_generator.firm)
-        llm_generator.set_api_key_secret(firm.api_key)
+        if self.generators_port.is_non_standard(firm.name):
+            llm_generator.set_api_key_secret(firm.fields)
+        else:
+            llm_generator.set_api_key_secret(firm.api_key)
         llm_generator.check_firm_api_key()
         return llm_generator
 

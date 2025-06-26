@@ -99,6 +99,22 @@ class GeneratorsPort(ABC):
         """
 
     @abstractmethod
+    def is_non_standard(self, firm_name: str) -> bool:
+        """
+        是否非标准支持的大模型厂商
+        :param firm_name:
+        :return:
+        """
+
+    @abstractmethod
+    def load_model_by_other_firm(self, firm_name: str, model_id: str) -> List[LLMGenerator]:
+        """
+        获取用户的指定非标厂商模型列表
+        :param firm_name:
+        :return:
+        """
+
+    @abstractmethod
     def load_enabled_model_by_firm(self, firm_name: str) -> List[LLMGenerator]:
         """
         获取用户设置启用的指定厂商模型列表
