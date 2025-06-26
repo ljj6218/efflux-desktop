@@ -286,13 +286,11 @@ def default_setting():
                 "AWS_ACCESS_KEY_ID": "AWS Access Key",
                 "AWS_SECRET_ACCESS_KEY": "AWS Secret Key",
                 "AWS_REGION": "AWS Region",
-                "MODEL_ID": "AWS Model ID"
             }
         },
         "Azure OpenAI": {
             "fields": {
                 "endpoint": "Azure OpenAI Endpoint: https://isfot-ai.openai.azure.com/ (demo)",
-                "deployment": "Azure OpenAI Deployment: isfot-ai (demo)",
                 "subscription_key": "Azure OpenAI Subscription Key: c70ec31c1d794452a5e18eefb0e**** (demo)",
                 "api_version": "Azure OpenAI API Version: 2024-12-01-preview (demo)"
             }

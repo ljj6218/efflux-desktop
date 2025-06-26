@@ -62,9 +62,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
 
     async def model_list(self, firm: str) -> List[LLMGenerator]:
         if self.generators_port.is_non_standard(firm):
-            firm_obj: GeneratorFirm = self.user_setting_port.load_firm_setting(firm)
-            model_id = firm_obj.fields.get("MODEL_ID")
-            return self.generators_port.load_model_by_other_firm(firm, model_id)
+            return self.generators_port.load_model_by_other_firm(firm)
         return self.generators_port.load_model_by_firm(firm)
 
     async def enabled_model_list(self, firm: str) -> List[LLMGenerator]:
@@ -72,8 +70,11 @@ class GeneratorService(ModelCase, GeneratorsCase):
             return self.generators_port.load_enabled_model_by_firm(firm)
         return self.generators_port.load_enabled_model()
 
-    async def enable_or_disable_model(self, firm: str, model: str, enabled: bool) -> Optional[bool]:
-        return self.generators_port.enable_or_disable_model(firm, model, enabled)
+    async def enable_or_disable_model(
+        self, firm: str, model: str, enabled: bool, model_type: str
+    ) -> Optional[bool]:
+        return self.generators_port.enable_or_disable_model(
+            firm, model, enabled, model_type)
 
     async def generate_test(
             self,

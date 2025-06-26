@@ -107,7 +107,7 @@ class GeneratorsPort(ABC):
         """
 
     @abstractmethod
-    def load_model_by_other_firm(self, firm_name: str, model_id: str) -> List[LLMGenerator]:
+    def load_model_by_other_firm(self, firm_name: str) -> List[LLMGenerator]:
         """
         获取用户的指定非标厂商模型列表
         :param firm_name:
@@ -130,11 +130,14 @@ class GeneratorsPort(ABC):
         """
 
     @abstractmethod
-    def enable_or_disable_model(self, firm: str, model: str, enabled: bool) -> Optional[bool]:
+    def enable_or_disable_model(
+        self, firm: str, model: str, enabled: bool, model_type: str
+    ) -> Optional[bool]:
         """
         启用或禁用模型
         :param firm: 厂商名
         :param model: 模型名
         :param enabled: 是否启用
+        :param model_type: 模型类型
         :return: 操作结果
         """

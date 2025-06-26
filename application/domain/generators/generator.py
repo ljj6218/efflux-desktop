@@ -16,8 +16,8 @@ class LLMGenerator(BaseModel):
     generators_type: Optional[str] = None
 
     @classmethod
-    def from_init(cls, firm: str, model: str) -> "LLMGenerator":
-        return LLMGenerator(id=create_uuid(), firm=firm, model=model, is_enabled=True)
+    def from_init(cls, firm: str, model: str, generators_type: str = None) -> "LLMGenerator":
+        return LLMGenerator(id=create_uuid(), firm=firm, model=model, is_enabled=True, generators_type=generators_type)
 
     @classmethod
     def from_disabled(cls, firm: str, model: str):

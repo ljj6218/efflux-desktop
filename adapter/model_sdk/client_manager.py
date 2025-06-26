@@ -65,15 +65,23 @@ class ClientManager(GeneratorsPort):
                 generator_list.append(LLMGenerator.from_disabled(firm=firm_name, model=model))
         return generator_list
 
-    def load_model_by_other_firm(self, firm_name: str, model_id: str) -> List[LLMGenerator]:
+    def load_model_by_other_firm(self, firm_name: str) -> List[LLMGenerator]:
+        firm_setting = self.user_setting.read_key(firm_name)
         firm_model_config_url = f"adapter/model_sdk/setting/openai/{firm_name}_model.json"
-        firm_model_config = JSONFileUtil(firm_model_config_url)
+        firm_model_config = JSONFileUtil(firm_model_config_url).read()
+        enabled_generators_type_map = {
+            model_setting.get('generators_type'): model_setting
+            for model_setting in firm_model_config.values()
+        }
         generator_list: List[LLMGenerator] = []
-        if not firm_model_config.read():
-            generator_list.append(LLMGenerator.from_disabled(firm=firm_name, model=model_id))
-            return generator_list
-        for model_id, LLM_generator_info in firm_model_config.read().items():
-            generator_list.append(LLMGenerator.model_validate(LLM_generator_info))
+        client: ModelClient = self._get_model_client(firm=firm_name)
+        model_type_list = client.model_list(firm_setting.get('fields'))
+        for model_type_i in model_type_list:
+            if model_type_i in enabled_generators_type_map.keys():
+                LLM_generator_info = enabled_generators_type_map[model_type_i]
+                generator_list.append(LLMGenerator.model_validate(LLM_generator_info))
+            else:
+                generator_list.append(LLMGenerator.from_disabled(firm=firm_name, model=model_type_i))
         return generator_list
 
     def load_enabled_model_by_firm(self, firm_name: str) -> List[LLMGenerator]:
@@ -92,11 +100,12 @@ class ClientManager(GeneratorsPort):
             firm_list.extend(self.load_enabled_model_by_firm(firm))
         return firm_list
 
-    def enable_or_disable_model(self, firm: str, model: str, enabled: bool) -> Optional[bool]:
+    def enable_or_disable_model(self, firm: str, model: str, enabled: bool, model_type: str) -> Optional[bool]:
         firm_model_config_url = f"adapter/model_sdk/setting/openai/{firm}_model.json"
         firm_model_config = JSONFileUtil(firm_model_config_url)
         if enabled:
-            llm_generator: LLMGenerator = LLMGenerator.from_init(firm=firm, model=model)
+            llm_generator: LLMGenerator = LLMGenerator.from_init(
+                firm=firm, model=model, generators_type=model_type)
             firm_model_config.update_key(model, llm_generator.model_dump())
         else:
             firm_model_config.delete(model)

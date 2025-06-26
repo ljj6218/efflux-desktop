@@ -12,7 +12,7 @@ class GeneratorFirm(BaseModel):
     model_list: Optional[List[str]] = None
     base_url:Optional[str] = None
     api_key: Optional[ApiKeySecret] = None
-    fields: dict = {}
+    fields: Optional[dict] = {}
 
     @classmethod
     def from_init(cls, name: str, base_url: str, model_list: Optional[List[str]] = None) -> "GeneratorFirm":

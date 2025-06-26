@@ -24,16 +24,19 @@ class AmazonClient(ModelClient):
         self.bedrock_runtime = None
         self.model_id = None
 
+    def _init_env(self, api_secret: Secret):
+        # 临时设置环境变量
+        aws_access_key_id = api_secret.get('AWS_ACCESS_KEY_ID')
+        aws_secret_access_key = api_secret.get('AWS_SECRET_ACCESS_KEY')
+        if aws_access_key_id:
+            os.environ['AWS_ACCESS_KEY_ID'] = aws_access_key_id
+        if aws_secret_access_key:
+            os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_access_key
+
+
     def _init_bedrock(self, api_secret: Secret):
         try:
-            # 临时设置环境变量
-            aws_access_key_id = api_secret.get('AWS_ACCESS_KEY_ID')
-            aws_secret_access_key = api_secret.get('AWS_SECRET_ACCESS_KEY')
-            if aws_access_key_id:
-                os.environ['AWS_ACCESS_KEY_ID'] = aws_access_key_id
-            if aws_secret_access_key:
-                os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_access_key
-
+            self._init_env(api_secret)
             region_name = api_secret.get('AWS_REGION')
             self.model_id = api_secret.get('MODEL_ID')
             self.bedrock_runtime = boto3.client(
@@ -143,9 +146,13 @@ class AmazonClient(ModelClient):
     def model_list(self, *args, **kwargs):
         # 这里可以添加获取模型列表的逻辑
         try:
-            response = self.bedrock_runtime.list_foundation_models()
-            model_identifiers = [model['modelIdentifier'] for model in response.get('modelSummaries', [])]
-            return model_identifiers
+            self._init_env(args[0])
+            bedrock_client = boto3.client(
+                service_name="bedrock",
+                region_name=args[0].get('AWS_REGION'))
+            response = bedrock_client.list_foundation_models()
+            models = response["modelSummaries"]
+            return list(set([i.get('modelName') for i in models]))
         except Exception as e:
             logger.error(f"Failed to get model list: {e}")
             return []
