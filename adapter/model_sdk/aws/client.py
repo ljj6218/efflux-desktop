@@ -34,11 +34,11 @@ class AmazonClient(ModelClient):
             os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_access_key
 
 
-    def _init_bedrock(self, api_secret: Secret):
+    def _init_bedrock(self, api_secret: Secret, model_id: str):
         try:
             self._init_env(api_secret)
             region_name = api_secret.get('AWS_REGION')
-            self.model_id = api_secret.get('MODEL_ID')
+            self.model_id = model_id
             self.bedrock_runtime = boto3.client(
                 service_name='bedrock-runtime',
                 region_name=region_name
@@ -67,7 +67,7 @@ class AmazonClient(ModelClient):
         base_url: str = None,
         tools: Optional[List[Tool]] = None,
         **generation_kwargs) -> Generator[ChatStreamingChunk, None, None]:
-        self._init_bedrock(api_secret)
+        self._init_bedrock(api_secret, model)
 
         system_instruction = ""
         user_messages = []
