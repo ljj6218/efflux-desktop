@@ -20,12 +20,12 @@ class AzureClient(ModelClient):
         self.client = None
         self.deployment = None
 
-    def _init_azure(self, api_secret: Secret):
+    def _init_azure(self, api_secret: Secret, model_id: str = None):
         try:
             endpoint = api_secret.get('endpoint')
             subscription_key = api_secret.get('subscription_key')
             api_version = api_secret.get('api_version')
-            self.deployment = api_secret.get('deployment')
+            self.deployment = model_id
 
             self.client = AzureOpenAI(
                 api_version=api_version,
@@ -59,7 +59,7 @@ class AzureClient(ModelClient):
         **generation_kwargs
     ) -> Generator[ChatStreamingChunk, None, None]:
         logger.info("Starting stream generation with Azure OpenAI")
-        self._init_azure(api_secret)
+        self._init_azure(api_secret, model)
 
         messages = []
         for chunk in message_list:
@@ -103,6 +103,6 @@ class AzureClient(ModelClient):
 
     def model_list(self, *args, **kwargs):
         logger.info("model_list method is called")
-        # Azure OpenAI API does not provide a direct method to list models programmatically
-        # Return an empty list or a predefined list if needed
-        return [self.deployment] if self.deployment else []
+        self._init_azure(args[0])
+        model_obj_list = self.client.models.list().data
+        return list(set([model_obj_i.id for model_obj_i in model_obj_list]))
