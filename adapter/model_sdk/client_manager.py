@@ -1,5 +1,4 @@
-from openai import api_key
-
+from adapter.model_sdk.anthropic.client import AnthropicClient
 from adapter.model_sdk.gemini.client import GeminiClient
 from application.port.outbound.generators_port import GeneratorsPort
 from application.domain.generators.tools import Tool
@@ -47,14 +46,19 @@ class ClientManager(GeneratorsPort):
         # firm_dict = self.user_setting.read_key(firm_name)
         # base_url = firm_dict['base_url']
         # api_key = firm_dict['api_key']
-        # client: ModelClient = OpenAIClient()
-        # client.model_list(base_url=base_url, api_key=api_key)
-
-        model_list: List[str] = self.config[firm_name]['model_list']
+        # client: ModelClient = self._get_model_client(firm=firm_name)
+        # model_list: List[LLMGenerator] = client.model_list(api_key=api_key, base_url=base_url)
         firm_model_config_url = f"adapter/model_sdk/setting/openai/{firm_name}_model.json"
         firm_model_config = JSONFileUtil(firm_model_config_url)
+        model_list: List[str] = self.config[firm_name]['model_list']
         generator_list: List[LLMGenerator] = []
         for model in model_list:
+        #     firm_model_dict = firm_model_config.read_key(model.model)
+        #     if firm_model_dict:
+        #         generator_list.append(LLMGenerator.model_validate(firm_model_dict))
+        #     else:
+        #         generator_list.append(model)
+        # return generator_list
             firm_model_dict = firm_model_config.read_key(model)
             if firm_model_dict:
                 generator_list.append(LLMGenerator.model_validate(firm_model_dict))
@@ -189,5 +193,7 @@ class ClientManager(GeneratorsPort):
     def _get_model_client(self, firm: str) -> ModelClient:
         if firm == "openai":
             return OpenAIClient()
-        if firm == "gemini":
+        if firm == "google":
             return GeminiClient()
+        if firm == "anthropic":
+            return AnthropicClient()
