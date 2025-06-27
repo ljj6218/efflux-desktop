@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from openai.types.chat import ChatCompletionMessageParam
 
+from application.domain.generators.generator import LLMGenerator
 from common.utils.auth import Secret
 from typing import Any, Dict, Iterable, Optional, List, Generator
 from application.domain.generators.tools import Tool
@@ -47,5 +48,5 @@ class ModelClient(ABC):
     def model_list(
                 self,
                 api_key: str = None,
-                base_url: str = None):
+                base_url: str = None) -> List[LLMGenerator]:
         pass
