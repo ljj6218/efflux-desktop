@@ -106,13 +106,13 @@ def include_routers_from_package(package_name: str):
                 module = import_module(full_module_name)
                 if hasattr(module, 'router'):
                     app.include_router(module.router)
-                    print(f"Successfully registered router from {full_module_name}")
+                    logger.info(f"Successfully registered router from {full_module_name}")
             except Exception as e:
-                print(f"Error importing {module_name}: {str(e)}")
+                logger.error(f"Error importing {module_name}: {str(e)}")
                 continue
                 
     except Exception as e:
-        print(f"Error in include_routers_from_package: {str(e)}")
+        logger.error(f"Error in include_routers_from_package: {str(e)}")
         import traceback
         traceback.print_exc()
 
@@ -277,16 +277,12 @@ def default_setting():
             "base_url": "https://api.anthropic.com/v1",
             "model_list": ["claude-3-7-sonnet-20250219", "claude-3-5-sonnet-20241022"]
         },
-        "gemini": {
-            "base_url": "https://generativelanguage.googleapis.com/v1beta",
+        "google": {
+            "base_url": "https://generativelanguage.googleapis.com",
             "model_list": [
                 "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite-preview-06-17", "gemini-2.5-flash-preview-05-20",
                 "gemini-2.0-flash", "gemini-2.0-flash-lite"
             ]
-        },
-        "tongyi": {
-            "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-            "model_list": ["qwq-max", "qwq-plus", "deepseek-r1", "deepseek-v3", "qwen-max", "qwen-plus"]
         }
     }
     save_yaml("adapter/model_sdk/setting/openai/model.yaml", model_dist)
