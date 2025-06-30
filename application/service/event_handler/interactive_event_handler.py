@@ -31,6 +31,7 @@ class InteractiveEventHandler(EventHandler):
             dialog_segment = DialogSegment.make_assistant_message(content="", id=dialog_segment_id,
                                                                   conversation_id=conversation_id,
                                                                   model="",
+                                                                  firm="",
                                                                   timestamp=create_from_second_now_to_int(),
                                                                   payload=event.payload,
                                                                   metadata=DialogSegmentMetadata(

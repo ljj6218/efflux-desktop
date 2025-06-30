@@ -51,7 +51,7 @@ class ToolEventHandler(EventHandler):
                         payload=event.payload, model=event.data['model'])
                     assistant_dialog_segment = DialogSegment.make_assistant_message(
                         conversation_id=tool_instance.conversation_id, id=tool_instance.dialog_segment_id,
-                        content="", reasoning_content=None, model=event.data['model'], timestamp=event.data['created'])
+                        content="", reasoning_content=None, model=event.data['model'], firm=event.data['firm'], timestamp=event.data['created'])
                     self.conversation_port.conversation_add(dialog_segment=assistant_dialog_segment)
                 self.tools_port.save_instance(tool_instance)
                 logger.info(f"保存工具调用实例记录--->{tool_instance.name} - {tool_instance.tool_call_id}")

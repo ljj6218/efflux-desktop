@@ -65,6 +65,7 @@ class PpterAgent(AgentInstance):
             dialog_segment = DialogSegment.make_assistant_message(content=content, id=self.info.dialog_segment_id,
                                                                   conversation_id=self.info.conversation_id,
                                                                   model=self.llm_generator.model,
+                                                                  firm=self.llm_generator.firm,
                                                                   timestamp=create_from_second_now_to_int(),
                                                                   payload={'agent_instance_id': self.info.instance_id, 'json_type': json_type},
                                                                   metadata=DialogSegmentMetadata(

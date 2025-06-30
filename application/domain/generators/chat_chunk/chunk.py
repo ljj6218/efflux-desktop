@@ -45,6 +45,7 @@ class ChatStreamingChunk(BaseModel):
     conversation_id: Optional[str] = None
     agent_id: Optional[str] = None
     model: Optional[str] = None
+    firm: Optional[str] = None
     created: Optional[int] = None
     usage: Optional[CompletionUsage] = None
     """Choice"""
@@ -95,6 +96,7 @@ class ChatStreamingChunk(BaseModel):
                 "dialog_segment_id": dialog_segment_id,
                 "generator_id": generator_id,
                 "model": self.model,
+                "firm": self.firm,
                 "content": self.content,
                 "reasoning_content": self.reasoning_content,
                 "created": self.created,
@@ -128,6 +130,7 @@ class ChatStreamingChunk(BaseModel):
                 "dialog_segment_id": dialog_segment_id,
                 "generator_id": generator_id,
                 "model": self.model,
+                "firm": self.firm,
                 "created": self.created,
                 "tool_calls": tool_call_list,
             }

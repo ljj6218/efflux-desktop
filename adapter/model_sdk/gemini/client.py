@@ -76,6 +76,9 @@ class GeminiClient(ModelClient):
         for chunk in response:
             logger.debug(f"原始chunk返回：{chunk}")
             logger.debug("============================================================================================")
+            # if chunk.usage_metadata:
+            #     logger.debug(f"跳过用量：{chunk.usage_metadata}")
+            #     continue
             if chunk.function_calls: # tools调用要先返回一个空的stop标识chunk
                 yield self._convert_efflux_stream_chunk(model=model, stop_flag=True)
                 yield self._convert_efflux_stream_chunk(content_response=chunk, tools=tools)
@@ -239,18 +242,31 @@ class GeminiClient(ModelClient):
                 )
             else:
                 candidate: Candidate = content_response.candidates[0]
-                part: Part = candidate.content.parts[0]
-                if candidate.finish_reason:
-                    chunk_finish_reason = candidate.finish_reason.name.lower()
-                return ChatStreamingChunk.from_assistant(
-                    id=content_response.response_id if content_response.response_id else create_uuid(),
-                    model=content_response.model_version,
-                    created=create_from_timestamp_to_int(content_response.create_time) if content_response.create_time else create_from_second_now_to_int(),
-                    finish_reason=chunk_finish_reason,
-                    role="assistant" if candidate.content.role == "model" else content_response.role,
-                    content=part.text if not part.thought else None,
-                    reasoning_content=part.text if part.thought else None,
-                )
+                if candidate.content.parts:
+                    part: Part = candidate.content.parts[0]
+                    if candidate.finish_reason:
+                        chunk_finish_reason = candidate.finish_reason.name.lower()
+                    return ChatStreamingChunk.from_assistant(
+                        id=content_response.response_id if content_response.response_id else create_uuid(),
+                        model=content_response.model_version,
+                        created=create_from_timestamp_to_int(content_response.create_time) if content_response.create_time else create_from_second_now_to_int(),
+                        finish_reason=chunk_finish_reason,
+                        role="assistant" if candidate.content.role == "model" else content_response.role,
+                        content=part.text if not part.thought else None,
+                        reasoning_content=part.text if part.thought else None,
+                    )
+                else:
+                    if candidate.finish_reason:
+                        chunk_finish_reason = candidate.finish_reason.name.lower()
+                    return ChatStreamingChunk.from_assistant(
+                        id=content_response.response_id if content_response.response_id else create_uuid(),
+                        model=content_response.model_version,
+                        created=create_from_timestamp_to_int(content_response.create_time) if content_response.create_time else create_from_second_now_to_int(),
+                        finish_reason=chunk_finish_reason,
+                        role="assistant" if candidate.content.role == "model" else content_response.role,
+                        content="",
+                        reasoning_content="",
+                    )
 
 
     def _convert_gemini_stream_chunk(self, chat_streaming_chunk_list: Iterable[ChatStreamingChunk]) -> List[Content]:
