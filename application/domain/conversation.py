@@ -54,6 +54,8 @@ class DialogSegment(BaseModel):
     conversation_id: Optional[str] = None
     # 模型
     model: Optional[str] = None
+    # 厂商
+    firm: Optional[str] = None
     # 内容
     content: Optional[str | List[DialogSegmentContent]] = None
     # 思考
@@ -97,6 +99,7 @@ class DialogSegment(BaseModel):
         cls, content: str,
         conversation_id: str,
         model: str,
+        firm: str,
         timestamp: int,
         reasoning_content: Optional[str] = None,
         id: Optional[str] = None,
@@ -110,6 +113,7 @@ class DialogSegment(BaseModel):
             content=content,
             reasoning_content=reasoning_content,
             model=model,
+            firm=firm,
             role="assistant",
             finish_reason="stop",
             created = create_from_timestamp(timestamp),
@@ -145,6 +149,7 @@ class DialogSegment(BaseModel):
         return ChatStreamingChunk(
             id=self.id,
             model=self.model,
+            firm=self.firm,
             content=dialog_segment_content_copy,
             reasoning_content=self.reasoning_content,
             role=self.role,
