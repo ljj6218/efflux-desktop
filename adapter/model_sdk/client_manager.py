@@ -181,7 +181,7 @@ class ClientManager(GeneratorsPort):
         client: ModelClient = self._get_model_client(firm=llm_generator.firm)
         firm_setting = self.user_setting.read_key(llm_generator.firm)
         url = firm_setting["base_url"]
-        return client.generate_stream(
+        stream = client.generate_stream(
             model=llm_generator.model,
             api_secret=llm_generator.api_key_secret,
             base_url=url,
@@ -189,6 +189,11 @@ class ClientManager(GeneratorsPort):
             tools=tools,
             generation_kwargs=generation_kwargs
         )
+        for chunk in stream:
+            chunk.model = llm_generator.model
+            chunk.firm = llm_generator.firm
+            yield chunk
+
 
     def _get_model_client(self, firm: str) -> ModelClient:
         if firm == "openai":
