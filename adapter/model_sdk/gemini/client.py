@@ -8,6 +8,7 @@ from google.genai.types import Content, Part, FunctionDeclaration, GenerateConte
 from adapter.model_sdk.client import ModelClient
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, ChatCompletionContentPartParam, \
     ChatCompletionMessageToolCall
+from application.domain.generators.generator import LLMGenerator
 from application.domain.generators.tools import Tool
 from common.utils.auth import Secret
 from common.utils.common_utils import create_uuid
@@ -49,12 +50,16 @@ class GeminiClient(ModelClient):
         if tools:
             gemini_tools = self._convert_gemini_tools(tools=tools)
 
+        response_mime_type = "text/plain"
+        if "json_object" in generation_kwargs.keys() and generation_kwargs["json_object"]:
+            response_mime_type = "application/json"
+
         generate_content_config = types.GenerateContentConfig(
             thinking_config=types.ThinkingConfig(
                 include_thoughts=True,
                 thinking_budget=2048,  # 范围 0-16384。默认 1024，最佳边际效果 16000
             ),
-            response_mime_type="text/plain",
+            response_mime_type=response_mime_type,
             system_instruction=system_instruction if system_instruction else None,
             tools=[gemini_tools] if gemini_tools else None,
         )
@@ -125,8 +130,20 @@ class GeminiClient(ModelClient):
         self,
         api_key: str = None,
         base_url: str = None
-    ):
-        pass
+    )-> List[LLMGenerator]:
+        client: genai.Client = self._get_client(api_key=api_key, base_url=base_url)
+        generators: List[LLMGenerator] = []
+        for model in client.models.list():
+            generator = LLMGenerator.from_disabled(
+                firm="google",
+                model=model.name.replace('models/', '', 1),
+                fields={
+                    "input_token_limit": model.input_token_limit,
+                    "output_token_limit": model.output_token_limit
+                }
+            )
+            generators.append(generator)
+        return generators
 
     @staticmethod
     def _convert_gemini_system_instruction(chat_streaming_chunk_list: Iterable[ChatStreamingChunk]) -> Optional[str]:

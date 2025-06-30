@@ -106,13 +106,13 @@ def include_routers_from_package(package_name: str):
                 module = import_module(full_module_name)
                 if hasattr(module, 'router'):
                     app.include_router(module.router)
-                    print(f"Successfully registered router from {full_module_name}")
+                    logger.info(f"Successfully registered router from {full_module_name}")
             except Exception as e:
-                print(f"Error importing {module_name}: {str(e)}")
+                logger.error(f"Error importing {module_name}: {str(e)}")
                 continue
 
     except Exception as e:
-        print(f"Error in include_routers_from_package: {str(e)}")
+        logger.error(f"Error in include_routers_from_package: {str(e)}")
         import traceback
         traceback.print_exc()
 
@@ -271,15 +271,18 @@ def default_setting():
     model_dist = {
         "openai":{
             "base_url": "https://api.openai.com/v1",
-            "model_list": ["claude-3-7-sonnet-20250219","gpt-4o"]
+            "model_list": ["o3-pro", "o4-mini", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano", "gpt-4.5-preview", "o3", "gpt-4o-search-preview", "gpt-4o-mini-search-preview", "o3-mini", "o1", "o1-pro", "o1-preview", "o1-mini", "gpt-4o", "chatgpt-4o-latest", "gpt-4o-mini"]
         },
         "anthropic": {
             "base_url": "https://api.anthropic.com/v1",
             "model_list": ["claude-3-7-sonnet-20250219", "claude-3-5-sonnet-20241022"]
         },
-        "gemini": {
-            "base_url": "https://generativelanguage.googleapis.com/v1beta",
-            "model_list": ["gemini-2.5-flash", "gemini-2.5-flash-preview-05-20"]
+        "google": {
+            "base_url": "https://generativelanguage.googleapis.com",
+            "model_list": [
+                "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite-preview-06-17", "gemini-2.5-flash-preview-05-20",
+                "gemini-2.0-flash", "gemini-2.0-flash-lite"
+            ]
         },
         "Amazon Bedrock": {
             "fields": {

@@ -17,7 +17,7 @@ from openai.types.shared_params.response_format_json_object import ResponseForma
 from common.core.logger import get_logger
 logger = get_logger(__name__)
 
-class OpenAIClient(ModelClient):
+class AnthropicClient(ModelClient):
 
     def __init__(self):
         self.timeout = float(os.environ.get("OPENAI_TIMEOUT", 180.0)) # 接口超时时间
@@ -33,7 +33,7 @@ class OpenAIClient(ModelClient):
         generators: List[LLMGenerator] = []
         for model in client.models.list():
             generator = LLMGenerator.from_disabled(
-                firm="openai",
+                firm="anthropic",
                 model=model.id
             )
             generators.append(generator)
