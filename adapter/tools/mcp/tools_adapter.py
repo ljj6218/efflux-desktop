@@ -17,7 +17,7 @@ from common.core.logger import get_logger
 logger = get_logger(__name__)
 
 # mcp 访问超时时间
-delta = timedelta(seconds=20)
+delta = timedelta(seconds=120)
 
 @component
 class McpToolsAdapter:

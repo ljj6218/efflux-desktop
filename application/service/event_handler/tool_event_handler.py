@@ -6,6 +6,7 @@ from common.core.container.annotate import component
 from common.core.errors.business_error_code import GeneratorErrorCode
 from common.core.errors.business_exception import BusinessException
 from common.utils.time_utils import create_from_second_now_to_int
+from common.utils.common_utils import create_uuid
 from application.domain.tasks.task import Task, TaskType
 from application.domain.generators.tools import ToolInstance
 from application.domain.conversation import DialogSegment
@@ -66,6 +67,7 @@ class ToolEventHandler(EventHandler):
             if 'context_message_list' not in event.payload:
                 system = event.payload['system'] if 'system' in event.payload else None
                 conversation_id = event.data['conversation_id']
+                event.data['dialog_segment_id'] = create_uuid()
                 message_list = self._make_message_list(system=system, conversation_id=conversation_id)
                 event.payload['context_message_list'] = message_list
 

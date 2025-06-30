@@ -1,8 +1,6 @@
 from typing import Iterable, Optional, List, Generator, Iterator
 
-from google import genai
-from google.genai import types
-from google.genai.client import Client
+from google.genai import types, Client
 from google.genai.types import Content, Part, FunctionDeclaration, GenerateContentResponse, Candidate
 
 from adapter.model_sdk.client import ModelClient
@@ -131,7 +129,7 @@ class GeminiClient(ModelClient):
         api_key: str = None,
         base_url: str = None
     )-> List[LLMGenerator]:
-        client: genai.Client = self._get_client(api_key=api_key, base_url=base_url)
+        client: Client = self._get_client(api_key=api_key, base_url=base_url)
         generators: List[LLMGenerator] = []
         for model in client.models.list():
             generator = LLMGenerator.from_disabled(
@@ -353,7 +351,7 @@ class GeminiClient(ModelClient):
                 chunk_tools_call.description = tool.description
 
     def _get_client(self, api_key: str, base_url: str) -> Client:
-        return genai.Client(
+        return Client(
             api_key=api_key,
             http_options={
                 "base_url": base_url,

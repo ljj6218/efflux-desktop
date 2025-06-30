@@ -48,7 +48,7 @@ class ChatStreamingChunk(BaseModel):
     created: Optional[int] = None
     usage: Optional[CompletionUsage] = None
     """Choice"""
-    finish_reason: Optional[Literal["stop", "length", "tool_calls", "content_filter", "function_call", "user_confirm"]] = None
+    finish_reason: Optional[Literal["stop", "length", "tool_calls", "content_filter", "function_call", "stop_sequence"]] = None
     """ChoiceDelta"""
     content: Optional[Union[str, Iterable[ChatCompletionContentPartParam]]] = None
     reasoning_content:  Optional[str] = None
