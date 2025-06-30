@@ -103,7 +103,7 @@ class AssistantMessageEventHandler(EventHandler):
                     assistant_dialog_segment = DialogSegment.make_assistant_message(
                         conversation_id=copy_last_event.data['conversation_id'], id=copy_last_event.data['dialog_segment_id'],
                         content=copy_last_event.data['content'], reasoning_content=copy_last_event.data['reasoning_content'],
-                        model=copy_last_event.data['model'], timestamp=copy_last_event.data['created'], payload=copy_last_event.payload)
+                        model=copy_last_event.data['model'], firm=copy_last_event.data['firm'], timestamp=copy_last_event.data['created'], payload=copy_last_event.payload)
                     agent_instance_id = copy_last_event.payload['agent_instance_id'] if 'agent_instance_id' in copy_last_event.payload else None
                     if agent_instance_id:
                         assistant_dialog_segment.payload = {"agent_instance_id": agent_instance_id}

@@ -2,7 +2,6 @@ from adapter.agent.prompts.clarification import SYSTEM_MESSAGE_CLARIFICATION
 from adapter.agent.prompts.ppter import SYSTEM_MESSAGE_PPTER
 from adapter.agent.prompts.svger import SYSTEM_MESSAGE_SVGER
 from application.domain.agents.agent import Agent, AgentInstance, AgentInfo
-# from application.domain.agents.browser_agent import BrowserAgent
 from application.domain.agents.clarification_agent import ClarificationAgent
 from application.domain.agents.plan_agent import PlanAgent
 from application.domain.agents.ppter_agent import PpterAgent

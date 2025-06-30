@@ -275,7 +275,7 @@ class LLMTaskHandler(TaskHandler):
             chunk_list.append(ChatStreamingChunk.from_tool_calls(tool_calls=tool_calls))
             # 拼装方法调用结果
             chunk_list.append(
-                ChatStreamingChunk.from_tool_calls_result(content=str(tool_instance.result),
+                ChatStreamingChunk.from_tool_calls_result(content=json.dumps(tool_instance.result),
                                                           tool_call_id=tool_instance.tool_call_id,
                                                           tool_calls=tool_calls))
         return chunk_list
