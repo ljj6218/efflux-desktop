@@ -61,6 +61,8 @@ class GeneratorService(ModelCase, GeneratorsCase):
         return self.generators_port.load_firm()
 
     async def model_list(self, firm: str) -> List[LLMGenerator]:
+        if self.generators_port.is_non_standard(firm):
+            return self.generators_port.load_model_by_other_firm(firm)
         return self.generators_port.load_model_by_firm(firm)
 
     async def enabled_model_list(self, firm: str) -> List[LLMGenerator]:
@@ -68,8 +70,11 @@ class GeneratorService(ModelCase, GeneratorsCase):
             return self.generators_port.load_enabled_model_by_firm(firm)
         return self.generators_port.load_enabled_model()
 
-    async def enable_or_disable_model(self, firm: str, model: str, enabled: bool) -> Optional[bool]:
-        return self.generators_port.enable_or_disable_model(firm, model, enabled)
+    async def enable_or_disable_model(
+        self, firm: str, model: str, enabled: bool, model_type: str
+    ) -> Optional[bool]:
+        return self.generators_port.enable_or_disable_model(
+            firm, model, enabled, model_type)
 
     async def generate_test(
             self,
@@ -356,7 +361,10 @@ class GeneratorService(ModelCase, GeneratorsCase):
         if llm_generator is None:
             raise BusinessException(error_code=GeneratorErrorCode.GENERATOR_NOT_FOUND, dynamics_message=generator_id)
         firm: GeneratorFirm = self.user_setting_port.load_firm_setting(llm_generator.firm)
-        llm_generator.set_api_key_secret(firm.api_key)
+        if self.generators_port.is_non_standard(firm.name):
+            llm_generator.set_api_key_secret(firm.fields)
+        else:
+            llm_generator.set_api_key_secret(firm.api_key)
         llm_generator.check_firm_api_key()
         return llm_generator
 
