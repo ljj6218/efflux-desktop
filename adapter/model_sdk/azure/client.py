@@ -1,13 +1,12 @@
-import os
 import json
 import traceback
 from typing import Iterable, Optional, List, Generator
-
 from openai import AzureOpenAI
+
 from adapter.model_sdk.client import ModelClient
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, ChatCompletionMessageToolCall
 from application.domain.generators.tools import Tool
-from common.utils.auth import Secret
+from common.utils.auth import OtherSecret
 from common.utils.common_utils import create_uuid
 from common.utils.time_utils import create_from_second_now_to_int
 
@@ -21,7 +20,7 @@ class AzureClient(ModelClient):
         self.client = None
         self.deployment = None
 
-    def _init_azure(self, api_secret: Secret, model_id: str = None):
+    def _init_azure(self, api_secret: OtherSecret, model_id: str = None):
         try:
             endpoint = api_secret.get('endpoint')
             subscription_key = api_secret.get('subscription_key')
@@ -43,7 +42,7 @@ class AzureClient(ModelClient):
         self,
         model: str = None,
         message_list: Iterable[ChatStreamingChunk] = None,
-        api_secret: Secret = None,
+        api_secret: Optional[OtherSecret] = None,
         base_url: str = None,
         tools: Optional[List[Tool]] = None,
         **generation_kwargs
@@ -114,7 +113,7 @@ class AzureClient(ModelClient):
         self,
         model: str = None,
         message_list: Iterable[ChatStreamingChunk] = None,
-        api_secret: Secret = None,
+        api_secret: Optional[OtherSecret] = None,
         base_url: str = None,
         tools: Optional[List[Tool]] = None,
         **generation_kwargs

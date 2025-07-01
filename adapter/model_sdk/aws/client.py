@@ -10,7 +10,7 @@ from adapter.model_sdk.client import ModelClient
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, ChatCompletionContentPartParam, \
     ChatCompletionMessageToolCall
 from application.domain.generators.tools import Tool
-from common.utils.auth import Secret
+from common.utils.auth import OtherSecret
 from common.utils.common_utils import create_uuid
 from common.utils.time_utils import create_from_timestamp_to_int, create_from_second_now_to_int
 
@@ -24,7 +24,7 @@ class AmazonClient(ModelClient):
         self.bedrock_runtime = None
         self.model_id = None
 
-    def _init_env(self, api_secret: Secret):
+    def _init_env(self, api_secret: OtherSecret):
         # 临时设置环境变量
         aws_access_key_id = api_secret.get('AWS_ACCESS_KEY_ID')
         aws_secret_access_key = api_secret.get('AWS_SECRET_ACCESS_KEY')
@@ -33,7 +33,7 @@ class AmazonClient(ModelClient):
         if aws_secret_access_key:
             os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_access_key
 
-    def _init_bedrock(self, api_secret: Secret, model_id: str):
+    def _init_bedrock(self, api_secret: OtherSecret, model_id: str):
         try:
             self._init_env(api_secret)
             region_name = api_secret.get('AWS_REGION')
@@ -52,7 +52,7 @@ class AmazonClient(ModelClient):
         self,
         model: str = None,
         message_list: Iterable[ChatStreamingChunk] = None,
-        api_secret: Secret = None,
+        api_secret: Optional[OtherSecret] = None,
         base_url: str = None,
         tools: Optional[List[Tool]] = None,
         **generation_kwargs) -> ChatStreamingChunk:
@@ -62,7 +62,7 @@ class AmazonClient(ModelClient):
         self,
         model: str = None,
         message_list: Iterable[ChatStreamingChunk] = None,
-        api_secret: Secret = None,
+        api_secret: Optional[OtherSecret] = None,
         base_url: str = None,
         tools: Optional[List[Tool]] = None,
         **generation_kwargs) -> Generator[ChatStreamingChunk, None, None]:
@@ -368,9 +368,15 @@ class AmazonClient(ModelClient):
                 break
 
     # 实现 generate_test 方法
-    def generate_test(self, model: str = None, message_list: Iterable[ChatStreamingChunk] = None,
-                      api_secret: Secret = None, base_url: str = None, tools: Optional[List[Tool]] = None,
-                      **generation_kwargs):
+    def generate_test(
+        self,
+        model: str = None,
+        message_list: Iterable[ChatStreamingChunk] = None,
+        api_secret: Optional[OtherSecret] = None,
+        base_url: str = None,
+        tools: Optional[List[Tool]] = None,
+        **generation_kwargs
+    ):
         """
         测试方法，用于调试
         """
