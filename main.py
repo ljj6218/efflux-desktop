@@ -253,6 +253,7 @@ def default_setting():
                 "type": "LOCAL"
             }
         ],
+        "build_in": True,
         "description": "PPT Agent"
     }
     agent_config.update_key(agent_ppt['id'], agent_ppt)
@@ -265,6 +266,7 @@ def default_setting():
                 "type": "LOCAL"
             }
         ],
+        "build_in": True,
         "description": "SVG Agent"
     }
     agent_config.update_key(agent_svg['id'], agent_svg)
