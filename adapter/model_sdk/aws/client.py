@@ -1,5 +1,6 @@
 import base64
 import boto3
+from botocore.exceptions import SSLError
 import json
 import os
 import re
@@ -7,14 +8,16 @@ import traceback
 from typing import Iterable, Optional, List, Generator, Iterator
 
 from adapter.model_sdk.client import ModelClient
-from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, ChatCompletionContentPartParam, \
-    ChatCompletionMessageToolCall
+from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, \
+    ChatCompletionContentPartParam, ChatCompletionMessageToolCall
 from application.domain.generators.tools import Tool
+from common.core.errors.business_exception import BusinessException
+from common.core.errors.common_error_code import CommonErrorCode
+from common.core.errors.system_exception import ThirdPartyServiceException, ThirdPartyServiceApiCode
+from common.core.logger import get_logger
 from common.utils.auth import OtherSecret
 from common.utils.common_utils import create_uuid
 from common.utils.time_utils import create_from_timestamp_to_int, create_from_second_now_to_int
-
-from common.core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -204,6 +207,11 @@ class AmazonClient(ModelClient):
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
             logger.error(traceback.format_exc())
+            # 抛出三方调用异常
+            raise ThirdPartyServiceException(
+                error_code=ThirdPartyServiceApiCode.LLM_SERVICE_API_ERROR,
+                dynamics_message=f"model:{model} - exception:{str(e)}"
+            )
 
     @staticmethod
     def _convert_bedrock_tools(tools: Iterable[Tool]) -> List[dict]:
@@ -250,11 +258,48 @@ class AmazonClient(ModelClient):
                 system_message += chunk.content
             elif chunk.role == "user":
                 if isinstance(chunk.content, str):
+                    '''
+                    文字+文件消息类型
+                    {
+                        "role": "user",
+                        "content": [
+                            {"text": "中文总结一下这份文档的内容，20字左右。"},
+                            {
+                                "document": {
+                                    # Available formats: html, md, pdf, doc/docx, xls/xlsx, csv, and txt
+                                    "format": "txt",
+                                    "name": "README",
+                                    "source": {"bytes": document_bytes},
+                                }
+                            },
+                        ],
+                    }
+                    '''
                     messages.append({
                         "role": "user",
                         "content": [{"type": "text", "text": chunk.content}]
                     })
                 else:
+                    '''
+                    文字+base64图片类型
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": f"image/{image_format}",
+                                    "data": image_base64
+                                }
+                            },
+                            {
+                                "type": "text",
+                                "text": prompt
+                            }
+                        ]
+                    }
+                    '''
                     # 处理多模态内容
                     content = self._convert_multimodal_content(chunk.content)
                     messages.append({
@@ -327,28 +372,15 @@ class AmazonClient(ModelClient):
                     "text": part.text
                 })
             elif part.type == "image_url":
-                # 处理图片URL
-                image_url = part.image_url.url
-                if image_url.startswith("data:image/"):
-                    # Base64编码的图片
-                    match = re.match(r"^data:image/([^;]+);base64,(.+)$", image_url)
-                    if match:
-                        image_format = match.group(1)
-                        base64_data = match.group(2)
-
-                        bedrock_content.append({
-                            "type": "image",
-                            "source": {
-                                "type": "base64",
-                                "media_type": f"image/{image_format}",
-                                "data": base64_data
-                            }
-                        })
-                    else:
-                        logger.warning(f"无法解析图片格式: {image_url}")
-                else:
-                    logger.warning(f"不支持的图片URL格式: {image_url}")
-
+                mime_type, encoding, base64_data = AmazonClient._get_base64_meta(part.image_url.url)
+                bedrock_content.append({
+                    "type": "image",
+                    "source": {
+                        "type": encoding,
+                        "media_type": mime_type,
+                        "data": base64_data
+                    }
+                })
         return bedrock_content
 
     @staticmethod
@@ -429,6 +461,30 @@ class AmazonClient(ModelClient):
             response = bedrock_client.list_foundation_models()
             models = response["modelSummaries"]
             return list(set([i.get('modelName') for i in models]))
+        except SSLError as e:
+            raise BusinessException(
+                error_code=CommonErrorCode.INVALID_TOKEN,
+                dynamics_message='无效的模型厂商配置，请检查配置'
+            )
         except Exception as e:
-            logger.error(f"Failed to get model list: {e}")
+            logger.error("Failed to get model list: ")
+            logger.error(traceback.format_exc())
             return []
+
+    @staticmethod
+    def _get_base64_meta(data_url: str):
+        # 使用正则表达式提取 MIME 类型, 编码方式和 Base64 数据
+        pattern = r"data:(?P<mime_type>.*?);(?P<encoding>.*?),(?P<data>.*)"
+        match = re.match(pattern, data_url)
+
+        if match:
+            mime_type = match.group("mime_type")
+            encoding = match.group("encoding")
+            base64_data = match.group("data")
+            # 输出提取结果
+            print("MIME Type:", mime_type)
+            print("Encoding:", encoding)
+            print("Base64 Data:", base64_data)
+            return mime_type, encoding, base64_data
+        else:
+            print("Invalid data URL format.")
