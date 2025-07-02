@@ -62,12 +62,12 @@ class TextAgent(AgentInstance):
     def _thread_to_context(self, history_message_list: List[ChatStreamingChunk]) -> List[ChatStreamingChunk]:
         """拼装基础system提示词和会话历史信息"""
         # 拼装系统提示词
-        messages: List[ChatStreamingChunk] = [ChatStreamingChunk.from_system(
+        user_message: ChatStreamingChunk = ChatStreamingChunk.from_user(
             message=self.info.agent_prompts["SYSTEM_PROMPT"]
-        )]
+        )
         # 拼装对话上下文
-        messages.extend(history_message_list)
-        return messages
+        history_message_list.insert(-1, user_message)
+        return history_message_list
 
     def _send_agent_result_event(self, client_id: str, payload: Dict[str, Any], agent_state: AgentState) -> None:
         payload['agent_state'] = agent_state
