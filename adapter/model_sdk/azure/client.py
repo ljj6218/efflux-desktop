@@ -1,10 +1,12 @@
 import json
+from openai import AzureOpenAI, NotFoundError
+import re
 import traceback
 from typing import Iterable, Optional, List, Generator
-from openai import AzureOpenAI, NotFoundError
 
 from adapter.model_sdk.client import ModelClient
-from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, ChatCompletionMessageToolCall
+from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, \
+    ChatCompletionContentPartParam, ChatCompletionMessageToolCall
 from application.domain.generators.tools import Tool
 from common.core.errors.common_error_code import CommonErrorCode
 from common.core.errors.common_exception import CommonException
@@ -280,16 +282,8 @@ class AzureClient(ModelClient):
         messages = []
 
         for chunk in message_list:
-            if chunk.role == "system":
-                messages.append({
-                    "role": "system",
-                    "content": chunk.content
-                })
-            elif chunk.role == "user":
-                messages.append({
-                    "role": "user",
-                    "content": chunk.content
-                })
+            if chunk.role in ["system", "user"]:
+                messages.append(chunk)
             elif chunk.role == "assistant":
                 if chunk.finish_reason == "tool_calls" and chunk.tool_calls:
                     # Convert tool calls to Azure format
