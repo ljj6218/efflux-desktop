@@ -1,5 +1,6 @@
 import base64
 import boto3
+from botocore.exceptions import SSLError
 import json
 import os
 import re
@@ -10,11 +11,13 @@ from adapter.model_sdk.client import ModelClient
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, ChatCompletionContentPartParam, \
     ChatCompletionMessageToolCall
 from application.domain.generators.tools import Tool
+from common.core.errors.common_error_code import CommonErrorCode
+from common.core.errors.common_exception import CommonException
+from common.core.errors.system_exception import ThirdPartyServiceException, ThirdPartyServiceApiCode
+from common.core.logger import get_logger
 from common.utils.auth import OtherSecret
 from common.utils.common_utils import create_uuid
 from common.utils.time_utils import create_from_timestamp_to_int, create_from_second_now_to_int
-
-from common.core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -204,6 +207,11 @@ class AmazonClient(ModelClient):
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
             logger.error(traceback.format_exc())
+            # 抛出三方调用异常
+            raise ThirdPartyServiceException(
+                error_code=ThirdPartyServiceApiCode.LLM_SERVICE_API_ERROR,
+                dynamics_message=f"model:{model} - exception:{str(e)}"
+            )
 
     @staticmethod
     def _convert_bedrock_tools(tools: Iterable[Tool]) -> List[dict]:
@@ -429,6 +437,12 @@ class AmazonClient(ModelClient):
             response = bedrock_client.list_foundation_models()
             models = response["modelSummaries"]
             return list(set([i.get('modelName') for i in models]))
+        except SSLError as e:
+            raise CommonException(
+                error_code=CommonErrorCode.INVALID_TOKEN,
+                dynamics_message='无效的模型厂商配置，请检查配置'
+            )
         except Exception as e:
-            logger.error(f"Failed to get model list: {e}")
+            logger.error("Failed to get model list: ")
+            logger.error(traceback.format_exc())
             return []

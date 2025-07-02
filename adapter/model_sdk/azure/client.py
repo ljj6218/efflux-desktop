@@ -1,16 +1,18 @@
 import json
 import traceback
 from typing import Iterable, Optional, List, Generator
-from openai import AzureOpenAI
+from openai import AzureOpenAI, NotFoundError
 
 from adapter.model_sdk.client import ModelClient
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, ChatCompletionMessageToolCall
 from application.domain.generators.tools import Tool
+from common.core.errors.common_error_code import CommonErrorCode
+from common.core.errors.common_exception import CommonException
+from common.core.errors.system_exception import ThirdPartyServiceException, ThirdPartyServiceApiCode
+from common.core.logger import get_logger
 from common.utils.auth import OtherSecret
 from common.utils.common_utils import create_uuid
 from common.utils.time_utils import create_from_second_now_to_int
-
-from common.core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -245,10 +247,13 @@ class AzureClient(ModelClient):
                     reasoning_content='',
                 )
         except Exception as e:
-            import traceback
-            logger.error(f"Unexpected error during stream generation: {e}")
+            logger.error(f"Unexpected error: {e}")
             logger.error(traceback.format_exc())
-            raise
+            # 抛出三方调用异常
+            raise ThirdPartyServiceException(
+                error_code=ThirdPartyServiceApiCode.LLM_SERVICE_API_ERROR,
+                dynamics_message=f"model:{model} - exception:{str(e)}"
+            )
 
     def generate_test(self, *args, **kwargs):
         logger.info("generate_test method is called")
@@ -257,7 +262,17 @@ class AzureClient(ModelClient):
     def model_list(self, *args, **kwargs):
         logger.info("model_list method is called")
         self._init_azure(args[0])
-        model_obj_list = self.client.models.list().data
+        try:
+            r = self.client.models.list()
+        except NotFoundError as e:
+            raise CommonException(
+                error_code=CommonErrorCode.INVALID_TOKEN,
+                dynamics_message='无效的模型厂商配置，请检查配置'
+            )
+        except Exception as e:
+            logger.error("Failed to get model list: ")
+            logger.error(traceback.format_exc())
+        model_obj_list = r.data
         return list(set([model_obj_i.id for model_obj_i in model_obj_list]))
 
     def _convert_azure_messages(self, message_list: Iterable[ChatStreamingChunk]) -> List[dict]:
