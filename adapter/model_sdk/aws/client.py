@@ -11,8 +11,8 @@ from adapter.model_sdk.client import ModelClient
 from application.domain.generators.chat_chunk.chunk import ChatStreamingChunk, \
     ChatCompletionContentPartParam, ChatCompletionMessageToolCall
 from application.domain.generators.tools import Tool
+from common.core.errors.business_exception import BusinessException
 from common.core.errors.common_error_code import CommonErrorCode
-from common.core.errors.common_exception import CommonException
 from common.core.errors.system_exception import ThirdPartyServiceException, ThirdPartyServiceApiCode
 from common.core.logger import get_logger
 from common.utils.auth import OtherSecret
@@ -462,7 +462,7 @@ class AmazonClient(ModelClient):
             models = response["modelSummaries"]
             return list(set([i.get('modelName') for i in models]))
         except SSLError as e:
-            raise CommonException(
+            raise BusinessException(
                 error_code=CommonErrorCode.INVALID_TOKEN,
                 dynamics_message='无效的模型厂商配置，请检查配置'
             )
