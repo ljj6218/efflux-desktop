@@ -83,6 +83,7 @@ class LLMTaskHandler(TaskHandler):
         mcp_name_list = task.payload['mcp_name_list'] if 'mcp_name_list' in task.payload else []
         tools_group_name_list = task.payload['tools_group_name_list'] if 'tools_group_name_list' in task.payload else []
         agent_instance_id = task.payload['agent_instance_id'] if 'agent_instance_id' in task.payload else None
+        agent_name = task.payload['agent_name'] if 'agent_name' in task.payload else None
         json_result = task.payload['json_result'] if 'json_result' in task.payload else None
         json_type = task.payload['json_type'] if 'json_type' in task.payload else None
         message_list = task.payload['context_message_list']
@@ -154,6 +155,7 @@ class LLMTaskHandler(TaskHandler):
                     generator_id=generator_id,
                     payload={
                         "agent_instance_id": agent_instance_id,
+                        "agent_name": agent_name,
                         "mcp_name_list": mcp_name_list,
                         "tools_group_name_list": tools_group_name_list,
                         "json_result": json_result,
@@ -207,6 +209,7 @@ class LLMTaskHandler(TaskHandler):
                 event_group=EventGroup(id=uuid, status=group_status),
                 payload={
                     "agent_instance_id": agent_instance_id,
+                    "agent_name": agent_name,
                     "mcp_name_list": mcp_name_list,
                     "tools_group_name_list": tools_group_name_list,
                     "json_result": json_result,

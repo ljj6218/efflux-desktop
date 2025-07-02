@@ -53,7 +53,7 @@ class TextAgent(AgentInstance):
                                                                   model=self.llm_generator.model,
                                                                   firm=self.llm_generator.firm,
                                                                   timestamp=create_from_second_now_to_int(),
-                                                                  payload={'agent_instance_id': self.info.instance_id},
+                                                                  payload={'agent_instance_id': self.info.instance_id, 'agent_name': self.info.name},
                                                                   metadata=DialogSegmentMetadata(
                                                                       source=MetadataSource.AGENT,
                                                                       type=MetadataType.AGENT_RESULT))
@@ -102,6 +102,7 @@ class TextAgent(AgentInstance):
             },
             payload={
                 "agent_instance_id": self.info.instance_id,
+                "agent_name": self.info.name,
                 "json_result": False,
                 "mcp_name_list": [],
                 "tools_group_name_list": [],
