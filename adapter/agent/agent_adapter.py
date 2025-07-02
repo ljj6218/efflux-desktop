@@ -65,7 +65,7 @@ class AgentAdapter(AgentPort):
         return prompts
 
     agent_file_url = get_resource_path("adapter/agent/agent.json")
-    build_in_agent_file_url = get_resource_path("adapter/agent/build_in_agent.json")
+    customize_agent_file_url = get_resource_path("adapter/agent/customize_agent.json")
     agent_instance_file_pre_url = "conversations/agent_instance/"
 
     def load_instance_info(self, instance_id: str, conversation_id: str) -> Optional[AgentInfo]:
@@ -88,7 +88,7 @@ class AgentAdapter(AgentPort):
         return instance_info
 
     def save(self, agent: Agent) -> str:
-        agent_config = JSONFileUtil(self.build_in_agent_file_url)
+        agent_config = JSONFileUtil(self.customize_agent_file_url)
         agent_config.update_key(agent.id, agent.model_dump())
         return agent.id
 
@@ -96,10 +96,10 @@ class AgentAdapter(AgentPort):
         agent = self._load_by_id(agent_id=agent_id, agent_file_url=self.agent_file_url)
         if agent:
             return agent
-        return self._load_by_id(agent_id=agent_id, agent_file_url=self.build_in_agent_file_url)
+        return self._load_by_id(agent_id=agent_id, agent_file_url=self.customize_agent_file_url)
 
     def remove(self, agent_id: str) -> str:
-        agent_config = JSONFileUtil(self.build_in_agent_file_url)
+        agent_config = JSONFileUtil(self.customize_agent_file_url)
         agent_config.delete(agent_id)
         return agent_id
 
@@ -107,7 +107,7 @@ class AgentAdapter(AgentPort):
         agent = self._load_by_name(agent_name=agent_name, agent_file_url=self.agent_file_url)
         if agent:
             return agent
-        return self._load_by_name(agent_name=agent_name, agent_file_url=self.build_in_agent_file_url)
+        return self._load_by_name(agent_name=agent_name, agent_file_url=self.customize_agent_file_url)
 
     def _load_by_id(self, agent_id: str, agent_file_url: str) -> Optional[Agent]:
         agent_config = JSONFileUtil(agent_file_url)
@@ -229,25 +229,25 @@ class AgentAdapter(AgentPort):
 
     def load_all(self) -> List[Agent]:
         agent_config = JSONFileUtil(self.agent_file_url)
-        build_in_agent_config = JSONFileUtil(self.build_in_agent_file_url)
+        customize_agent_config = JSONFileUtil(self.customize_agent_file_url)
         res :List[Agent] = []
-        # 遍历所有agent
+        # 遍历所有内置agent
         for agent_dict_id in agent_config.read().keys():
             agent_dict = agent_config.read_key(agent_dict_id)
             agent = Agent.model_validate(agent_dict)
             res.append(agent)
-        # 遍历所有内置agent
-        for agent_dict_id in build_in_agent_config.read().keys():
-            agent_dict = build_in_agent_config.read_key(agent_dict_id)
+        # 遍历所有自定义agent
+        for agent_dict_id in customize_agent_config.read().keys():
+            agent_dict = customize_agent_config.read_key(agent_dict_id)
             agent = Agent.model_validate(agent_dict)
             res.append(agent)
         return res
 
 
     def load_extension(self) -> List[Agent]:
-        agent_config = JSONFileUtil(self.build_in_agent_file_url)
+        agent_config = JSONFileUtil(self.customize_agent_file_url)
         res: List[Agent] = []
-        # 遍历所有agent
+        # 遍历所有自定义agent
         for agent_dict_id in agent_config.read().keys():
             agent_dict = agent_config.read_key(agent_dict_id)
             agent = Agent.model_validate(agent_dict)

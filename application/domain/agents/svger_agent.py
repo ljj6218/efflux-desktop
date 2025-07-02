@@ -53,7 +53,7 @@ class SvgerAgent(AgentInstance):
                                                                   model=self.llm_generator.model,
                                                                   firm=self.llm_generator.firm,
                                                                   timestamp=create_from_second_now_to_int(),
-                                                                  payload={'agent_instance_id': self.info.instance_id, 'json_type': json_type},
+                                                                  payload={'agent_instance_id': self.info.instance_id, 'agent_name': self.info.name, 'json_type': json_type},
                                                                   metadata=DialogSegmentMetadata(
                                                                       source=MetadataSource.AGENT,
                                                                       type=MetadataType.AGENT_RESULT))
@@ -105,6 +105,7 @@ class SvgerAgent(AgentInstance):
             },
             payload={
                 "agent_instance_id": self.info.instance_id,
+                "agent_name": self.info.name,
                 "json_result": False,
                 "json_type": json_type,
                 "mcp_name_list": [],
