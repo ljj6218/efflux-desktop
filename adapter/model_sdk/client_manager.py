@@ -17,6 +17,10 @@ from common.utils.json_file_util import JSONFileUtil
 import asyncio
 import json
 import re
+from common.core.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 @component
 class ClientManager(GeneratorsPort):
@@ -212,7 +216,7 @@ class ClientManager(GeneratorsPort):
             base_url=url,
             message_list=messages,
             tools=tools,
-            generation_kwargs=generation_kwargs
+            **generation_kwargs
         )
         for chunk in stream:
             chunk.model = llm_generator.model
