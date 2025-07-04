@@ -77,6 +77,8 @@ class ClientManager(GeneratorsPort):
 
     def load_model_by_other_firm(self, firm_name: str) -> List[LLMGenerator]:
         firm_setting = self.user_setting.read_key(firm_name)
+        if not firm_setting:
+            return []
         firm_model_config_url = f"adapter/model_sdk/setting/openai/{firm_name}_model.json"
         firm_model_config = JSONFileUtil(firm_model_config_url).read()
         enabled_generators_type_map = {
