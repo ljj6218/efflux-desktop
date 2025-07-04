@@ -1,0 +1,845 @@
+[36m2025-07-04 18:16:51 60894 - 134645615994176 - common.core.container.container - INFO - 项目根目录: /home/liang/projects/efflux-desktop[0m
+[36m2025-07-04 18:16:51 60894 - 134645615994176 - __main__ - INFO - Successfully registered router from adapter.web.controller.mcp_server_controller[0m
+[36m2025-07-04 18:16:51 60894 - 134645615994176 - __main__ - INFO - Successfully registered router from adapter.web.controller.user_settings_controller[0m
+[36m2025-07-04 18:16:51 60894 - 134645615994176 - __main__ - INFO - Successfully registered router from adapter.web.controller.ws_controller[0m
+[36m2025-07-04 18:16:51 60894 - 134645615994176 - __main__ - INFO - Successfully registered router from adapter.web.controller.tag_controller[0m
+[36m2025-07-04 18:16:51 60894 - 134645615994176 - __main__ - INFO - Successfully registered router from adapter.web.controller.upload_controller[0m
+[36m2025-07-04 18:16:51 60894 - 134645615994176 - __main__ - INFO - Successfully registered router from adapter.web.controller.plan_controller[0m
+[36m2025-07-04 18:16:52 60894 - 134645615994176 - __main__ - INFO - Successfully registered router from adapter.web.controller.agent_controller[0m
+[36m2025-07-04 18:16:52 60894 - 134645615994176 - __main__ - INFO - Successfully registered router from adapter.web.controller.generators_controller[0m
+[36m2025-07-04 18:16:52 60894 - 134645615994176 - __main__ - INFO - Successfully registered router from adapter.web.controller.model_controller[0m
+[36m2025-07-04 18:16:52 60894 - 134645615994176 - __main__ - INFO - Successfully registered router from adapter.web.controller.conversation_controller[0m
+[36m2025-07-04 18:16:52 60894 - 134645615994176 - __main__ - INFO - Successfully registered router from adapter.web.controller.test_controller[0m
+[36m2025-07-04 18:16:52 60894 - 134645615994176 - __main__ - INFO - Successfully registered router from adapter.web.controller.teams_controller[0m
+[36m2025-07-04 18:16:52 60894 - 134645615994176 - common.utils.json_file_util - INFO - 成功更新键 f83b0799-366c-4b1b-8983-050ef0ebcf49 的值为 {'id': 'f83b0799-366c-4b1b-8983-050ef0ebcf49', 'name': 'ppter', 'tools_group_list': [{'group_name': 'browser', 'type': 'LOCAL'}], 'build_in': True, 'description': 'PPT Agent'}.[0m
+[36m2025-07-04 18:16:52 60894 - 134645615994176 - common.utils.json_file_util - INFO - 成功写入数据到文件 /home/liang/.config/efflux-desktop/adapter/agent/agent.json.[0m
+[36m2025-07-04 18:16:52 60894 - 134645615994176 - common.utils.json_file_util - INFO - 成功更新键 f83b0799-366c-4b1b-8983-050ef0ebcf50 的值为 {'id': 'f83b0799-366c-4b1b-8983-050ef0ebcf50', 'name': '汉语新解', 'tools_group_list': [{'group_name': 'browser', 'type': 'LOCAL'}], 'build_in': True, 'description': 'SVG Agent'}.[0m
+[36m2025-07-04 18:16:52 60894 - 134645615994176 - common.utils.json_file_util - INFO - 成功写入数据到文件 /home/liang/.config/efflux-desktop/adapter/agent/agent.json.[0m
+[36m2025-07-04 18:16:52 60894 - 134645615994176 - websockets.server - INFO - server listening on 0.0.0.0:38765[0m
+[36m2025-07-04 18:16:52 60894 - 134645615994176 - uvicorn.error - INFO - Started server process [60894][0m
+[36m2025-07-04 18:16:52 60894 - 134645615994176 - uvicorn.error - INFO - Waiting for application startup.[0m
+[36m2025-07-04 18:16:52 60894 - 134645615994176 - __main__ - INFO - app启动[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class CachePort to implementation CacheAdapter[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class ConversationPort to implementation ConversationAdapter[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class GeneratorsPort to implementation ClientManager[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class AgentPort to implementation AgentAdapter[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class PlanPort to implementation PlanAdapter[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class ToolsPort to implementation ToolsManager[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class EventPort to implementation EventAdapter[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class UserSettingPort to implementation UserSettingAdapter[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class TaskPort to implementation TaskManager[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class MCPServerPort to implementation MCPServerAdapter[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class WsMessagePort to implementation WsAdapter[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class WsCase to implementation WsManager[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class ModelCase to implementation GeneratorService[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class GeneratorsCase to implementation GeneratorService[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class TeamsCase to implementation TeamsService[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class AgentCase to implementation AgentService[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class TestCase to implementation TestService[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class UserSettingsCase to implementation UserSettingsService[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class McpServerCase to implementation McpServerService[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class ConversationCase to implementation ConversationService[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class PlanCase to implementation PlanService[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class TaskHandler to implementation LLMTaskHandler[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class TaskHandler to implementation AgentTaskHandler[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class TaskHandler to implementation ToolTaskHandler[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class TaskHandler to implementation AgentTaskResultHandler[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class EventHandler to implementation SystemEventHandler[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class EventHandler to implementation MessageEventHandler[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class EventHandler to implementation InteractiveEventHandler[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class EventHandler to implementation AssistantMessageEventHandler[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class EventHandler to implementation AgentCallEventHandler[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - common.core.container.container - INFO - Binding abstract class EventHandler to implementation ToolEventHandler[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - uvicorn.error - INFO - Application startup complete.[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:38080 (Press CTRL+C to quit)[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - websockets.server - INFO - connection open[0m
+[36m2025-07-04 18:16:53 60894 - 134645615994176 - __main__ - INFO - connection open -> client_id[c84b47e0-58bf-11f0-8faf-0170b03e2aab-1751624117086][0m
+[36m2025-07-04 18:16:56 60894 - 134645615994176 - __main__ - INFO - connection close -> client_id[c84b47e0-58bf-11f0-8faf-0170b03e2aab-1751624117086][0m
+[36m2025-07-04 18:16:57 60894 - 134645615994176 - websockets.server - INFO - connection open[0m
+[36m2025-07-04 18:16:57 60894 - 134645615994176 - __main__ - INFO - connection open -> client_id[03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927][0m
+[36m2025-07-04 18:16:57 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:52934 - "GET /api/conversation/list HTTP/1.1" 200[0m
+[36m2025-07-04 18:16:57 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:52935 - "GET /api/mcp_server/enabled_list HTTP/1.1" 200[0m
+[36m2025-07-04 18:16:57 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:52936 - "GET /api/agent/load_all HTTP/1.1" 200[0m
+[36m2025-07-04 18:16:57 60894 - 134645412787904 - application.domain.events.event_collector - INFO - 事件收集器清理线程已启动[0m
+[36m2025-07-04 18:16:57 60894 - 134645412787904 - adapter.event.event_adapter - INFO - 主事件处理线程已启动[0m
+[36m2025-07-04 18:16:57 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:52937 - "GET /api/model/enabled_model/list HTTP/1.1" 200[0m
+[36m2025-07-04 18:17:02 60894 - 134645615994176 - application.service.generator_service - INFO - 首次发送消息创建会话：[ID：b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6 - 主题：你好，我是梁俊景][0m
+[36m2025-07-04 18:17:02 60894 - 134645615994176 - application.service.generator_service - INFO - 保存用户对话片段：[ID：ec4576b0-02d0-4e6b-aabf-56548c9f8914 - 内容：你好，我是梁俊景][0m
+[36m2025-07-04 18:17:02 60894 - 134645615994176 - application.service.generator_service - INFO - [GeneratorService]发起[EventType.USER_MESSAGE - EventSubType.MESSAGE]事件：[ID：f412ffbe-7620-4e52-96c9-26fb04768441][0m
+[36m2025-07-04 18:17:02 60894 - 134645615994176 - adapter.event.event_adapter - INFO - 事件发布 ---> [f412ffbe-7620-4e52-96c9-26fb04768441 - USER_MESSAGE][0m
+[36m2025-07-04 18:17:02 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:52955 - "POST /api/generators/chat HTTP/1.1" 200[0m
+[36m2025-07-04 18:17:02 60894 - 134645387609792 - application.domain.tasks.task - INFO - 创建单例任务 ---> [de94165a-6094-44ba-badd-0597aa199edf][0m
+[36m2025-07-04 18:17:02 60894 - 134645387609792 - adapter.task.task_manager - INFO - 提交任务 de94165a-6094-44ba-badd-0597aa199edf 类型: TaskType.LLM_CALL[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.task.task_manager - INFO - 开始执行任务 de94165a-6094-44ba-badd-0597aa199edf 类型: TaskType.LLM_CALL[0m
+[36m2025-07-04 18:17:02 60894 - 134645387609792 - application.service.event_handler.message_event_handler - INFO - 事件处理器[EventType.USER_MESSAGE]发起[TaskType.LLM_CALL]任务：[ID：de94165a-6094-44ba-badd-0597aa199edf][0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.task.task_manager - INFO - _long_task 执行 *****************[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - application.service.task_handlers.llm_task_handler - INFO - LLM调用任务：[任务：de94165a-6094-44ba-badd-0597aa199edf][0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - application.service.task_handlers.llm_task_handler - INFO - LLMTaskHandler execute ------------------------------------[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - application.service.task_handlers.llm_task_handler - INFO - task ------------------------------------[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - application.service.task_handlers.llm_task_handler - INFO - id='de94165a-6094-44ba-badd-0597aa199edf' client_id='03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927' type=<TaskType.LLM_CALL: 'LLM_CALL'> data={'id': '068f6fee-3364-4529-a0c9-82a21b3a3e48', 'dialog_segment_id': '958e1964-2af4-4072-82f2-aa6dfd634e0f', 'conversation_id': 'b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6', 'generator_id': '94421076-e90a-4cf0-8fd1-98f1fd91e5f9'} payload={'system': '你是个专业AI智能助手，善于人性化回答用户的问题，如有工具尽量考虑全面，可以一次调用多个工具', 'json_result': False, 'json_type': None, 'mcp_name_list': ['echo-name'], 'tools_group_name_list': [], 'context_message_list': [ChatStreamingChunk(id='ad51919e-545f-434a-a792-59e25f1f2290', conversation_id=None, agent_id=None, model=None, firm=None, created=1751624222, usage=None, finish_reason='stop', content='你是个专业AI智能助手，善于人性化回答用户的问题，如有工具尽量考虑全面，可以一次调用多个工具', reasoning_content=None, role='system', tool_calls=[], tool_call_id=None, user_confirm=None), ChatStreamingChunk(id='ec4576b0-02d0-4e6b-aabf-56548c9f8914', conversation_id=None, agent_id=None, model=None, firm=None, created=1751624222, usage=None, finish_reason='stop', content='你好，我是梁俊景', reasoning_content=None, role='user', tool_calls=None, tool_call_id=None, user_confirm=None)]} depends_on=None state=<TaskState.PENDING: 'PENDING'>[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - load_applied server_name -------------------- 0[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - echo-name[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - load_applied self.user_mcp_servers_file_url -------------------- 1[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - mcp_servers.json[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - load_applied self.user_mcp_servers -------------------- 2[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - <common.utils.json_file_util.JSONFileUtil object at 0x7a75996e4500>[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - load_applied self.mcp_server_dict -------------------- 3[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - {'enabled': True, 'server_tag': None, 'execute_authorization': False, 'env': {}, 'args': ['http://127.0.0.1:9000/mcp'], 'command': 'http'}[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - load_applied self.mcp_server_dict -------------------- 4[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - load_applied self.mcp_server_dict -------------------- 5[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - load_applied mcp_server -------------------- 6[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - server_name='echo-name' server_description=None applied=True enabled=True server_tag=None execute_authorization=False env={} args=['http://127.0.0.1:9000/mcp'] command='http'[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - load_tools ///////////////////////// 0[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - stdio_server_parameters[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - command='http' args=['http://127.0.0.1:9000/mcp'] env={} cwd=None encoding='utf-8' encoding_error_handler='strict'[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - load_tools ///////////////////////// 1[0m
+[37m2025-07-04 18:17:02 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - Connecting to StreamableHTTP endpoint: http://127.0.0.1:9000/mcp[0m
+[37m2025-07-04 18:17:02 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - Sending client message: root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-06-18', 'capabilities': {}, 'clientInfo': {'name': 'mcp', 'version': '0.1.0'}}, jsonrpc='2.0', id=0)[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp "HTTP/1.1 307 Temporary Redirect"[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp/ "HTTP/1.1 200 OK"[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - mcp.client.streamable_http - INFO - Received session ID: fa952404c3774872b85bec81186627ce[0m
+[37m2025-07-04 18:17:02 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - SSE message: root=JSONRPCResponse(jsonrpc='2.0', id=0, result={'protocolVersion': '2025-06-18', 'capabilities': {'experimental': {}, 'prompts': {'listChanged': True}, 'resources': {'subscribe': False, 'listChanged': True}, 'tools': {'listChanged': True}}, 'serverInfo': {'name': 'My MCP Server', 'version': '1.10.1'}})[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - mcp.client.streamable_http - INFO - Negotiated protocol version: 2025-06-18[0m
+[37m2025-07-04 18:17:02 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - Sending client message: root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - load_tools ///////////////////////// 1.1[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp "HTTP/1.1 307 Temporary Redirect"[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - httpx - INFO - HTTP Request: GET http://127.0.0.1:9000/mcp "HTTP/1.1 307 Temporary Redirect"[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp/ "HTTP/1.1 202 Accepted"[0m
+[37m2025-07-04 18:17:02 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - Received 202 Accepted[0m
+[37m2025-07-04 18:17:02 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - Sending client message: root=JSONRPCRequest(method='ping', params=None, jsonrpc='2.0', id=1)[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - httpx - INFO - HTTP Request: GET http://127.0.0.1:9000/mcp/ "HTTP/1.1 200 OK"[0m
+[37m2025-07-04 18:17:02 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - GET SSE connection established[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp "HTTP/1.1 307 Temporary Redirect"[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp/ "HTTP/1.1 200 OK"[0m
+[37m2025-07-04 18:17:02 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - SSE message: root=JSONRPCResponse(jsonrpc='2.0', id=1, result={})[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - load_tools ///////////////////////// 1.2[0m
+[37m2025-07-04 18:17:02 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - Sending client message: root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=2)[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp "HTTP/1.1 307 Temporary Redirect"[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp/ "HTTP/1.1 200 OK"[0m
+[37m2025-07-04 18:17:02 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - SSE message: root=JSONRPCResponse(jsonrpc='2.0', id=2, result={'tools': [{'name': 'greet', 'inputSchema': {'properties': {'name': {'title': 'Name', 'type': 'string'}}, 'required': ['name'], 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': '_WrappedResult', 'type': 'object', 'x-fastmcp-wrap-result': True}}]})[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - load_tools ///////////////////////// 1.3[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - http_tools[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - [Tool(name='greet', title=None, description=None, inputSchema={'properties': {'name': {'title': 'Name', 'type': 'string'}}, 'required': ['name'], 'type': 'object'}, outputSchema={'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': '_WrappedResult', 'type': 'object', 'x-fastmcp-wrap-result': True}, annotations=None, meta=None)][0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - mcp_tool[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - name='greet' title=None description=None inputSchema={'properties': {'name': {'title': 'Name', 'type': 'string'}}, 'required': ['name'], 'type': 'object'} outputSchema={'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': '_WrappedResult', 'type': 'object', 'x-fastmcp-wrap-result': True} annotations=None meta=None[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - httpx - INFO - HTTP Request: DELETE http://127.0.0.1:9000/mcp "HTTP/1.1 307 Temporary Redirect"[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - httpx - INFO - HTTP Request: DELETE http://127.0.0.1:9000/mcp/ "HTTP/1.1 200 OK"[0m
+[37m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - system_instruction: 你是个专业AI智能助手，善于人性化回答用户的问题，如有工具尽量考虑全面，可以一次调用多个工具[0m
+[37m2025-07-04 18:17:02 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - gemini-api-message-list：[Content(
+  parts=[
+    Part(
+      text='你好，我是梁俊景'
+    ),
+  ],
+  role='user'
+)][0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.[0m
+[36m2025-07-04 18:17:02 60894 - 134645379217088 - google_genai.models - INFO - AFC remote call 1 is done.[0m
+[36m2025-07-04 18:17:11 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST https://aihubmix.com/gemini/v1beta/models/gemini-2.5-pro:streamGenerateContent?alt=sse "HTTP/1.1 200 OK"[0m
+[37m2025-07-04 18:17:11 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text="""**Understanding the Greeting**
+
+I've successfully identified the user's intent: it's a simple greeting. I've also found the `greet` tool. Now, I'm analyzing it to determine how best to leverage it for this interaction.
+
+
+""",
+        thought=True
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=71,
+  total_token_count=135
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:11 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[36m2025-07-04 18:17:11 60894 - 134645379217088 - adapter.event.event_adapter - INFO - 事件发布 ---> [437f1273-885d-4673-ad5a-9c0bd7287aec - ASSISTANT_MESSAGE][0m
+[36m2025-07-04 18:17:11 60894 - 134645379217088 - adapter.event.event_adapter - INFO - 事件组[b8f080de-de23-4f08-b220-8854fee19d0e]处理线程已启动[0m
+[33m2025-07-04 18:17:11 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"437f1273-885d-4673-ad5a-9c0bd7287aec","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"b8f080de-de23-4f08-b220-8854fee19d0e","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"958e1964-2af4-4072-82f2-aa6dfd634e0f","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":null,"reasoning_content":"**Understanding the Greeting**\n\nI've successfully identified the user's intent: it's a simple greeting. I've also found the `greet` tool. Now, I'm analyzing it to determine how best to leverage it for this interaction.\n\n\n","created":1751624231,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":["echo-name"],"tools_group_name_list":[],"json_result":false,"json_type":null},"created":1751624231,"silent":false,"group":{"id":"b8f080de-de23-4f08-b220-8854fee19d0e","status":"STARTED"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:13 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text="""**Processing the User's Name**
+
+I've determined that the user is offering a greeting. Having identified the user's intent as a greeting, I am now focused on using the `greet` tool to acknowledge their introduction. I'm preparing a tool call, using the name "梁俊景". I have structured the response to use the `tool_code` tags for the tool's execution.
+
+
+""",
+        thought=True
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=224,
+  total_token_count=288
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:13 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:13 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"eb4ed9ad-3d90-4947-bd76-d8b92126b3c4","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"b8f080de-de23-4f08-b220-8854fee19d0e","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"958e1964-2af4-4072-82f2-aa6dfd634e0f","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":null,"reasoning_content":"**Processing the User's Name**\n\nI've determined that the user is offering a greeting. Having identified the user's intent as a greeting, I am now focused on using the `greet` tool to acknowledge their introduction. I'm preparing a tool call, using the name \"梁俊景\". I have structured the response to use the `tool_code` tags for the tool's execution.\n\n\n","created":1751624233,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":["echo-name"],"tools_group_name_list":[],"json_result":false,"json_type":null},"created":1751624233,"silent":false,"group":{"id":"b8f080de-de23-4f08-b220-8854fee19d0e","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:13 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        function_call=FunctionCall(
+          args={
+            'name': '梁俊景'
+          },
+          name='greet'
+        )
+      ),
+    ],
+    role='model'
+  ),
+  finish_reason=<FinishReason.STOP: 'STOP'>,
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  candidates_token_count=13,
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=224,
+  total_token_count=301
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:13 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[36m2025-07-04 18:17:13 60894 - 134645379217088 - adapter.event.event_adapter - INFO - 事件发布 ---> [c9032969-2de0-4d08-94a6-f94a6017d23d - ASSISTANT_MESSAGE][0m
+[36m2025-07-04 18:17:13 60894 - 134645379217088 - application.service.task_handlers.llm_task_handler - INFO - 任务处理器[LLM_CALL]发起[EventType.TOOL - EventSubType.TOOL_CALL]事件：[ID：8c6b6727-d678-4867-8bc8-7719e17a5829][0m
+[36m2025-07-04 18:17:13 60894 - 134645370824384 - adapter.event.event_adapter - INFO - 事件组[b8f080de-de23-4f08-b220-8854fee19d0e]处理完成EventGroupStatus.ENDED，线程退出[0m
+[36m2025-07-04 18:17:13 60894 - 134645387609792 - application.service.event_handler.assistant_message_event_handler - INFO - 组事件[b8f080de-de23-4f08-b220-8854fee19d0e]结束，结果：id='b8f080de-de23-4f08-b220-8854fee19d0e' status=<EventGroupStatus.ENDED: 'ENDED'> - [0m
+[36m2025-07-04 18:17:13 60894 - 134645379217088 - adapter.event.event_adapter - INFO - 事件发布 ---> [8c6b6727-d678-4867-8bc8-7719e17a5829 - TOOL][0m
+[36m2025-07-04 18:17:13 60894 - 134645387609792 - application.domain.events.event_collector - INFO - 事件组[b8f080de-de23-4f08-b220-8854fee19d0e]处理完成，共3个事件[0m
+[36m2025-07-04 18:17:13 60894 - 134645379217088 - adapter.task.task_manager - INFO - 任务 de94165a-6094-44ba-badd-0597aa199edf 执行完成[0m
+[33m2025-07-04 18:17:13 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"c9032969-2de0-4d08-94a6-f94a6017d23d","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"b8f080de-de23-4f08-b220-8854fee19d0e","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"958e1964-2af4-4072-82f2-aa6dfd634e0f","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":"","reasoning_content":"","created":1751624233,"finish_reason":"stop"},"payload":{"agent_instance_id":null,"mcp_name_list":["echo-name"],"tools_group_name_list":[],"json_result":false,"json_type":null},"created":1751624233,"silent":false,"group":{"id":"b8f080de-de23-4f08-b220-8854fee19d0e","status":"ENDED"},"source":"LLM_HANDLER"}[0m
+[36m2025-07-04 18:17:13 60894 - 134645379217088 - adapter.task.task_manager - INFO - 任务 de94165a-6094-44ba-badd-0597aa199edf 回调: Task de94165a-6094-44ba-badd-0597aa199edf completed successfully[0m
+[36m2025-07-04 18:17:13 60894 - 134645370824384 - application.service.event_handler.tool_event_handler - INFO - 保存工具调用实例记录--->greet - None[0m
+[36m2025-07-04 18:17:13 60894 - 134645370824384 - application.domain.tasks.task - INFO - 创建单例任务 ---> [6e4201da-0701-400c-a4ad-d0b64a8a670f][0m
+[36m2025-07-04 18:17:13 60894 - 134645370824384 - adapter.task.task_manager - INFO - 提交任务 6e4201da-0701-400c-a4ad-d0b64a8a670f 类型: TaskType.TOOL_CALL[0m
+[36m2025-07-04 18:17:13 60894 - 134645370824384 - application.service.event_handler.tool_event_handler - INFO - 事件处理器[TOOL]发起[TaskType.TOOL_CALL]任务：[ID：6e4201da-0701-400c-a4ad-d0b64a8a670f][0m
+[36m2025-07-04 18:17:13 60894 - 134645379217088 - adapter.task.task_manager - INFO - 开始执行任务 6e4201da-0701-400c-a4ad-d0b64a8a670f 类型: TaskType.TOOL_CALL[0m
+[36m2025-07-04 18:17:13 60894 - 134645370824384 - application.service.event_handler.tool_event_handler - INFO - 事件处理器[TOOL]异步推送ws消息：[ID：8c6b6727-d678-4867-8bc8-7719e17a5829][0m
+[36m2025-07-04 18:17:13 60894 - 134645379217088 - adapter.task.task_manager - INFO - _long_task 执行 *****************[0m
+[33m2025-07-04 18:17:13 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"8c6b6727-d678-4867-8bc8-7719e17a5829","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"TOOL","sub_type":"TOOL_CALL","data":{"id":"b8f080de-de23-4f08-b220-8854fee19d0e","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"958e1964-2af4-4072-82f2-aa6dfd634e0f","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","created":1751624233,"tool_calls":[{"id":null,"name":"greet","description":null,"mcp_server_name":"echo-name","group_name":null,"arguments":"{\"name\": \"\\u6881\\u4fca\\u666f\"}"}]},"payload":{"agent_instance_id":null,"mcp_name_list":["echo-name"],"tools_group_name_list":[],"json_result":false,"json_type":null},"created":1751624233,"silent":false,"group":null,"source":"LLM_HANDLER"}[0m
+[36m2025-07-04 18:17:13 60894 - 134645379217088 - application.service.task_handlers.tool_task_handler - INFO - 工具调用任务：[任务：6e4201da-0701-400c-a4ad-d0b64a8a670f - tool_id:b8f080de-de23-4f08-b220-8854fee19d0e][0m
+[36m2025-07-04 18:17:13 60894 - 134645379217088 - adapter.event.event_adapter - INFO - 事件发布 ---> [01f50fea-7865-4bd8-bb93-9ed18f853a71 - INTERACTIVE][0m
+[36m2025-07-04 18:17:13 60894 - 134645379217088 - adapter.task.task_manager - INFO - 任务 6e4201da-0701-400c-a4ad-d0b64a8a670f 执行完成[0m
+[36m2025-07-04 18:17:13 60894 - 134645379217088 - adapter.task.task_manager - INFO - 任务 6e4201da-0701-400c-a4ad-d0b64a8a670f 回调: Task 6e4201da-0701-400c-a4ad-d0b64a8a670f completed successfully[0m
+[33m2025-07-04 18:17:13 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"01f50fea-7865-4bd8-bb93-9ed18f853a71","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"INTERACTIVE","sub_type":"CALL_USER","data":{"id":"b8f080de-de23-4f08-b220-8854fee19d0e","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"958e1964-2af4-4072-82f2-aa6dfd634e0f","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","created":1751624233,"tool_calls":[{"id":null,"name":"greet","description":null,"mcp_server_name":"echo-name","group_name":null,"arguments":"{\"name\": \"\\u6881\\u4fca\\u666f\"}"}]},"payload":{"confirm_data":{"unauthorized_tools_names":["echo-name"],"option":["agree","reject"]},"confirm_type":"tools_execute"},"created":1751624233,"silent":false,"group":null,"source":"TOOL_HANDLER"}[0m
+[36m2025-07-04 18:17:13 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:53013 - "GET /api/conversation/list HTTP/1.1" 200[0m
+[36m2025-07-04 18:17:14 60894 - 134645615994176 - application.domain.tasks.task - INFO - 创建单例任务 ---> [5b6658f0-3644-4737-b2d1-aaa456896b87][0m
+[36m2025-07-04 18:17:14 60894 - 134645615994176 - adapter.task.task_manager - INFO - 提交任务 5b6658f0-3644-4737-b2d1-aaa456896b87 类型: TaskType.TOOL_CALL[0m
+[36m2025-07-04 18:17:14 60894 - 134645615994176 - application.service.generator_service - INFO - 事件处理器[GeneratorService]发起[TaskType.TOOL_CALL]任务：[ID：5b6658f0-3644-4737-b2d1-aaa456896b87][0m
+[36m2025-07-04 18:17:14 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:53013 - "PUT /api/generators/confirm HTTP/1.1" 200[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.task.task_manager - INFO - 开始执行任务 5b6658f0-3644-4737-b2d1-aaa456896b87 类型: TaskType.TOOL_CALL[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.task.task_manager - INFO - _long_task 执行 *****************[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - application.service.task_handlers.tool_task_handler - INFO - 工具调用任务：[任务：5b6658f0-3644-4737-b2d1-aaa456896b87 - tool_id:8257ecb5-ea97-4f13-a9ea-71fb57c525df][0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - application.service.task_handlers.tool_task_handler - INFO - task ++++++++++++++++++++++++++++++[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - application.service.task_handlers.tool_task_handler - INFO - id='5b6658f0-3644-4737-b2d1-aaa456896b87' client_id='03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927' type=<TaskType.TOOL_CALL: 'TOOL_CALL'> data={'id': '8257ecb5-ea97-4f13-a9ea-71fb57c525df', 'conversation_id': 'b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6', 'dialog_segment_id': '958e1964-2af4-4072-82f2-aa6dfd634e0f', 'generator_id': '94421076-e90a-4cf0-8fd1-98f1fd91e5f9', 'model': 'gemini-2.5-pro', 'created': 1751624234, 'tool_calls': [{'id': None, 'name': 'greet', 'description': None, 'mcp_server_name': 'echo-name', 'group_name': None, 'arguments': '{"name": "\\u6881\\u4fca\\u666f"}'}]} payload={'option': 'agree'} depends_on=None state=<TaskState.PENDING: 'PENDING'>[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - application.service.task_handlers.tool_task_handler - INFO - tool_call_list +++++++++++++++++++++++++++++[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - application.service.task_handlers.tool_task_handler - INFO - [ToolInstance(mcp_server_name='echo-name', group_name=None, name='greet', description=None, input_schema=None, type=<ToolType.MCP: 'MCP'>, conversation_id='b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6', dialog_segment_id='958e1964-2af4-4072-82f2-aa6dfd634e0f', tool_call_id=None, arguments={'name': '梁俊景'}, result=None)][0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - application.service.task_handlers.tool_task_handler - INFO - 需要调用工具：None-greet-{'name': '梁俊景'}[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - application.service.task_handlers.tool_task_handler - INFO - tool_call ####################[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - application.service.task_handlers.tool_task_handler - INFO - mcp_server_name='echo-name' group_name=None name='greet' description=None input_schema=None type=<ToolType.MCP: 'MCP'> conversation_id='b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6' dialog_segment_id='958e1964-2af4-4072-82f2-aa6dfd634e0f' tool_call_id=None arguments={'name': '梁俊景'} result=None[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.tools_manager - INFO - ToolsManager call_tools tool_instance ===========[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.tools_manager - INFO - mcp_server_name='echo-name' group_name=None name='greet' description=None input_schema=None type=<ToolType.MCP: 'MCP'> conversation_id='b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6' dialog_segment_id='958e1964-2af4-4072-82f2-aa6dfd634e0f' tool_call_id=None arguments={'name': '梁俊景'} result=None[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - load_applied server_name -------------------- 0[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - echo-name[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - load_applied self.user_mcp_servers_file_url -------------------- 1[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - mcp_servers.json[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - load_applied self.user_mcp_servers -------------------- 2[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - <common.utils.json_file_util.JSONFileUtil object at 0x7a75995532f0>[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - load_applied self.mcp_server_dict -------------------- 3[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - {'enabled': True, 'server_tag': None, 'execute_authorization': False, 'env': {}, 'args': ['http://127.0.0.1:9000/mcp'], 'command': 'http'}[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - load_applied self.mcp_server_dict -------------------- 4[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - load_applied self.mcp_server_dict -------------------- 5[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - load_applied mcp_server -------------------- 6[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.mcp_server_adapter - INFO - server_name='echo-name' server_description=None applied=True enabled=True server_tag=None execute_authorization=False env={} args=['http://127.0.0.1:9000/mcp'] command='http'[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - load_tools ///////////////////////// 1[0m
+[37m2025-07-04 18:17:14 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - Connecting to StreamableHTTP endpoint: http://127.0.0.1:9000/mcp[0m
+[37m2025-07-04 18:17:14 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - Sending client message: root=JSONRPCRequest(method='initialize', params={'protocolVersion': '2025-06-18', 'capabilities': {}, 'clientInfo': {'name': 'mcp', 'version': '0.1.0'}}, jsonrpc='2.0', id=0)[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp "HTTP/1.1 307 Temporary Redirect"[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp/ "HTTP/1.1 200 OK"[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - mcp.client.streamable_http - INFO - Received session ID: 2804a8a961424c96b9100f9fed2ede25[0m
+[37m2025-07-04 18:17:14 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - SSE message: root=JSONRPCResponse(jsonrpc='2.0', id=0, result={'protocolVersion': '2025-06-18', 'capabilities': {'experimental': {}, 'prompts': {'listChanged': True}, 'resources': {'subscribe': False, 'listChanged': True}, 'tools': {'listChanged': True}}, 'serverInfo': {'name': 'My MCP Server', 'version': '1.10.1'}})[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - mcp.client.streamable_http - INFO - Negotiated protocol version: 2025-06-18[0m
+[37m2025-07-04 18:17:14 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - Sending client message: root=JSONRPCNotification(method='notifications/initialized', params=None, jsonrpc='2.0')[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - load_tools ///////////////////////// 1.1[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - httpx - INFO - HTTP Request: GET http://127.0.0.1:9000/mcp "HTTP/1.1 307 Temporary Redirect"[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp "HTTP/1.1 307 Temporary Redirect"[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp/ "HTTP/1.1 202 Accepted"[0m
+[37m2025-07-04 18:17:14 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - Received 202 Accepted[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - httpx - INFO - HTTP Request: GET http://127.0.0.1:9000/mcp/ "HTTP/1.1 200 OK"[0m
+[37m2025-07-04 18:17:14 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - GET SSE connection established[0m
+[37m2025-07-04 18:17:14 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - Sending client message: root=JSONRPCRequest(method='tools/call', params={'name': 'greet', 'arguments': {'name': '梁俊景'}, '_meta': {'progressToken': 1}}, jsonrpc='2.0', id=1)[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp "HTTP/1.1 307 Temporary Redirect"[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp/ "HTTP/1.1 200 OK"[0m
+[37m2025-07-04 18:17:14 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - SSE message: root=JSONRPCResponse(jsonrpc='2.0', id=1, result={'content': [{'type': 'text', 'text': 'Hello, 梁俊景! 我是超人'}], 'structuredContent': {'result': 'Hello, 梁俊景! 我是超人'}, 'isError': False})[0m
+[37m2025-07-04 18:17:14 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - Sending client message: root=JSONRPCRequest(method='tools/list', params=None, jsonrpc='2.0', id=2)[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp "HTTP/1.1 307 Temporary Redirect"[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST http://127.0.0.1:9000/mcp/ "HTTP/1.1 200 OK"[0m
+[37m2025-07-04 18:17:14 60894 - 134645379217088 - mcp.client.streamable_http - DEBUG - SSE message: root=JSONRPCResponse(jsonrpc='2.0', id=2, result={'tools': [{'name': 'greet', 'inputSchema': {'properties': {'name': {'title': 'Name', 'type': 'string'}}, 'required': ['name'], 'type': 'object'}, 'outputSchema': {'properties': {'result': {'title': 'Result', 'type': 'string'}}, 'required': ['result'], 'title': '_WrappedResult', 'type': 'object', 'x-fastmcp-wrap-result': True}}]})[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - call_tool_result ++++++++++----------[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - CallToolResult(content=[TextContent(type='text', text='Hello, 梁俊景! 我是超人', annotations=None, meta=None)], structured_content={'result': 'Hello, 梁俊景! 我是超人'}, data='Hello, 梁俊景! 我是超人', is_error=False)[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - ['__annotations__', '__class__', '__dataclass_fields__', '__dataclass_params__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__match_args__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'content', 'data', 'is_error', 'structured_content'][0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - data_list -------------------------[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.tools.mcp.tools_adapter - INFO - ['Hello, 梁俊景! 我是超人'][0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - httpx - INFO - HTTP Request: DELETE http://127.0.0.1:9000/mcp "HTTP/1.1 307 Temporary Redirect"[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - httpx - INFO - HTTP Request: DELETE http://127.0.0.1:9000/mcp/ "HTTP/1.1 200 OK"[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - application.service.task_handlers.tool_task_handler - INFO - 工具调用结果：[echo-name - greet - None - {'name': '梁俊景'} - 结果：略][0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - application.service.task_handlers.tool_task_handler - INFO - 任务处理器[TOOL_CALL]发起[EventType.TOOL - EventSubType.TOOL_CALL_RESULT]事件：[ID：3cbf1fce-b869-49d4-bf44-38ce623c4007][0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.event.event_adapter - INFO - 事件发布 ---> [3cbf1fce-b869-49d4-bf44-38ce623c4007 - TOOL][0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.task.task_manager - INFO - 任务 5b6658f0-3644-4737-b2d1-aaa456896b87 执行完成[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.task.task_manager - INFO - 任务 5b6658f0-3644-4737-b2d1-aaa456896b87 回调: Task 5b6658f0-3644-4737-b2d1-aaa456896b87 completed successfully[0m
+[36m2025-07-04 18:17:14 60894 - 134645370824384 - application.domain.tasks.task - INFO - 创建单例任务 ---> [7f5eae63-7934-4ea4-9be4-44985564b582][0m
+[36m2025-07-04 18:17:14 60894 - 134645370824384 - adapter.task.task_manager - INFO - 提交任务 7f5eae63-7934-4ea4-9be4-44985564b582 类型: TaskType.LLM_CALL[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.task.task_manager - INFO - 开始执行任务 7f5eae63-7934-4ea4-9be4-44985564b582 类型: TaskType.LLM_CALL[0m
+[33m2025-07-04 18:17:14 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"3cbf1fce-b869-49d4-bf44-38ce623c4007","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"TOOL","sub_type":"TOOL_CALL_RESULT","data":{"id":"8257ecb5-ea97-4f13-a9ea-71fb57c525df","model":"gemini-2.5-pro","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","created":1751624234,"tool_calls":[{"mcp_server_name":"echo-name","group_name":null,"name":"greet","description":null,"type":"MCP","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"958e1964-2af4-4072-82f2-aa6dfd634e0f","tool_call_id":null,"arguments":{"name":"梁俊景"},"result":["Hello, 梁俊景! 我是超人"]}],"tools_call_result":true},"payload":{"option":"agree","context_message_list":[{"id":"ec4576b0-02d0-4e6b-aabf-56548c9f8914","conversation_id":null,"agent_id":null,"model":null,"firm":null,"created":1751624222,"usage":null,"finish_reason":"stop","content":"你好，我是梁俊景","reasoning_content":null,"role":"user","tool_calls":null,"tool_call_id":null,"user_confirm":null},{"id":"958e1964-2af4-4072-82f2-aa6dfd634e0f","conversation_id":null,"agent_id":null,"model":"gemini-2.5-pro","firm":"google","created":1751624233,"usage":null,"finish_reason":"stop","content":"","reasoning_content":"**Understanding the Greeting**\n\nI've successfully identified the user's intent: it's a simple greeting. I've also found the `greet` tool. Now, I'm analyzing it to determine how best to leverage it for this interaction.\n\n\n**Processing the User's Name**\n\nI've determined that the user is offering a greeting. Having identified the user's intent as a greeting, I am now focused on using the `greet` tool to acknowledge their introduction. I'm preparing a tool call, using the name \"梁俊景\". I have structured the response to use the `tool_code` tags for the tool's execution.\n\n\n","role":"assistant","tool_calls":null,"tool_call_id":null,"user_confirm":null}]},"created":1751624234,"silent":false,"group":null,"source":"TOOL_HANDLER"}[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.task.task_manager - INFO - _long_task 执行 *****************[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - application.service.task_handlers.llm_task_handler - INFO - LLM调用任务：[任务：7f5eae63-7934-4ea4-9be4-44985564b582][0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - application.service.task_handlers.llm_task_handler - INFO - LLMTaskHandler execute ------------------------------------[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - application.service.task_handlers.llm_task_handler - INFO - task ------------------------------------[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - application.service.task_handlers.llm_task_handler - INFO - id='7f5eae63-7934-4ea4-9be4-44985564b582' client_id='03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927' type=<TaskType.LLM_CALL: 'LLM_CALL'> data={'id': '8257ecb5-ea97-4f13-a9ea-71fb57c525df', 'model': 'gemini-2.5-pro', 'dialog_segment_id': '62a382f0-1ec9-4b0d-9906-b70fa023e0b2', 'conversation_id': 'b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6', 'generator_id': '94421076-e90a-4cf0-8fd1-98f1fd91e5f9', 'created': 1751624234, 'tool_calls': [{'mcp_server_name': 'echo-name', 'group_name': None, 'name': 'greet', 'description': None, 'type': 'MCP', 'conversation_id': 'b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6', 'dialog_segment_id': '958e1964-2af4-4072-82f2-aa6dfd634e0f', 'tool_call_id': None, 'arguments': {'name': '梁俊景'}, 'result': ['Hello, 梁俊景! 我是超人']}], 'tools_call_result': True} payload={'option': 'agree', 'context_message_list': [ChatStreamingChunk(id='ec4576b0-02d0-4e6b-aabf-56548c9f8914', conversation_id=None, agent_id=None, model=None, firm=None, created=1751624222, usage=None, finish_reason='stop', content='你好，我是梁俊景', reasoning_content=None, role='user', tool_calls=None, tool_call_id=None, user_confirm=None), ChatStreamingChunk(id='958e1964-2af4-4072-82f2-aa6dfd634e0f', conversation_id=None, agent_id=None, model='gemini-2.5-pro', firm='google', created=1751624233, usage=None, finish_reason='stop', content='', reasoning_content='**Understanding the Greeting**\n\nI\'ve successfully identified the user\'s intent: it\'s a simple greeting. I\'ve also found the `greet` tool. Now, I\'m analyzing it to determine how best to leverage it for this interaction.\n\n\n**Processing the User\'s Name**\n\nI\'ve determined that the user is offering a greeting. Having identified the user\'s intent as a greeting, I am now focused on using the `greet` tool to acknowledge their introduction. I\'m preparing a tool call, using the name "梁俊景". I have structured the response to use the `tool_code` tags for the tool\'s execution.\n\n\n', role='assistant', tool_calls=None, tool_call_id=None, user_confirm=None)]} depends_on=None state=<TaskState.PENDING: 'PENDING'>[0m
+[37m2025-07-04 18:17:14 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - gemini-api-message-list：[Content(
+  parts=[
+    Part(
+      text='你好，我是梁俊景'
+    ),
+  ],
+  role='user'
+), Content(
+  parts=[
+    Part(
+      text=''
+    ),
+  ],
+  role='model'
+), Content(
+  parts=[
+    Part(
+      function_response=FunctionResponse(
+        name='greet',
+        response={
+          'result': '["Hello, \\u6881\\u4fca\\u666f! \\u6211\\u662f\\u8d85\\u4eba"]'
+        }
+      )
+    ),
+  ],
+  role='user'
+)][0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.[0m
+[36m2025-07-04 18:17:14 60894 - 134645379217088 - google_genai.models - INFO - AFC remote call 1 is done.[0m
+[36m2025-07-04 18:17:22 60894 - 134645379217088 - httpx - INFO - HTTP Request: POST https://aihubmix.com/gemini/v1beta/models/gemini-2.5-pro:streamGenerateContent?alt=sse "HTTP/1.1 200 OK"[0m
+[37m2025-07-04 18:17:22 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text="""**Recognizing User Input**
+
+I've successfully identified the user's input as "你好，我是梁俊景," translating to "Hello, I am Liang Junjing." My next step involves analyzing this input to understand its nuances.
+
+
+""",
+        thought=True
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=67,
+  total_token_count=131
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:22 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[36m2025-07-04 18:17:22 60894 - 134645379217088 - adapter.event.event_adapter - INFO - 事件发布 ---> [42678725-9b22-49ca-b139-8f96e13e89b0 - ASSISTANT_MESSAGE][0m
+[36m2025-07-04 18:17:22 60894 - 134645379217088 - adapter.event.event_adapter - INFO - 事件组[1c938116-44ac-48ef-bd23-f2bdf1410b74]处理线程已启动[0m
+[33m2025-07-04 18:17:22 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"42678725-9b22-49ca-b139-8f96e13e89b0","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":null,"reasoning_content":"**Recognizing User Input**\n\nI've successfully identified the user's input as \"你好，我是梁俊景,\" translating to \"Hello, I am Liang Junjing.\" My next step involves analyzing this input to understand its nuances.\n\n\n","created":1751624242,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624242,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"STARTED"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:25 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text="""**Drafting a Polite Response**
+
+I'm now formulating a Chinese response to the user's self-introduction. I'm focusing on acknowledging their greeting and name ("你好，梁俊景！"), while also figuring out the best way to introduce myself as a large language model. I'm considering using a friendly identifier to make the response more natural, instead of a technical one. The goal is to be polite and helpful.
+
+
+""",
+        thought=True
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=346,
+  total_token_count=410
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:25 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:25 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"988c5f23-a55c-4c0a-be65-9940ab196f82","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":null,"reasoning_content":"**Drafting a Polite Response**\n\nI'm now formulating a Chinese response to the user's self-introduction. I'm focusing on acknowledging their greeting and name (\"你好，梁俊景！\"), while also figuring out the best way to introduce myself as a large language model. I'm considering using a friendly identifier to make the response more natural, instead of a technical one. The goal is to be polite and helpful.\n\n\n","created":1751624245,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624245,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:28 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text="""**Building the Chinese Reply**
+
+I'm now zeroing in on a polished Chinese response. I've refined the greeting ("你好，梁俊景！") and selected a clear introduction ("我是你的 AI 助手"). For closing, I prefer "很高兴认识你，有什么可以帮助你的吗？" because it strikes a good balance between politeness and helpfulness. I'm focusing now on ensuring the entire response feels natural and flows well in Chinese.
+
+
+""",
+        thought=True
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=650,
+  total_token_count=714
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:28 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:28 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"70eb35f5-31a6-4447-a330-2a4cf17ca3b1","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":null,"reasoning_content":"**Building the Chinese Reply**\n\nI'm now zeroing in on a polished Chinese response. I've refined the greeting (\"你好，梁俊景！\") and selected a clear introduction (\"我是你的 AI 助手\"). For closing, I prefer \"很高兴认识你，有什么可以帮助你的吗？\" because it strikes a good balance between politeness and helpfulness. I'm focusing now on ensuring the entire response feels natural and flows well in Chinese.\n\n\n","created":1751624248,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624248,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:31 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text="""**Constructing the Chinese Answer**
+
+I've decided on "你好，梁俊景！很高兴认识你。有什么可以帮助你的吗？" as the final response. This keeps it friendly and proactive, which will likely produce more engaging interactions.  I'm now focusing on ensuring a seamless and natural flow to this interaction for the user.
+
+
+""",
+        thought=True
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=926,
+  total_token_count=990
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:31 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:31 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"d1d09c3c-3a84-4be5-8f96-c4bb33b2ac83","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":null,"reasoning_content":"**Constructing the Chinese Answer**\n\nI've decided on \"你好，梁俊景！很高兴认识你。有什么可以帮助你的吗？\" as the final response. This keeps it friendly and proactive, which will likely produce more engaging interactions.  I'm now focusing on ensuring a seamless and natural flow to this interaction for the user.\n\n\n","created":1751624251,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624251,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:33 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text="""**Formulating a Final Response**
+
+I've refined the final Chinese reply to "你好，梁俊景！很高兴认识你。有什么可以帮助你的吗？" (Nǐ hǎo, Liáng Jùnjǐng! Hěn gāoxìng rènshi nǐ. Yǒu shénme kěyǐ bāngzhù nǐ de ma?). This response strikes the right balance between being welcoming and offering assistance. I believe this will create a positive first interaction. My focus now is on confirming the correct action and result structure for this response.
+
+
+""",
+        thought=True
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=1055,
+  total_token_count=1119
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:33 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:33 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"9e03d88a-bcb9-43f0-b7f6-67f443ead097","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":null,"reasoning_content":"**Formulating a Final Response**\n\nI've refined the final Chinese reply to \"你好，梁俊景！很高兴认识你。有什么可以帮助你的吗？\" (Nǐ hǎo, Liáng Jùnjǐng! Hěn gāoxìng rènshi nǐ. Yǒu shénme kěyǐ bāngzhù nǐ de ma?). This response strikes the right balance between being welcoming and offering assistance. I believe this will create a positive first interaction. My focus now is on confirming the correct action and result structure for this response.\n\n\n","created":1751624253,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624253,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:33 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text='<ctrl46>'
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=1055,
+  total_token_count=1119
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:33 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:33 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"7289c9ce-1e7e-4dac-8854-8438a53cfcd8","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":"<ctrl46>","reasoning_content":null,"created":1751624253,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624253,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:33 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text="""**Crafting a Final Response**
+
+I've finalized the response as "你好，梁俊景！很高兴认识你。有什么可以帮助你的吗？" because it offers a polite, personalized, and proactive interaction starter. My focus is now on ensuring the response feels fluid and natural for the user. I'm satisfied with the current draft.
+
+
+""",
+        thought=True
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=1099,
+  total_token_count=1163
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:33 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:33 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"22fa3e69-293d-42f3-b512-9d527bbe8ce4","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":null,"reasoning_content":"**Crafting a Final Response**\n\nI've finalized the response as \"你好，梁俊景！很高兴认识你。有什么可以帮助你的吗？\" because it offers a polite, personalized, and proactive interaction starter. My focus is now on ensuring the response feels fluid and natural for the user. I'm satisfied with the current draft.\n\n\n","created":1751624253,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624253,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:33 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text='<ctrl46>'
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=1099,
+  total_token_count=1163
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:33 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:33 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"43e20df6-f7a8-46bf-85dd-e89dc5dcd0a2","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":"<ctrl46>","reasoning_content":null,"created":1751624253,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624253,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:36 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text="""**Composing a Helpful Reply**
+
+I've revised the greeting to be a blend of polite and proactive. The final reply is now "你好，梁俊景！很高兴认识你。有什么可以帮助你的吗？" to foster engagement. I'm focusing on ensuring it's a seamless interaction for the user.
+
+
+""",
+        thought=True
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=1376,
+  total_token_count=1440
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:36 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:36 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"0b62b73d-fd4d-4498-9467-dcff421bd87b","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":null,"reasoning_content":"**Composing a Helpful Reply**\n\nI've revised the greeting to be a blend of polite and proactive. The final reply is now \"你好，梁俊景！很高兴认识你。有什么可以帮助你的吗？\" to foster engagement. I'm focusing on ensuring it's a seamless interaction for the user.\n\n\n","created":1751624256,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624256,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:37 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text="""**Formulating the Chinese Response**
+
+I've revised the final Chinese reply. After considering a few drafts, I've settled on: "你好，梁俊景！我是你的AI助手，请问有什么可以为你效劳的吗？" which translates to "Hello, Liang Junjing! I am your AI assistant, is there anything I can do for you?" This is a polite, personalized, and proactive response, perfectly crafted to initiate a meaningful conversation. Now, I will prepare the structure of the `greet` action as requested.
+
+
+""",
+        thought=True
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=1477,
+  total_token_count=1541
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:37 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:37 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"111df216-4027-46b3-9c23-961f61f4f65c","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":null,"reasoning_content":"**Formulating the Chinese Response**\n\nI've revised the final Chinese reply. After considering a few drafts, I've settled on: \"你好，梁俊景！我是你的AI助手，请问有什么可以为你效劳的吗？\" which translates to \"Hello, Liang Junjing! I am your AI assistant, is there anything I can do for you?\" This is a polite, personalized, and proactive response, perfectly crafted to initiate a meaningful conversation. Now, I will prepare the structure of the `greet` action as requested.\n\n\n","created":1751624257,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624257,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:38 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text='<ctrl46>'
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=1477,
+  total_token_count=1541
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:38 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:38 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"5042b22f-7d33-4a1e-a5b7-52020a280547","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":"<ctrl46>","reasoning_content":null,"created":1751624258,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624258,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:38 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text="""**Crafting a Refined Reply**
+
+After thorough consideration, I've landed on "你好，梁俊景！我是你的 AI 助手，很高兴认识你。有什么可以帮助你的吗？" This blends a warm greeting, a clear introduction of my role, and a proactive offer of assistance. I'm satisfied that this aligns well with the goal of fostering a positive interaction.
+
+
+""",
+        thought=True
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=1521,
+  total_token_count=1585
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:38 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:38 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"78ce1097-1bce-428c-b7e4-1df34a879587","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":null,"reasoning_content":"**Crafting a Refined Reply**\n\nAfter thorough consideration, I've landed on \"你好，梁俊景！我是你的 AI 助手，很高兴认识你。有什么可以帮助你的吗？\" This blends a warm greeting, a clear introduction of my role, and a proactive offer of assistance. I'm satisfied that this aligns well with the goal of fostering a positive interaction.\n\n\n","created":1751624258,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624258,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:38 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text='<ctrl46>'
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=1521,
+  total_token_count=1585
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:38 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:38 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"b11ff02b-1885-4142-a52c-b10d99dc3473","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":"<ctrl46>","reasoning_content":null,"created":1751624258,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624258,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:40 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text="""**Crafting a Concise Greeting**
+
+I've determined that the optimal response is "你好，梁俊景！我是超人" (Hello, Liang Junjing! I am Superman). This choice directly acknowledges the user and introduces my persona in a compact and engaging manner. The output will be structured as a 'greet' action with this text as the result. This aligns with the specified request for a succinct and targeted response.
+
+
+""",
+        thought=True
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=1693,
+  total_token_count=1757
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:40 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:40 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"54ec53ff-336a-4281-a7ab-96ceedc80367","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":null,"reasoning_content":"**Crafting a Concise Greeting**\n\nI've determined that the optimal response is \"你好，梁俊景！我是超人\" (Hello, Liang Junjing! I am Superman). This choice directly acknowledges the user and introduces my persona in a compact and engaging manner. The output will be structured as a 'greet' action with this text as the result. This aligns with the specified request for a succinct and targeted response.\n\n\n","created":1751624260,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624260,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:40 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text='你好，梁俊'
+      ),
+    ],
+    role='model'
+  ),
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=1693,
+  total_token_count=1757
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:40 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[33m2025-07-04 18:17:40 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"abb1129f-5e8a-4a0b-94b5-8e09e21ea98c","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":"你好，梁俊","reasoning_content":null,"created":1751624260,"finish_reason":null},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624260,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"SENDING"},"source":"LLM_HANDLER"}[0m
+[37m2025-07-04 18:17:40 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - 原始chunk返回：sdk_http_response=HttpResponse(
+  headers=<dict len=6>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text="""景！很高兴认识你。
+
+有什么可以帮你的吗？"""
+      ),
+    ],
+    role='model'
+  ),
+  finish_reason=<FinishReason.STOP: 'STOP'>,
+  index=0
+)] create_time=None response_id=None model_version='gemini-2.5-pro' prompt_feedback=None usage_metadata=GenerateContentResponseUsageMetadata(
+  candidates_token_count=12,
+  prompt_token_count=64,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=64
+    ),
+  ],
+  thoughts_token_count=1693,
+  total_token_count=1769
+) automatic_function_calling_history=None parsed=None[0m
+[37m2025-07-04 18:17:40 60894 - 134645379217088 - adapter.model_sdk.gemini.client - DEBUG - ============================================================================================[0m
+[36m2025-07-04 18:17:40 60894 - 134645379217088 - adapter.event.event_adapter - INFO - 事件发布 ---> [df8d522a-7a3d-4b08-bcd3-b5629437ed4a - ASSISTANT_MESSAGE][0m
+[36m2025-07-04 18:17:40 60894 - 134645498771136 - adapter.event.event_adapter - INFO - 事件组[1c938116-44ac-48ef-bd23-f2bdf1410b74]处理完成EventGroupStatus.ENDED，线程退出[0m
+[36m2025-07-04 18:17:40 60894 - 134645387609792 - application.service.event_handler.assistant_message_event_handler - INFO - 组事件[1c938116-44ac-48ef-bd23-f2bdf1410b74]结束，结果：id='1c938116-44ac-48ef-bd23-f2bdf1410b74' status=<EventGroupStatus.ENDED: 'ENDED'> - <ctrl46><ctrl46><ctrl46><ctrl46>你好，梁俊景！很高兴认识你。
+
+有什么可以帮你的吗？[0m
+[36m2025-07-04 18:17:40 60894 - 134645387609792 - application.domain.events.event_collector - INFO - 事件组[1c938116-44ac-48ef-bd23-f2bdf1410b74]处理完成，共16个事件[0m
+[33m2025-07-04 18:17:40 60894 - 134645615994176 - common.core.connection_manager - WARNING - 发送ws消息：{"id":"df8d522a-7a3d-4b08-bcd3-b5629437ed4a","client_id":"03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927","type":"ASSISTANT_MESSAGE","sub_type":"MESSAGE","data":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","conversation_id":"b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6","dialog_segment_id":"62a382f0-1ec9-4b0d-9906-b70fa023e0b2","generator_id":"94421076-e90a-4cf0-8fd1-98f1fd91e5f9","model":"gemini-2.5-pro","firm":"google","content":"景！很高兴认识你。\n\n有什么可以帮你的吗？","reasoning_content":null,"created":1751624260,"finish_reason":"stop"},"payload":{"agent_instance_id":null,"mcp_name_list":[],"tools_group_name_list":[],"json_result":null,"json_type":null},"created":1751624260,"silent":false,"group":{"id":"1c938116-44ac-48ef-bd23-f2bdf1410b74","status":"ENDED"},"source":"LLM_HANDLER"}[0m
+[36m2025-07-04 18:17:40 60894 - 134645379217088 - adapter.task.task_manager - INFO - 任务 7f5eae63-7934-4ea4-9be4-44985564b582 执行完成[0m
+[36m2025-07-04 18:17:40 60894 - 134645379217088 - adapter.task.task_manager - INFO - 任务 7f5eae63-7934-4ea4-9be4-44985564b582 回调: Task 7f5eae63-7934-4ea4-9be4-44985564b582 completed successfully[0m
+[36m2025-07-04 18:17:40 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:53180 - "GET /api/conversation/list HTTP/1.1" 200[0m
+[36m2025-07-04 18:54:15 60894 - 134645615994176 - __main__ - INFO - connection close -> client_id[03cdcef0-58c0-11f0-8faf-0170b03e2aab-1751624216927][0m
+[36m2025-07-04 18:54:16 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:54245 - "GET /api/mcp_server/list?server_name=&server_type= HTTP/1.1" 200[0m
+[36m2025-07-04 18:54:16 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:54246 - "GET /api/tag?tag_type=mcp_server_tag HTTP/1.1" 200[0m
+[36m2025-07-04 19:00:08 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:55661 - "GET /api/conversation/list HTTP/1.1" 200[0m
+[36m2025-07-04 19:00:10 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:55691 - "GET /api/conversation/list HTTP/1.1" 200[0m
+[36m2025-07-04 19:00:10 60894 - 134645615994176 - websockets.server - INFO - connection open[0m
+[36m2025-07-04 19:00:10 60894 - 134645615994176 - __main__ - INFO - connection open -> client_id[0d9cbcb0-58c6-11f0-8faf-0170b03e2aab-1751626810363][0m
+[36m2025-07-04 19:00:10 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:55693 - "GET /api/mcp_server/enabled_list HTTP/1.1" 200[0m
+[36m2025-07-04 19:00:10 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:55694 - "GET /api/agent/load_all HTTP/1.1" 200[0m
+[36m2025-07-04 19:00:10 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:55694 - "GET /api/conversation?conversation_id=b1eea2f0-ea47-4fde-a908-5bf6ce6ef6e6 HTTP/1.1" 200[0m
+[36m2025-07-04 19:00:10 60894 - 134645615994176 - uvicorn.access - INFO - 127.0.0.1:55693 - "GET /api/model/enabled_model/list HTTP/1.1" 200[0m

@@ -54,7 +54,11 @@ class ToolTaskHandler(TaskHandler):
             self.execute_tools(task)
 
     def execute_tools(self, task):
+        logger.info('task ++++++++++++++++++++++++++++++')
+        logger.info(task)
         tool_call_list: List[ToolInstance] = ToolInstance.from_task_data(task)
+        logger.info('tool_call_list +++++++++++++++++++++++++++++')
+        logger.info(tool_call_list)
         asyncio.run(self._tools_call(tool_call_list))
         # 工具调用结果
         # 封装工具调用结果事件的工具结果
@@ -102,6 +106,8 @@ class ToolTaskHandler(TaskHandler):
         for tool_call in tool_call_list:
             tool_call_task_list.append(self.tools_port.call_tools(tool_call))
             logger.info(f"需要调用工具：{tool_call.tool_call_id}-{tool_call.name}-{tool_call.arguments}")
+            logger.info('tool_call ####################')
+            logger.info(tool_call)
         results = await asyncio.gather(*tool_call_task_list)
         logger.debug(f"工具调用结果：{results}")
         for tool_call_result in results:

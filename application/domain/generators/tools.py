@@ -10,6 +10,7 @@ class ToolType(Enum):
     工具类型
     """
     MCP="MCP"
+    HTTP="HTTP"
     LOCAL="LOCAL"
 
 class Tool(BaseModel):

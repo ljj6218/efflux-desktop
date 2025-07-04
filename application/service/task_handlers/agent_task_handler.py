@@ -83,6 +83,7 @@ class AgentTaskHandler(TaskHandler):
             agent_instance.run()
             self.agent_port.save_instance_info(agent_instance.get_info())
         # 执行agent
+        logger.info(f"agent执行 *****************")
         agent_instance.execute(history_message_list=history_conversation.convert_sort_memory(), payload=task.payload, client_id=task.client_id)
 
 

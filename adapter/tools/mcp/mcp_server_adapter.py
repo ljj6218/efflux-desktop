@@ -4,7 +4,8 @@ from application.domain.mcp_server import MCPServer
 from application.port.outbound.mcp_server_port import MCPServerPort
 from common.core.container.annotate import component
 from common.utils.json_file_util import JSONFileUtil
-
+from common.core.logger import get_logger
+logger = get_logger(__name__)
 @component
 class MCPServerAdapter(MCPServerPort):
 
@@ -55,13 +56,26 @@ class MCPServerAdapter(MCPServerPort):
         return server_name
 
     def load_applied(self, server_name: str) -> Optional[MCPServer]:
+        logger.info('load_applied server_name -------------------- 0')
+        logger.info(server_name)
+        logger.info('load_applied self.user_mcp_servers_file_url -------------------- 1')
+        logger.info(self.user_mcp_servers_file_url)
+
         user_mcp_servers = JSONFileUtil(self.user_mcp_servers_file_url)
+        logger.info('load_applied self.user_mcp_servers -------------------- 2')
+        logger.info(user_mcp_servers)
         mcp_server_dict = user_mcp_servers.read_key(server_name)
+        logger.info('load_applied self.mcp_server_dict -------------------- 3')
+        logger.info(mcp_server_dict)
         if not mcp_server_dict:
             return None
+        logger.info('load_applied self.mcp_server_dict -------------------- 4')
         mcp_server: MCPServer = MCPServer.model_validate(mcp_server_dict)
+        logger.info('load_applied self.mcp_server_dict -------------------- 5')
         mcp_server.applied = True
         mcp_server.server_name = server_name
+        logger.info('load_applied mcp_server -------------------- 6')
+        logger.info(mcp_server)
         return mcp_server
 
     def load_applied_list(self, server_name: Optional[str] = None) -> List[MCPServer]:

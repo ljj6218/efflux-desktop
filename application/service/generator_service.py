@@ -118,6 +118,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
 
         # 工具装载
         tools: List[Tool] = []
+        logger.info('GeneratorService generate_test ------------------------------------')
         for mcp_name in mcp_name_list:
             tools.extend(await self.tools_port.load_tools(group_name=mcp_name, tool_type=ToolType.MCP))
 
@@ -140,6 +141,7 @@ class GeneratorService(ModelCase, GeneratorsCase):
         llm_generator: LLMGenerator = self._llm_generator(generator_id)
         # 工具装载
         tools: List[Tool] = []
+        logger.info('GeneratorService generate ------------------------------------')
         for mcp_name in mcp_name_list:
             tools.extend(await self.tools_port.load_tools(group_name=mcp_name, tool_type=ToolType.MCP))
         message_list = []

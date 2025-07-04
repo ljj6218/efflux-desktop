@@ -10,6 +10,10 @@ from adapter.tools.local.tools_adapter import LocalToolsAdapter
 import jsonlines
 import injector
 
+from common.core.logger import get_logger
+logger = get_logger(__name__)
+
+
 @component
 class ToolsManager(ToolsPort):
 
@@ -101,6 +105,23 @@ class ToolsManager(ToolsPort):
 
     async def call_tools(self, tool_instance: ToolInstance) -> dict[str, Any]:
         if tool_instance.type == ToolType.MCP:
+            logger.info("ToolsManager call_tools tool_instance ===========")
+            logger.info(tool_instance)
+            '''
+            - mcp_server_name: 'echo-name'
+            - group_name: None
+            - name: 'greet'
+            - description: None
+            - input_schema: None
+            - type: <ToolType.MCP: 'MCP'>
+            - conversation_id: '1e6c1a15-6d08-4ebf-96e5-4b9b59289c0a'
+            - dialog_segment_id: 'd1100704-a894-4196-8322-2a3bf8b6bc89'
+            - tool_call_id: None
+            - arguments:
+                - name: '梁俊景'
+            - result: None
+
+            '''
             return await self.mcp_tools_adapter.call_tools(tool_instance)
         if tool_instance.type == ToolType.LOCAL:
             return await self.local_tools_adapter.call_tools(tool_instance)

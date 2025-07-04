@@ -36,6 +36,7 @@ class TaskManager(TaskPort):
     def _long_task(self, task: Task, task_handler: TaskHandler):
         try:
             logger.info(f"开始执行任务 {task.id} 类型: {task.type}")
+            logger.info(f"_long_task 执行 *****************")
             result = task_handler.execute(task)
 
             # 检查返回值是否是协程对象

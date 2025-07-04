@@ -91,8 +91,12 @@ class LLMTaskHandler(TaskHandler):
         llm_generator: LLMGenerator = self._llm_generator(generator_id)
         # 工具装载
         tools: List[Tool] = []
+        logger.info('LLMTaskHandler execute ------------------------------------')
+        logger.info('task ------------------------------------')
+        logger.info(task)
         for mcp_name in mcp_name_list:
-            tools.extend(asyncio.run(self.tools_port.load_tools(group_name=mcp_name, tool_type=ToolType.MCP)))
+            tools.extend(asyncio.run(self.tools_port.load_tools(
+                group_name=mcp_name, tool_type=ToolType.MCP)))
         for tools_group_name in tools_group_name_list:
             tools.extend(asyncio.run(self.tools_port.load_tools(group_name=tools_group_name, tool_type=ToolType.LOCAL)))
 
