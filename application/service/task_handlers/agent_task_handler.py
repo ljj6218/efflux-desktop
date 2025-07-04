@@ -71,10 +71,11 @@ class AgentTaskHandler(TaskHandler):
         agent_instance.init_info(agent_info=agent_info)
         # payload 设置
         if "json_result" in task.payload and "content" in task.data: # LLM返回的json结果
-            logger.info(f"task: {task}")
+            # logger.info(f"task: {task}")
             if task.payload['json_result']:
                 logger.info(f"agent接受json结果{task.data["content"]}")
-                task.payload['json_result_data'] = json.loads(task.data["content"])
+                # task.payload['json_result_data'] = json.loads(task.data["content"])
+                task.payload['json_result_data'] = task.data["content"]
             else:
                 task.payload['content'] = task.data["content"]
 
