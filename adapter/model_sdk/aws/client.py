@@ -158,7 +158,10 @@ class AmazonClient(ModelClient):
                         current_tool_input += partial_json
                     elif delta.get('type') == 'text_delta' or current_tool_name == 'json_output':
                         # 处理普通文本响应
-                        text = delta.get('text', '') or delta.get('partial_json', '')
+                        if delta.get('type') == 'text_delta':
+                            text = delta.get('text', '')
+                        else:
+                            text = delta.get('partial_json', '')
                         if text:
                             yield ChatStreamingChunk.from_assistant(
                                 id=create_uuid(),
