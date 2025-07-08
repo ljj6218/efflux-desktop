@@ -110,12 +110,12 @@ class ClientManager(GeneratorsPort):
         generator_list: List[LLMGenerator] = []
         client: ModelClient = self._get_model_client(firm=firm_name)
         model_type_list = client.model_list(firm_setting.get('fields'))
-        for model_type_i in model_type_list:
-            if model_type_i in enabled_generators_type_map.keys():
-                LLM_generator_info = enabled_generators_type_map[model_type_i]
+        for model_type in model_type_list:
+            if model_type in enabled_generators_type_map.keys():
+                LLM_generator_info = enabled_generators_type_map[model_type]
                 generator_list.append(LLMGenerator.model_validate(LLM_generator_info))
             else:
-                generator_list.append(LLMGenerator.from_disabled(firm=firm_name, model=model_type_i))
+                generator_list.append(LLMGenerator.from_disabled(firm=firm_name, model=model_type))
         return generator_list
 
     def load_enabled_model_by_firm(self, firm_name: str) -> List[LLMGenerator]:
@@ -266,7 +266,7 @@ class ClientManager(GeneratorsPort):
             return GeminiClient()
         if firm == "anthropic":
             return AnthropicClient()
-        if firm == "Amazon Bedrock":
+        if firm == "amazon_bedrock":
             return AmazonClient()
-        if firm == "Azure OpenAI":
+        if firm == "azure_openai":
             return AzureClient()

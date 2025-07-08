@@ -273,17 +273,21 @@ class AzureClient(ModelClient):
         logger.info("model_list method is called")
         self._init_azure(args[0])
         try:
-            r = self.client.models.list()
+            response = self.client.models.list()
+            model_obj_list = response.data
+            return list(set([model_obj.id for model_obj in model_obj_list]))
         except NotFoundError as e:
             raise BusinessException(
                 error_code=CommonErrorCode.INVALID_TOKEN,
-                dynamics_message='无效的模型厂商配置，请检查配置'
+                dynamics_message='The configured model firm is invalid. Please check the configuration.'
             )
         except Exception as e:
             logger.error("Failed to get model list: ")
             logger.error(traceback.format_exc())
-        model_obj_list = r.data
-        return list(set([model_obj_i.id for model_obj_i in model_obj_list]))
+            raise BusinessException(
+                error_code=CommonErrorCode.INVALID_TOKEN,
+                dynamics_message='Failed to get the model list. Please check your network.'
+            )
 
     def _convert_azure_messages(self, message_list: Iterable[ChatStreamingChunk]) -> List[dict]:
         """Convert ChatStreamingChunk list to Azure OpenAI message format"""
