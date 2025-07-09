@@ -39,6 +39,7 @@ class ClientManager(GeneratorsPort):
             "claude-sonnet-4": 64000,
             "claude-3-7-sonnet": 64000,
             "claude-3-5-sonnet": 8192,
+            "Claude 3.5 Sonnet": 8192,
             "claude-3-5-haiku": 8192,
             "claude-3-opus": 4096,
             "gemini-1.5": 8192,
@@ -86,7 +87,8 @@ class ClientManager(GeneratorsPort):
                 if firm_model_dict:
                     generator_list.append(LLMGenerator.model_validate(firm_model_dict))
                 else:
-                    generator_list.append(LLMGenerator.from_disabled(firm=firm_name, model=model))
+                    generator_list.append(LLMGenerator.from_disabled(
+                        firm=firm_name, model=model, generators_type=model))
         return generator_list
 
     def load_model_by_api(self, firm_name: str) -> List[LLMGenerator]:
@@ -115,7 +117,8 @@ class ClientManager(GeneratorsPort):
                 LLM_generator_info = enabled_generators_type_map[model_type]
                 generator_list.append(LLMGenerator.model_validate(LLM_generator_info))
             else:
-                generator_list.append(LLMGenerator.from_disabled(firm=firm_name, model=model_type))
+                generator_list.append(LLMGenerator.from_disabled(
+                    firm=firm_name, generators_type=model_type))
         return generator_list
 
     def load_enabled_model_by_firm(self, firm_name: str) -> List[LLMGenerator]:
@@ -140,8 +143,9 @@ class ClientManager(GeneratorsPort):
         if enabled:
             output_token_limit = None
             for key in self.max_token_map.keys():
-                if model.startswith(key):
+                if model.startswith(key) or (model_type and model_type in key):
                     output_token_limit = self.max_token_map[key]
+                    break
 
             llm_generator: LLMGenerator = LLMGenerator.from_init(
                 firm=firm, model=model, generators_type=model_type,

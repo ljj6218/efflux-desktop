@@ -80,7 +80,7 @@ class AmazonClient(ModelClient):
             bedrock_tools = self._convert_bedrock_tools(tools)
         # 通用JSON工具配置
         tool_config = {}
-        if "json_object" in generation_kwargs.keys() and generation_kwargs["json_object"]:
+        if generation_kwargs.get("json_object"):
             # 定义一个通用的JSON工具
             tool_config = {
                 "tools": [
@@ -99,10 +99,14 @@ class AmazonClient(ModelClient):
                     "name": "json_output"
                 }
             }
+        # 最大token数
+        max_tokens = 4000
+        if generation_kwargs.get("output_token_limit"):
+            max_tokens = generation_kwargs["output_token_limit"]
         try:
             body = {
                 "anthropic_version": "bedrock-2023-05-31",
-                "max_tokens": 4000,
+                "max_tokens": max_tokens,
                 "temperature": 0.1,
                 "messages": bedrock_messages
             }
@@ -504,6 +508,30 @@ class AmazonClient(ModelClient):
                 region_name=args[0].get('AWS_REGION'))
             response = bedrock_client.list_foundation_models()
             models = response["modelSummaries"]
+            '''
+            {
+                "modelArn": "arn:aws:bedrock:us-east-1::foundation-model/mistral.pixtral-large-2502-v1:0",
+                "modelId": "mistral.pixtral-large-2502-v1:0",
+                "modelName": "Pixtral Large (25.02)",
+                "providerName": "Mistral AI",
+                "inputModalities": [
+                    "TEXT",
+                    "IMAGE"
+                ],
+                "outputModalities": [
+                    "TEXT"
+                ],
+                "responseStreamingSupported": true,
+                "customizationsSupported": [],
+                "inferenceTypesSupported": [
+                    "INFERENCE_PROFILE"
+                ],
+                "modelLifecycle": {
+                    "status": "ACTIVE"
+                }
+                }
+            ]
+            '''
             return list(set([i.get('modelName') for i in models]))
         except SSLError as e:
             raise BusinessException(
